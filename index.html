@@ -38,7 +38,7 @@
       margin-right: auto;
     }
 
-    /* Sticky Header */
+    /* Header */
     .app-header {
       position: sticky;
       top: 0;
@@ -55,7 +55,7 @@
     .app-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.2px; }
     .sync-badge { font-size: 0.7rem; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* Tab Content Views */
+    /* Views */
     .tab-view { display: none; padding: 12px; }
     .tab-view.active { display: block; }
 
@@ -84,7 +84,7 @@
     .stat-val { font-size: 1.35rem; font-weight: 800; color: var(--text); }
     .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; margin-top: 2px; }
 
-    /* Inputs & Selects */
+    /* Inputs */
     label { font-size: 0.82rem; font-weight: 700; display: block; margin-bottom: 6px; color: var(--text); }
     select, input[type="text"] {
       width: 100%;
@@ -128,7 +128,7 @@
       outline: none;
     }
 
-    /* KPI Financials */
+    /* Financial KPIs */
     .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .kpi-tile { padding: 10px 12px; border-radius: 10px; text-align: center; }
     .kpi-tile.billing { background: var(--success-bg); color: var(--success-text); }
@@ -175,7 +175,7 @@
 
     .btn-action:active { background: var(--primary-dark); }
 
-    /* Product Catalog Cards */
+    /* Catalog Cards */
     .category-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
     .pill {
       background: #E2E8F0;
@@ -201,19 +201,19 @@
     .prod-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
     .prod-title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
     .prod-cat { font-size: 0.65rem; font-weight: 800; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-    .prod-comp { font-size: 0.78rem; font-weight: 600; color: var(--subtext); margin-bottom: 10px; line-height: 1.3; }
+    .prod-comp { font-size: 0.8rem; font-weight: 700; color: #2563EB; margin-bottom: 10px; line-height: 1.35; background: #F0F9FF; padding: 6px 8px; border-radius: 6px; }
 
     .prod-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #F8FAFC; padding: 8px; border-radius: 8px; text-align: center; }
     .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
 
-    /* Orders Tab */
+    /* Orders Log */
     .order-item { background: #FFF; border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .order-info { font-size: 0.85rem; font-weight: 700; }
     .order-date { font-size: 0.7rem; color: var(--subtext); font-weight: 500; }
     .order-amt { font-size: 0.95rem; font-weight: 800; color: var(--success-text); }
 
-    /* Bottom Navigation Bar */
+    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -250,7 +250,7 @@
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Header -->
   <div class="app-header">
     <div class="app-title">EICW Sales Desk</div>
     <div class="sync-badge">OFFLINE READY</div>
@@ -278,7 +278,7 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        All products, schemes, compositions, and prices are stored locally on this device. Fully functional without an internet connection.
+        All products, exact compositions, schemes, and prices are stored locally. Fully functional without internet connection.
       </p>
     </div>
   </div>
@@ -329,7 +329,7 @@
   <!-- TAB 3: PRODUCTS CATALOG -->
   <div class="tab-view" id="tab-products">
     <div style="margin-bottom: 10px;">
-      <input type="text" id="searchProduct" placeholder="Search product or composition..." oninput="renderProducts()">
+      <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
     </div>
 
     <div class="category-pills">
@@ -337,7 +337,7 @@
       <button class="pill" onclick="filterCategory('Syrup', this)">Syrups</button>
       <button class="pill" onclick="filterCategory('Tablet', this)">Tablets</button>
       <button class="pill" onclick="filterCategory('Capsule', this)">Capsules</button>
-      <button class="pill" onclick="filterCategory('Ointment', this)">Ointments/Drops</button>
+      <button class="pill" onclick="filterCategory('Ointment/Drops', this)">Ointments & Drops</button>
     </div>
 
     <div id="productList"></div>
@@ -375,23 +375,23 @@
   <script>
     const CATALOG = [
       { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid (Urinary Alkalizer)", mrp: 100, tpGst: 80.00, costGst: 40.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Ayurvedic Liver Tonic & Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Pepsin Digestive Enzyme Syrup", mrp: 85, tpGst: 67.99, costGst: 33.99, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Pepsin Digestive Enzyme Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
-      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Hepatoprotective & Liver Corrective Herbal Formula", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Hepatoprotective syrup; pairing P2-Z protects gastric mucosal lining." },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Paracetamol & Analgesic Pediatric Oral Suspension", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment", composition: "Pediatric Hepatic Support Drops", mrp: 130, tpGst: 47.99, costGst: 23.99, cross: "Palavit-L 100ml", crossCost: 32.00, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Multivitamin + L-Lysine Growth Syrup", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Multivitamin + L-Lysine Growth & Appetite Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment", composition: "Itraconazole 1% w/w & Clobetasol Ointment", mrp: 89.1, tpGst: 71.25, costGst: 28.50, cross: "Elmon", crossCost: 28.53, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg", mrp: 65, tpGst: 51.98, costGst: 20.79, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
-      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Serratiopeptidase 15mg", mrp: 102, tpGst: 81.76, costGst: 32.71, cross: "Relief-DSR", crossCost: 33.60, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
-      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Chlorzoxazone 250mg", mrp: 92.8, tpGst: 74.32, costGst: 29.73, cross: "Relief-DSR", crossCost: 33.60, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
-      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg + Montelukast 10mg", mrp: 89.1, tpGst: 71.33, costGst: 28.53, cross: "Itronol-C", crossCost: 28.50, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
-      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg + Domperidone 30mg SR Capsules", mrp: 105, tpGst: 84.00, costGst: 33.60, cross: "Epinac-P", crossCost: 20.79, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
-      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Enzymatic Digestive Health Formulation", mrp: 70, tpGst: 56.00, costGst: 22.40, cross: "Relief-DSR", crossCost: 33.60, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene + Multivitamins + Zinc + Minerals Capsules", mrp: 210, tpGst: 168.00, costGst: 67.20, cross: "P2Z", crossCost: 40.00, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Prebiotic & Probiotic with Zinc Capsules", mrp: 125, tpGst: 100.00, costGst: 40.00, cross: "Neoliv", crossCost: 51.98, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Ayurvedic Liver Corrective & Appetite Stimulant Herbal Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol Syrup (Sugar Free)", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Hepatoprotective sugar-free syrup; pairing P2-Z protects gastric mucosal lining." },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Digestive Enzyme Syrup", mrp: 85, tpGst: 67.99, costGst: 33.99, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Digestive Enzyme Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Paracetamol & Mefenamic Acid Oral Suspension", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Pediatric Ayurvedic Liver Support Drops", mrp: 130, tpGst: 47.99, costGst: 23.99, cross: "Palavit-L 100ml", crossCost: 32.00, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Multivitamin with L-Lysine & Zinc Syrup", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Multivitamin with L-Lysine & Zinc Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole 1% w/w, Clobetasol Propionate & Ofloxacin Ointment", mrp: 89.1, tpGst: 71.25, costGst: 28.50, cross: "Elmon", crossCost: 28.53, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg Tablets", mrp: 65, tpGst: 51.98, costGst: 20.79, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Serratiopeptidase 15mg Tablets", mrp: 102, tpGst: 81.76, costGst: 32.71, cross: "Relief-DSR", crossCost: 33.60, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Chlorzoxazone 250mg Tablets", mrp: 92.8, tpGst: 74.32, costGst: 29.73, cross: "Relief-DSR", crossCost: 33.60, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine Dihydrochloride 5mg + Montelukast Sodium 10mg Tablets", mrp: 89.1, tpGst: 71.33, costGst: 28.53, cross: "Itronol-C", crossCost: 28.50, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole Sodium 20mg + Domperidone 30mg Sustained Release Capsules", mrp: 105, tpGst: 84.00, costGst: 33.60, cross: "Epinac-P", crossCost: 20.79, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal Tablets", mrp: 70, tpGst: 56.00, costGst: 22.40, cross: "Relief-DSR", crossCost: 33.60, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene with Multivitamins, Minerals & Zinc Softgel Capsules", mrp: 210, tpGst: 168.00, costGst: 67.20, cross: "P2Z", crossCost: 40.00, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Prebiotic & Probiotic with Zinc Sulphate Capsules", mrp: 125, tpGst: 100.00, costGst: 40.00, cross: "Neoliv", crossCost: 51.98, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
     ];
 
     let currentCategory = 'ALL';
@@ -493,7 +493,7 @@
             <div class="prod-title">${p.name}</div>
             <span class="prod-cat">${p.category}</span>
           </div>
-          <div class="prod-comp">${p.composition}</div>
+          <div class="prod-comp">🧪 ${p.composition}</div>
           <div class="prod-metrics">
             <div>
               <div class="pm-val">₹${p.mrp}</div>
