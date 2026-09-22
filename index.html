@@ -153,7 +153,6 @@
     .btn-danger { background: #EF4444; }
     .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; border: none; font-weight: 800; cursor: pointer; }
 
-    /* Cart Items Table/List */
     /* Cart Items List */
     .cart-item {
       background: #F8FAFC;
@@ -202,7 +201,6 @@
     .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
 
-    /* Orders Log */
     /* Orders Log Cards */
     .order-card {
       background: #FFF;
@@ -213,7 +211,6 @@
     }
     .order-party { font-size: 1rem; font-weight: 800; color: var(--text); }
     .order-addr { font-size: 0.78rem; font-weight: 600; color: var(--subtext); margin-bottom: 8px; }
-    .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 4px 0; display: flex; justify-content: space-between; }
     .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 6px 0; }
     .order-item-title { font-weight: 700; color: var(--text); display: flex; justify-content: space-between; }
     .order-item-scheme { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
@@ -283,7 +280,6 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Multi-product cart, client details tagging, validated salt compositions, and offline order logging active.
         Multi-product cart, stockist order forwarding, individual edit/delete, doctor profit % tracking active.
       </p>
     </div>
@@ -304,7 +300,7 @@
     <!-- Product / Item Selector Card -->
     <div class="card">
       <div class="card-title">2. Add Item To Cart</div>
-
+      
       <label for="productSelect">Select Product</label>
       <select id="productSelect"></select>
 
@@ -354,20 +350,17 @@
           <div class="kpi-value" id="cartTotalCogs">₹0</div>
         </div>
         <div class="kpi-tile profit">
-          <div class="kpi-label">Net Profit & Margin %</div>
           <div class="kpi-label">Net Commission & Margin %</div>
           <div class="kpi-value" id="cartTotalProfit">₹0 (0%)</div>
         </div>
       </div>
 
       <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
-        <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0</strong></span>
         <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0 (0%)</strong></span>
         <span>Items Count: <strong id="cartItemCount" style="color: var(--text);">0</strong></span>
       </div>
 
       <button class="btn-action" style="background: #059669; margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
-      <button class="btn-action btn-whatsapp" onclick="shareWhatsApp()">💬 Share Quote via WhatsApp</button>
       <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">💬 Share Draft Quote via WhatsApp</button>
       <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
     </div>
@@ -394,8 +387,6 @@
   <div class="tab-view" id="tab-orders">
     <div class="card">
       <div class="card-title">Saved Orders Log</div>
-      <div id="ordersList">No orders logged today.</div>
-      <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order Log</button>
       <div id="ordersList">No orders logged yet.</div>
       <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
     </div>
@@ -483,7 +474,7 @@
       const selectedId = document.getElementById('productSelect').value;
       const item = CATALOG.find(p => p.id === selectedId) || CATALOG[0];
       const scheme = document.getElementById('schemeSelect').value;
-
+      
       const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
       const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
       const totalQty = buyQty + freeQty;
@@ -538,23 +529,18 @@
 
     function renderCart() {
       const cartListEl = document.getElementById('cartItemsList');
-
+      
       if (currentCart.length === 0) {
         cartListEl.innerHTML = '<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Add products above.</p>';
         document.getElementById('cartTotalBilling').textContent = '₹0';
         document.getElementById('cartTotalCogs').textContent = '₹0';
         document.getElementById('cartTotalProfit').textContent = '₹0 (0%)';
-        document.getElementById('cartDocProfit').textContent = '₹0';
         document.getElementById('cartDocProfit').textContent = '₹0 (0%)';
         document.getElementById('cartItemCount').textContent = '0';
         return;
       }
 
       cartListEl.innerHTML = '';
-      let totBilling = 0;
-      let totCogs = 0;
-      let totProfit = 0;
-      let totDocProfit = 0;
       let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
 
       currentCart.forEach(item => {
@@ -585,7 +571,6 @@
       document.getElementById('cartTotalBilling').textContent = `₹${totBilling.toLocaleString('en-IN')}`;
       document.getElementById('cartTotalCogs').textContent = `₹${totCogs.toLocaleString('en-IN')}`;
       document.getElementById('cartTotalProfit').textContent = `₹${totProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
-      document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')}`;
       document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')} (${docProfitPct.toFixed(2)}%)`;
       document.getElementById('cartItemCount').textContent = currentCart.length;
     }
@@ -595,20 +580,16 @@
       const address = document.getElementById('partyAddress').value.trim();
 
       if (!name) {
-        alert("Please enter the Doctor / Chemist Name before saving!");
         alert("Please enter Doctor / Chemist Name!");
         document.getElementById('partyName').focus();
         return;
       }
 
       if (currentCart.length === 0) {
-        alert("Your order cart is empty! Add at least one product.");
         alert("Your order cart is empty!");
         return;
       }
 
-      let totBilling = 0, totCogs = 0, totProfit = 0;
-      currentCart.forEach(i => { totBilling += i.billing; totCogs += i.cogs; totProfit += i.profit; });
       let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
       currentCart.forEach(i => {
         totBilling += i.billing;
@@ -623,7 +604,6 @@
       }
 
       const orderRecord = {
-        id: Date.now(),
         id: editingOrderId || Date.now(),
         partyName: name,
         partyAddress: address || 'N/A',
@@ -639,7 +619,6 @@
       };
 
       savedOrders.unshift(orderRecord);
-      localStorage.setItem('eicw_orders_v2', JSON.stringify(savedOrders));
       localStorage.setItem('eicw_orders_v3', JSON.stringify(savedOrders));
 
       currentCart = [];
@@ -653,7 +632,6 @@
       switchTab('orders');
     }
 
-    function shareWhatsApp() {
     function forwardOrderWhatsApp(orderId) {
       const order = savedOrders.find(o => o.id === orderId);
       if (!order) return;
@@ -682,12 +660,10 @@
     function shareCartWhatsApp() {
       const name = document.getElementById('partyName').value.trim() || 'Valued Client';
       if (currentCart.length === 0) {
-        alert("Add products to cart to generate WhatsApp quote!");
         alert("Cart is empty! Add products to generate quote.");
         return;
       }
 
-      let msg = `*EICW Sales Quote for ${name}*\n------------------------------\n`;
       let msg = `*EICW PROVISIONAL QUOTE*\n*Client:* ${name}\n------------------------------\n`;
       let totBilling = 0;
 
@@ -696,7 +672,6 @@
         msg += `${idx+1}. *${item.name}*\n   Qty: ${item.buyQty} Paid + ${item.freeQty} Free\n   Scheme: ${item.scheme}\n   Amount: ₹${item.billing}\n\n`;
       });
 
-      msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*\nThank you for your business!`;
       msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
@@ -710,8 +685,6 @@
       currentCart = [...order.items];
       editingOrderId = order.id;
 
-      const encoded = encodeURIComponent(msg);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
       renderCart();
       switchTab('calc');
     }
@@ -725,7 +698,6 @@
     }
 
     function loadOrdersLog() {
-      const stored = localStorage.getItem('eicw_orders_v2');
       const stored = localStorage.getItem('eicw_orders_v3');
       savedOrders = stored ? JSON.parse(stored) : [];
       const ordersEl = document.getElementById('ordersList');
@@ -745,8 +717,6 @@
           o.items.forEach(it => {
             itemsHtml += `
               <div class="order-item-line">
-                <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
-                <strong>₹${it.billing}</strong>
                 <div class="order-item-title">
                   <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
                   <strong>₹${it.billing.toLocaleString('en-IN')}</strong>
@@ -762,8 +732,6 @@
             <div class="order-party">👤 ${o.partyName}</div>
             <div class="order-addr">📍 ${o.partyAddress} | 🕒 ${o.date} ${o.time}</div>
             ${itemsHtml}
-            <div style="margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: var(--success-text); text-align: right;">
-              Total: ₹${o.billing.toLocaleString('en-IN')}
             <div style="margin-top: 8px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem;">
               <span style="color: var(--subtext);">Doctor Profit: <strong style="color: var(--text);">₹${o.docProfit.toLocaleString('en-IN')} (${o.docProfitPct.toFixed(2)}%)</strong></span>
               <span style="color: var(--success-text);">Total: ₹${o.billing.toLocaleString('en-IN')}</span>
@@ -785,7 +753,6 @@
     function clearOrdersLog() {
       if (confirm('Clear entire saved order history?')) {
         savedOrders = [];
-        localStorage.removeItem('eicw_orders_v2');
         localStorage.removeItem('eicw_orders_v3');
         loadOrdersLog();
       }
