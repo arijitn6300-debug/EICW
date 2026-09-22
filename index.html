@@ -7,24 +7,27 @@
   <link rel="manifest" href="manifest.json">
   <style>
     :root {
-      --primary: #1e293b;
-      --accent: #2563eb;
+      --primary: #059669;
+      --primary-dark: #047857;
       --bg: #f8fafc;
       --card-bg: #ffffff;
-      --text: #334155;
+      --text: #1e293b;
+      --subtext: #64748b;
       --border: #e2e8f0;
+      --accent: #2563eb;
+      --danger: #ef4444;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
       margin: 0;
-      padding: 0 0 70px 0;
+      padding: 0 0 75px 0;
       color: var(--text);
     }
     header {
-      background-color: var(--primary);
+      background-color: var(--primary-dark);
       color: white;
-      padding: 16px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -39,68 +42,127 @@
     }
     .container {
       max-width: 600px;
-      margin: 16px auto;
-      padding: 0 16px;
+      margin: 12px auto;
+      padding: 0 12px;
     }
-    .tab-content {
+    .tab-view {
       display: none;
     }
-    .tab-content.active {
+    .tab-view.active {
       display: block;
     }
     .card {
       background: var(--card-bg);
-      padding: 20px;
+      padding: 16px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      margin-bottom: 16px;
-    }
-    h3 { margin-top: 0; color: var(--primary); }
-    .form-group {
       margin-bottom: 14px;
+    }
+    .card-title {
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 12px;
+      font-size: 1.05rem;
     }
     label {
       display: block;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 5px;
-      color: #64748b;
+      margin-bottom: 4px;
+      color: var(--subtext);
     }
     input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       box-sizing: border-box;
+      margin-bottom: 10px;
     }
-    .row-2 {
+    .qty-controls {
       display: flex;
-      gap: 12px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    .row-2 .form-group {
-      flex: 1;
-    }
-    .results-panel {
-      background: #f1f5f9;
-      border-radius: 8px;
-      padding: 14px;
-      margin-top: 16px;
-    }
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px dashed var(--border);
-      font-size: 0.9rem;
-    }
-    .result-row:last-child { border-bottom: none; }
-    .result-row.highlight {
+    .qty-controls input {
+      text-align: center;
+      margin-bottom: 0;
       font-weight: bold;
-      color: var(--accent);
-      font-size: 1rem;
     }
-    /* Bottom Navigation */
+    .btn-qty {
+      background: var(--border);
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-action {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-whatsapp { background-color: #25D366; }
+    .btn-danger { background-color: var(--danger); }
+
+    /* Category Pills */
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .pill {
+      background: #e2e8f0;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .pill.active {
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Product Item */
+    .prod-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    .prod-name { font-weight: bold; font-size: 1rem; color: var(--primary-dark); }
+    .prod-comp { font-size: 0.8rem; color: var(--subtext); margin: 4px 0 8px 0; }
+    .prod-meta { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .kpi-tile {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .kpi-label { font-size: 0.75rem; color: var(--subtext); }
+    .kpi-value { font-weight: bold; font-size: 1rem; margin-top: 2px; }
+
+    /* Bottom Nav */
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -110,224 +172,380 @@
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
+      padding: 8px 0;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
-    .nav-item {
+    .nav-btn {
       background: none;
       border: none;
-      color: #64748b;
+      color: var(--subtext);
       font-size: 0.75rem;
       text-align: center;
       cursor: pointer;
       flex: 1;
     }
-    .nav-item.active {
-      color: var(--accent);
+    .nav-btn.active {
+      color: var(--primary);
       font-weight: bold;
     }
-    .nav-item span { display: block; font-size: 1.2rem; }
+    .nav-btn span { display: block; font-size: 1.2rem; }
   </style>
 </head>
 <body>
 
   <header>
     <span>EICW Sales Desk</span>
-    <span class="offline-badge">OFFLINE READY</span>
+    <span class="offline-badge">OFFLINE</span>
   </header>
 
   <div class="container">
 
-    <!-- HOME TAB -->
-    <div id="tab-home" class="tab-content active">
-      <div class="card" style="text-align: center;">
-        <h3>Quick Summary</h3>
-        <div style="display: flex; justify-content: space-around; margin-top: 16px;">
+    <!-- TAB 1: DASHBOARD / CALCULATOR -->
+    <div class="tab-view active" id="tab-home">
+      <div class="card">
+        <div class="card-title">1. Select Product & Scheme</div>
+        
+        <label>Select Product</label>
+        <select id="productSelect" onchange="loadSelectedProduct()">
+          <!-- Populated by JS -->
+        </select>
+
+        <label>Scheme Type</label>
+        <select id="schemeType" onchange="recalculate()">
+          <option value="Standard scheme">Standard scheme</option>
+          <option value="Lot With Free Items">Lot With Free Items</option>
+          <option value="Lot Adjust in Cash %" selected>Lot Adjust in Cash %</option>
+        </select>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div>
-            <div style="font-size: 1.2rem; font-weight: bold;">₹<span id="homeSales">0</span></div>
-            <div style="font-size: 0.8rem; color: #64748b;">TODAY'S SALES</div>
+            <label>Paid Qty (Ratio Base)</label>
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="changeQty('paidQty', -1)">-</button>
+              <input type="number" id="paidQty" value="5" min="0" oninput="recalculate()">
+              <button class="btn-qty" onclick="changeQty('paidQty', 1)">+</button>
+            </div>
           </div>
           <div>
-            <div style="font-size: 1.2rem; font-weight: bold;">₹<span id="homeProfit">0</span></div>
-            <div style="font-size: 0.8rem; color: #64748b;">EST. PROFIT</div>
+            <label>Free Qty (Ratio Base)</label>
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
+              <input type="number" id="freeQty" value="2" min="0" oninput="recalculate()">
+              <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style="color: var(--accent);">Doctor Requested Qty (Order Qty)</label>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="changeQty('orderQty', -1)">-</button>
+            <input type="number" id="orderQty" value="5" min="1" oninput="recalculate()" style="border-color: var(--accent);">
+            <button class="btn-qty" onclick="changeQty('orderQty', 1)">+</button>
+          </div>
+        </div>
+
+        <button class="btn-action" style="background: var(--primary-dark); margin-top: 8px;" onclick="addToCart()">+ Add Item To Order Cart</button>
+      </div>
+
+      <!-- Financial Summary -->
+      <div class="card">
+        <div class="card-title">2. Order Financial Breakdown</div>
+        <div class="kpi-grid">
+          <div class="kpi-tile">
+            <div class="kpi-label">Total Billing</div>
+            <div class="kpi-value" id="calcBilling">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Out-Of-Pocket Cost</div>
+            <div class="kpi-value" id="calcCost">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Net Profit</div>
+            <div class="kpi-value" id="calcProfit">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Doctor Savings</div>
+            <div class="kpi-value" id="calcDocSavings">₹0.00</div>
           </div>
         </div>
       </div>
+
+      <!-- Cart Summary -->
       <div class="card">
-        <h3>Quick Actions</h3>
-        <button onclick="switchTab('calculator')" style="width:100%; padding: 12px; background:var(--accent); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px;">+ Open Scheme Calculator</button>
-        <button onclick="switchTab('products')" style="width:100%; padding: 12px; background:#475569; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">View Full Catalog</button>
-      </div>
-    </div>
-
-    <!-- CALCULATOR TAB -->
-    <div id="tab-calculator" class="tab-content">
-      <div class="card">
-        <h3>Scheme Calculator</h3>
-
-        <div class="form-group">
-          <label>Product MRP (₹)</label>
-          <input type="number" id="mrp" value="100" oninput="recalculate()">
+        <div class="card-title">3. Order Cart Summary (<span id="cartItemCount">0</span>)</div>
+        <div id="cartItemsList">
+          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>
         </div>
-
-        <div class="form-group">
-          <label>Scheme Type</label>
-          <select id="schemeType" onchange="recalculate()">
-            <option value="Standard scheme">Standard Scheme</option>
-            <option value="Lot With Free Items">Lot With Free Items</option>
-            <option value="Lot Adjust in Cash %" selected>Lot Adjust in Cash %</option>
-          </select>
-        </div>
-
-        <div class="row-2">
-          <div class="form-group">
-            <label>Scheme Paid Base</label>
-            <input type="number" id="schemePaidQty" value="5" oninput="recalculate()">
+        <div class="kpi-grid" style="margin-top: 12px;">
+          <div class="kpi-tile">
+            <div class="kpi-label">Total Cart Billing</div>
+            <div class="kpi-value" id="cartTotalBilling">₹0</div>
           </div>
-          <div class="form-group">
-            <label>Scheme Free Base</label>
-            <input type="number" id="schemeFreeQty" value="2" oninput="recalculate()">
+          <div class="kpi-tile">
+            <div class="kpi-label">Total Cart Cost</div>
+            <div class="kpi-value" id="cartTotalCogs">₹0</div>
           </div>
         </div>
-
-        <div class="form-group">
-          <label style="color: var(--accent);">Doctor Requested Qty (Bottles)</label>
-          <input type="number" id="orderQty" value="5" oninput="recalculate()" style="border-color: var(--accent); font-weight: bold;">
-        </div>
-
-        <div class="row-2">
-          <div class="form-group">
-            <label>Cost Per Unit (COGS)</label>
-            <input type="number" id="costPerUnit" value="40" oninput="recalculate()">
-          </div>
-          <div class="form-group">
-            <label>TP + GST Per Unit</label>
-            <input type="number" id="tpGst" value="80" oninput="recalculate()">
-          </div>
-        </div>
-
-        <div class="results-panel">
-          <div class="result-row highlight">
-            <span>Total Billing Amount:</span>
-            <span>₹<span id="outBilling">0.00</span></span>
-          </div>
-          <div class="result-row">
-            <span>Out-Of-Pocket Cost:</span>
-            <span>₹<span id="outCost">0.00</span></span>
-          </div>
-          <div class="result-row">
-            <span>Net Profit:</span>
-            <span>₹<span id="outNetProfit">0.00</span> (<span id="outNetProfitPct">0.00</span>%)</span>
-          </div>
-          <div class="result-row">
-            <span>Doctor Savings / Profit:</span>
-            <span>₹<span id="outDocProfit">0.00</span> (<span id="outDocProfitPct">0.00</span>%)</span>
-          </div>
-          <div class="result-row">
-            <span>Per Unit Cost to Doctor:</span>
-            <span>₹<span id="outDocUnitCost">0.00</span> / btl</span>
-          </div>
-        </div>
+        <button class="btn-action" style="background: var(--primary); margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
+        <button class="btn-action btn-whatsapp" style="margin-top: 6px;" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
+        <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
       </div>
     </div>
 
-    <!-- PRODUCTS TAB -->
-    <div id="tab-products" class="tab-content">
-      <div class="card">
-        <h3>Product Catalog</h3>
-        <p style="color: #64748b; font-size: 0.9rem;">Catalog items loaded successfully.</p>
-        <ul style="padding-left: 20px; line-height: 1.6;">
-          <li>Alvisol - MRP: ₹100 (TP: ₹80, COGS: ₹40)</li>
-          <li>Sample Product 2 - MRP: ₹150</li>
-        </ul>
+    <!-- TAB 2: PRODUCTS CATALOG -->
+    <div class="tab-view" id="tab-products">
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
       </div>
+
+      <div class="category-pills">
+        <button class="pill active" onclick="filterCategory('ALL', this)">All</button>
+        <button class="pill" onclick="filterCategory('Syrup', this)">Syrups</button>
+        <button class="pill" onclick="filterCategory('Tablet', this)">Tablets</button>
+        <button class="pill" onclick="filterCategory('Capsule', this)">Capsules</button>
+        <button class="pill" onclick="filterCategory('Ointment/Drops', this)">Ointments & Drops</button>
+      </div>
+
+      <div id="productList"></div>
     </div>
 
-    <!-- ORDERS TAB -->
-    <div id="tab-orders" class="tab-content">
+    <!-- TAB 3: RECENT ORDERS -->
+    <div class="tab-view" id="tab-orders">
       <div class="card">
-        <h3>Order History</h3>
-        <p style="color: #64748b; font-size: 0.9rem;">No recent orders saved yet.</p>
+        <div class="card-title">Saved Orders Log</div>
+        <div id="ordersList">No orders logged yet.</div>
+        <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
       </div>
     </div>
 
   </div>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchTab('home')">
-      <span>🏠</span> Home
+    <button class="nav-btn active" onclick="switchTab('tab-home', this)">
+      <span>🧮</span> Calc
     </button>
-    <button class="nav-item" onclick="switchTab('calculator')">
-      <span>🧮</span> Calculator
+    <button class="nav-btn" onclick="switchTab('tab-products', this)">
+      <span>💊</span> Catalog
     </button>
-    <button class="nav-item" onclick="switchTab('products')">
-      <span>💊</span> Products
-    </button>
-    <button class="nav-item" onclick="switchTab('orders')">
+    <button class="nav-btn" onclick="switchTab('tab-orders', this)">
       <span>📋</span> Orders
     </button>
   </nav>
 
   <script>
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById('tab-' + tabId).classList.add('active');
-      
-      event && event.currentTarget && event.currentTarget.classList.add('active');
+    const CATALOG = [
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00 },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99 },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99 },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79 },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71 },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60 },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40 },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20 },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00 }
+    ];
+
+    let currentCategory = "ALL";
+    let cart = [];
+    let savedOrders = [];
+
+    function init() {
+      const pSelect = document.getElementById("productSelect");
+      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      renderProducts();
+      recalculate();
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    function changeQty(fieldId, delta) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      let val = Number(input.value) || 0;
+      val = Math.max((fieldId === 'orderQty' ? 1 : 0), val + delta);
+      input.value = val;
+      recalculate();
     }
 
     function recalculate() {
-      const mrp = Number(document.getElementById("mrp").value) || 0;
+      const pId = document.getElementById("productSelect").value;
+      const product = CATALOG.find(p => p.id === pId) || CATALOG[0];
+
       const schemeType = document.getElementById("schemeType").value;
-      const schemePaidQty = Number(document.getElementById("schemePaidQty").value) || 0;
-      const schemeFreeQty = Number(document.getElementById("schemeFreeQty").value) || 0;
-      const orderQty = Number(document.getElementById("orderQty").value) || 0;
-      const costPerUnit = Number(document.getElementById("costPerUnit").value) || 0;
-      const tpGst = Number(document.getElementById("tpGst").value) || 0;
+      const paidQty = Number(document.getElementById("paidQty").value) || 0;
+      const freeQty = Number(document.getElementById("freeQty").value) || 0;
+      const orderQty = Number(document.getElementById("orderQty").value) || paidQty;
 
       let billingAmount = 0;
-      let cogs = orderQty * costPerUnit;
-      let schemeCost = 0;
+      let cogs = orderQty * product.costGst;
 
       if (schemeType === "Standard scheme") {
-        billingAmount = orderQty * tpGst;
-        schemeCost = 0;
-      } 
-      else if (schemeType === "Lot With Free Items") {
-        billingAmount = orderQty * mrp;
-        schemeCost = schemeFreeQty * costPerUnit;
-      } 
-      else if (schemeType === "Lot Adjust in Cash" || schemeType === "Lot Adjust in Cash %") {
-        const totalSchemeBase = schemePaidQty + schemeFreeQty;
-        const discountRatio = totalSchemeBase > 0 ? (schemeFreeQty / totalSchemeBase) : 0;
-        
-        billingAmount = (orderQty * mrp) * (1 - discountRatio);
-        schemeCost = 0;
+        billingAmount = orderQty * product.tpGst;
+      } else if (schemeType === "Lot With Free Items") {
+        billingAmount = orderQty * product.mrp;
+        cogs += (freeQty * product.costGst);
+      } else if (schemeType === "Lot Adjust in Cash" || schemeType === "Lot Adjust in Cash %") {
+        const totalBase = paidQty + freeQty;
+        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
       }
 
-      const totalOutofPocketCost = cogs + schemeCost;
-      const netProfit = billingAmount - totalOutofPocketCost;
-      const netProfitPercent = billingAmount > 0 ? (netProfit / billingAmount) * 100 : 0;
+      const netProfit = billingAmount - cogs;
+      const doctorSavings = (orderQty * product.mrp) - billingAmount;
 
-      const grossMrpValue = orderQty * mrp;
-      const doctorProfit = grossMrpValue - billingAmount;
-      const doctorProfitPercent = grossMrpValue > 0 ? (doctorProfit / grossMrpValue) * 100 : 0;
-      const perUnitCostToDoctor = orderQty > 0 ? billingAmount / orderQty : 0;
-
-      document.getElementById("outBilling").innerText = billingAmount.toFixed(2);
-      document.getElementById("outCost").innerText = totalOutofPocketCost.toFixed(2);
-      document.getElementById("outNetProfit").innerText = netProfit.toFixed(2);
-      document.getElementById("outNetProfitPct").innerText = netProfitPercent.toFixed(2);
-      document.getElementById("outDocProfit").innerText = doctorProfit.toFixed(2);
-      document.getElementById("outDocProfitPct").innerText = doctorProfitPercent.toFixed(2);
-      document.getElementById("outDocUnitCost").innerText = perUnitCostToDoctor.toFixed(2);
+      document.getElementById("calcBilling").innerText = `₹${billingAmount.toFixed(2)}`;
+      document.getElementById("calcCost").innerText = `₹${cogs.toFixed(2)}`;
+      document.getElementById("calcProfit").innerText = `₹${netProfit.toFixed(2)}`;
+      document.getElementById("calcDocSavings").innerText = `₹${doctorSavings.toFixed(2)}`;
     }
 
-    document.addEventListener("DOMContentLoaded", recalculate);
-  </script>
+    function loadSelectedProduct() {
+      recalculate();
+    }
 
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const search = document.getElementById("searchProduct").value.toLowerCase();
+      const listContainer = document.getElementById("productList");
+
+      const filtered = CATALOG.filter(p => {
+        const matchCat = (currentCategory === "ALL" || p.category === currentCategory);
+        const matchSearch = p.name.toLowerCase().includes(search) || p.composition.toLowerCase().includes(search);
+        return matchCat && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<p style="text-align:center; color:var(--subtext);">No products found.</p>`;
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(p => `
+        <div class="prod-card">
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-comp">${p.composition}</div>
+          <div class="prod-meta">
+            <span>MRP: ₹${p.mrp}</span>
+            <span>TP+GST: ₹${p.tpGst}</span>
+            <span>COGS: ₹${p.costGst}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addToCart() {
+      const pId = document.getElementById("productSelect").value;
+      const product = CATALOG.find(p => p.id === pId);
+      const schemeType = document.getElementById("schemeType").value;
+      const paidQty = Number(document.getElementById("paidQty").value) || 0;
+      const freeQty = Number(document.getElementById("freeQty").value) || 0;
+      const orderQty = Number(document.getElementById("orderQty").value) || 1;
+
+      const totalBase = paidQty + freeQty;
+      const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+      const billing = (orderQty * product.mrp) * (1 - discountRatio);
+      const cogs = orderQty * product.costGst;
+
+      cart.push({
+        name: product.name,
+        orderQty: orderQty,
+        scheme: `${paidQty}+${freeQty}`,
+        billing: billing,
+        cogs: cogs
+      });
+
+      renderCart();
+    }
+
+    function renderCart() {
+      document.getElementById("cartItemCount").innerText = cart.length;
+      const cartList = document.getElementById("cartItemsList");
+      if (cart.length === 0) {
+        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
+        document.getElementById("cartTotalBilling").innerText = "₹0";
+        document.getElementById("cartTotalCogs").innerText = "₹0";
+        return;
+      }
+
+      let totalB = 0, totalC = 0;
+      cartList.innerHTML = cart.map((item, idx) => {
+        totalB += item.billing;
+        totalC += item.cogs;
+        return `
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding: 4px 0; border-bottom: 1px dashed var(--border);">
+            <span>${item.name} (${item.orderQty} btl, Scheme: ${item.scheme})</span>
+            <span>₹${item.billing.toFixed(2)}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById("cartTotalBilling").innerText = `₹${totalB.toFixed(2)}`;
+      document.getElementById("cartTotalCogs").innerText = `₹${totalC.toFixed(2)}`;
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function saveOrder() {
+      if (cart.length === 0) return alert("Cart is empty!");
+      savedOrders.push({ id: Date.now(), items: [...cart] });
+      cart = [];
+      renderCart();
+      renderOrdersLog();
+      alert("Order saved successfully!");
+    }
+
+    function renderOrdersLog() {
+      const container = document.getElementById("ordersList");
+      if (savedOrders.length === 0) {
+        container.innerHTML = "No orders logged yet.";
+        return;
+      }
+      container.innerHTML = savedOrders.map((o, idx) => `
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:0.85rem;">
+          <strong>Order #${idx + 1}</strong> (${o.items.length} items)
+        </div>
+      `).join('');
+    }
+
+    function clearOrdersLog() {
+      savedOrders = [];
+      renderOrdersLog();
+    }
+
+    function shareCartWhatsApp() {
+      if (cart.length === 0) return alert("Cart is empty!");
+      let text = "EICW Sales Quote:\n";
+      cart.forEach(i => {
+        text += `- ${i.name} x ${i.orderQty} (Scheme ${i.scheme}): ₹${i.billing.toFixed(2)}\n`;
+      });
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
