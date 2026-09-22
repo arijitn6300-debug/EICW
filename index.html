@@ -271,7 +271,7 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Master validated products, flexible lot ratios (5+2, 10+4), multi-scheme math, and rounding rules saved locally.
+        Master validated active salt compositions, flexible lot ratios (5+2, 10+4), multi-scheme math, and rounding rules saved locally.
       </p>
     </div>
   </div>
@@ -391,24 +391,24 @@
 
   <script>
     const CATALOG = [
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Herbal Extracts (Bhringraj, Kalmegh, Punarnava), Liver Tonic", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
       { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
       { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Hepatoprotective sugar-free syrup; pairing P2-Z protects gastric mucosal lining." },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Paracetamol & Mefenamic Acid, Analgesic", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Pediatric Herbal Extracts, Liver Tonic", mrp: 60, tpGst: 47.99, costGst: 23.99, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Multivitamins, L-Lysine & Zinc, Appetite Stimulant", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Multivitamins, L-Lysine & Zinc, Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole 1% w/w, Clobetasol Propionate & Ofloxacin, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Bronchodilator & expectorant cough syrup; pairing Relief-DSR prevents stomach irritation." },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99, pitch: "Pediatric appetite drops; pairing Palavit-L supports infant growth and weight gain." },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Pediatric multivitamin & lysine syrup; pairing Relief-DSR ensures optimal GI absorption." },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances appetite and nutritional recovery." },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50, pitch: "Broad-spectrum dermal cream; pairing Elmon provides complete internal and external symptom relief." },
       { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
       { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
       { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
       { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
       { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
       { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Multivitamins, Minerals & Zinc, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Prebiotic, Probiotic & Zinc Sulphate, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
     ];
 
     let currentCategory = 'ALL';
