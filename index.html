@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EICW Sales Desk</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 90%; }
+    .app-title { font-size: 24px; font-weight: bold; color: #0f172a; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="app-title">EICW Sales Desk</div>
+    <p>Welcome to EICW App!</p>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
