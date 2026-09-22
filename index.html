@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,44 +17,74 @@
       --accent: #2563eb;
       --danger: #ef4444;
       --warning: #d97706;
+      --tile-bg: #f1f5f9;
+      --info-bg: #e0f2fe;
+      --info-text: #0369a1;
     }
+
+    [data-theme="dark"] {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --subtext: #94a3b8;
+      --border: #334155;
+      --accent: #3b82f6;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --tile-bg: #334155;
+      --info-bg: #1e3a8a;
+      --info-text: #bae6fd;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0 0 75px 0;
-      color: var(--text);
+      transition: background-color 0.2s, color 0.2s;
     }
+
     header {
       background-color: var(--primary-dark);
       color: white;
-      padding: 14px 16px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 600;
     }
-    .offline-badge {
-      background: #10b981;
+
+    .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
       color: white;
-      font-size: 0.75rem;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
     }
+
     .container {
       max-width: 600px;
       margin: 12px auto;
       padding: 0 12px;
     }
+
     .tab-view { display: none; }
     .tab-view.active { display: block; }
+
     .card {
       background: var(--card-bg);
       padding: 16px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       margin-bottom: 14px;
+      border: 1px solid var(--border);
     }
+
     .card-title {
       font-weight: bold;
       color: var(--text);
@@ -64,13 +94,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .badge-edit {
-      background: var(--warning);
-      color: white;
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
+
     label {
       display: block;
       font-size: 0.85rem;
@@ -78,34 +102,42 @@
       margin-bottom: 4px;
       color: var(--subtext);
     }
+
     input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
       border-radius: 6px;
       font-size: 0.95rem;
       box-sizing: border-box;
       margin-bottom: 10px;
     }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+
     .qty-controls {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 12px;
     }
+
     .qty-controls input {
       text-align: center;
       margin-bottom: 0;
       font-weight: bold;
     }
+
     .btn-qty {
-      background: var(--border);
-      border: none;
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
       width: 38px;
       height: 38px;
       border-radius: 6px;
@@ -113,6 +145,43 @@
       font-weight: bold;
       cursor: pointer;
     }
+
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .health-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .health-high { background: #dcfce7; color: #15803d; }
+    .health-mid { background: #fef9c3; color: #a16207; }
+    .health-low { background: #fee2e2; color: #b91c1c; }
+
     .btn-action {
       width: 100%;
       padding: 11px;
@@ -124,6 +193,7 @@
       margin-bottom: 8px;
       font-size: 0.9rem;
     }
+
     .btn-sm {
       padding: 6px 10px;
       font-size: 0.8rem;
@@ -132,6 +202,7 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .btn-whatsapp { background-color: #25D366; }
     .btn-danger { background-color: var(--danger); }
     .btn-warning { background-color: var(--warning); color: white; }
@@ -144,15 +215,18 @@
       padding-bottom: 8px;
       margin-bottom: 12px;
     }
+
     .pill {
-      background: #e2e8f0;
-      border: none;
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
       padding: 6px 14px;
       border-radius: 20px;
       font-size: 0.85rem;
       white-space: nowrap;
       cursor: pointer;
     }
+
     .pill.active {
       background: var(--primary);
       color: white;
@@ -164,9 +238,10 @@
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 10px;
-      background: #fff;
+      background: var(--card-bg);
     }
-    .prod-name { font-weight: bold; font-size: 1rem; color: var(--primary-dark); }
+
+    .prod-name { font-weight: bold; font-size: 1rem; color: var(--primary); }
     .prod-comp { font-size: 0.8rem; color: var(--subtext); margin: 4px 0 8px 0; }
     .prod-meta { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
 
@@ -175,11 +250,13 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+
     .kpi-tile {
-      background: #f1f5f9;
+      background: var(--tile-bg);
       padding: 10px;
       border-radius: 8px;
     }
+
     .kpi-label { font-size: 0.75rem; color: var(--subtext); }
     .kpi-value { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
 
@@ -188,8 +265,9 @@
       border-radius: 10px;
       padding: 14px;
       margin-bottom: 12px;
-      background: #ffffff;
+      background: var(--card-bg);
     }
+
     .order-header {
       display: flex;
       justify-content: space-between;
@@ -197,14 +275,16 @@
       padding-bottom: 8px;
       margin-bottom: 8px;
     }
+
     .order-details-box {
-      background: #f8fafc;
+      background: var(--tile-bg);
       padding: 10px;
       border-radius: 6px;
       font-size: 0.82rem;
       margin-top: 8px;
       display: none;
     }
+
     .order-actions {
       display: flex;
       gap: 6px;
@@ -217,13 +297,14 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: white;
+      background: var(--card-bg);
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
       padding: 8px 0;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
+
     .nav-btn {
       background: none;
       border: none;
@@ -233,10 +314,12 @@
       cursor: pointer;
       flex: 1;
     }
+
     .nav-btn.active {
       color: var(--primary);
       font-weight: bold;
     }
+
     .nav-btn span { display: block; font-size: 1.2rem; }
   </style>
 </head>
@@ -244,7 +327,9 @@
 
   <header>
     <span>EICW Sales Desk</span>
-    <span class="offline-badge">OFFLINE</span>
+    <div>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 / ☀️ Mode</button>
+    </div>
   </header>
 
   <div class="container">
@@ -277,8 +362,8 @@
     <div class="tab-view" id="tab-calc">
       <div class="card">
         <div class="card-title">
-          <span>1. Customer Details</span>
-          <span id="editingBadge" class="badge-edit" style="display:none;">Editing Order</span>
+          <span>1. Customer Directory Selection</span>
+          <span id="editingBadge" style="display:none; background:var(--warning); color:white; font-size:0.75rem; padding:2px 8px; border-radius:4px;">Editing Order</span>
         </div>
         <div class="form-row">
           <div>
@@ -291,7 +376,8 @@
           </div>
           <div>
             <label>Doctor/Chemist Name</label>
-            <input type="text" id="custName" placeholder="e.g. Dr. A. K. Roy">
+            <input type="text" id="custName" list="customerDirectoryList" placeholder="Search or add name..." oninput="autoFillCustomerDetails()">
+            <datalist id="customerDirectoryList"></datalist>
           </div>
         </div>
         <div class="form-row">
@@ -307,11 +393,20 @@
       </div>
 
       <div class="card">
-        <div class="card-title">2. Select Product & Scheme</div>
+        <div class="card-title">2. Dynamic Scheme & Quantity Builder</div>
         
         <label>Select Product</label>
-        <select id="productSelect" onchange="loadSelectedProduct()">
-        </select>
+        <select id="productSelect" onchange="recalculate()"></select>
+
+        <label>One-Tap Scheme Presets</label>
+        <div class="preset-chips">
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 2)">10 + 2 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 5, 1)">5 + 1 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 4)">10 + 4 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 5, 2)">5+2 Cash %</button>
+          <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 10, 2)">10+2 Cash %</button>
+          <button class="chip" onclick="applySchemePreset('Standard scheme', 1, 0)">Standard TP</button>
+        </div>
 
         <label>Scheme Type</label>
         <select id="schemeType" onchange="recalculate()">
@@ -322,7 +417,7 @@
 
         <div class="form-row">
           <div>
-            <label>Paid Qty (Ratio Base)</label>
+            <label>Paid Qty Ratio Base</label>
             <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty('paidQty', -1)">-</button>
               <input type="number" id="paidQty" value="5" min="0" oninput="recalculate()">
@@ -330,7 +425,7 @@
             </div>
           </div>
           <div>
-            <label>Free Qty (Ratio Base)</label>
+            <label>Free Qty Ratio Base</label>
             <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
               <input type="number" id="freeQty" value="2" min="0" oninput="recalculate()">
@@ -361,9 +456,10 @@
             <div class="kpi-label">Rep Net Profit</div>
             <div class="kpi-value" id="calcProfit">₹0.00</div>
           </div>
-          <div class="kpi-tile" style="background: #e0f2fe;">
-            <div class="kpi-label" style="color:#0369a1;">Doctor Profit / Savings</div>
-            <div class="kpi-value" id="calcDocSavings" style="color:#0369a1;">₹0.00 (0%)</div>
+          <div class="kpi-tile" style="background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">Doctor Profit & Health</div>
+            <div class="kpi-value" id="calcDocSavings" style="color:var(--info-text);">₹0.00 (0%)</div>
+            <div id="calcHealthBadge"></div>
           </div>
         </div>
 
@@ -373,7 +469,7 @@
       <div class="card">
         <div class="card-title">3. Multi-Product Order Cart (<span id="cartItemCount">0</span>)</div>
         <div id="cartItemsList">
-          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Select products above to build order.</p>
+          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>
         </div>
         <div class="kpi-grid" style="margin-top: 12px;">
           <div class="kpi-tile">
@@ -384,13 +480,13 @@
             <div class="kpi-label">Total Rep Profit</div>
             <div class="kpi-value" id="cartTotalProfit">₹0.00</div>
           </div>
-          <div class="kpi-tile" style="grid-column: span 2; background: #e0f2fe;">
-            <div class="kpi-label" style="color:#0369a1;">Total Doctor Savings & Profit Margin</div>
-            <div class="kpi-value" id="cartTotalDocSavings" style="color:#0369a1;">₹0.00 (0.0% Margin)</div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">Total Doctor Savings & Overall Margin</div>
+            <div class="kpi-value" id="cartTotalDocSavings" style="color:var(--info-text);">₹0.00 (0.0% Margin)</div>
           </div>
         </div>
 
-        <button class="btn-action" style="background: var(--primary); margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
+        <button class="btn-action" style="background: var(--primary); margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Update Directory</button>
         <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
         <button class="btn-action btn-danger" onclick="clearCart()">Clear / Reset Cart</button>
       </div>
@@ -413,8 +509,15 @@
       <div id="productList"></div>
     </div>
 
-    <!-- TAB 4: RECENT SAVED ORDERS LOG -->
+    <!-- TAB 4: SAVED ORDERS & INTEGRATIONS -->
     <div class="tab-view" id="tab-orders">
+      <div class="card">
+        <div class="card-title">Cloud & Export Tools</div>
+        <button class="btn-action" style="background: #0284c7;" onclick="exportToCSV()">📊 Export Weekly CSV / Excel Report</button>
+        <button class="btn-action" style="background: #16a34a;" onclick="syncWithGoogleSheets()">☁️ Sync All Orders to Google Sheets</button>
+        <input type="url" id="googleWebhookUrl" placeholder="Enter Google Apps Script Webhook URL" style="font-size:0.8rem; margin-top:4px;" onchange="saveWebhookUrl()">
+      </div>
+
       <div class="card">
         <div class="card-title">Saved Orders Log</div>
         <div id="ordersList">No orders logged yet.</div>
@@ -441,45 +544,62 @@
 
   <script>
     const CATALOG = [
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00 },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99 },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00 },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99 },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79 },
-      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71 },
-      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
-      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
-      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60 },
-      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40 },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20 },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00 }
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl & Tricholine Citrate", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid", mrp: 100, tpGst: 80.00, costGst: 40.00 },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid", mrp: 85, tpGst: 67.99, costGst: 33.99 },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl & Tricholine Citrate", mrp: 60, tpGst: 47.99, costGst: 23.99 },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg", mrp: 65, tpGst: 51.98, costGst: 20.79 },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Serratiopeptidase", mrp: 102, tpGst: 81.76, costGst: 32.71 },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Chlorzoxazone", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg", mrp: 105, tpGst: 84.00, costGst: 33.60 },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Charcoal", mrp: 70, tpGst: 56.00, costGst: 22.40 },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3", mrp: 210, tpGst: 168.00, costGst: 67.20 },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics & Zinc Sulphate", mrp: 125, tpGst: 100.00, costGst: 40.00 }
     ];
 
     let currentCategory = "ALL";
     let cart = [];
     let savedOrders = [];
+    let customerDirectory = [];
     let editingOrderId = null;
 
     function init() {
       try {
-        const stored = localStorage.getItem('eicw_saved_orders');
-        if (stored) savedOrders = JSON.parse(stored);
-      } catch (e) {
-        savedOrders = [];
-      }
+        const storedOrders = localStorage.getItem('eicw_saved_orders');
+        if (storedOrders) savedOrders = JSON.parse(storedOrders);
+
+        const storedCustomers = localStorage.getItem('eicw_customers');
+        if (storedCustomers) customerDirectory = JSON.parse(storedCustomers);
+
+        const theme = localStorage.getItem('eicw_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        const webhook = localStorage.getItem('eicw_webhook_url') || '';
+        document.getElementById('googleWebhookUrl').value = webhook;
+      } catch (e) {}
 
       const pSelect = document.getElementById("productSelect");
       pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      
+      renderCustomerDirectoryList();
       renderProducts();
       recalculate();
       renderOrdersLog();
       updateDashboard();
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('eicw_theme', newTheme);
     }
 
     function switchTab(tabId, btn) {
@@ -494,6 +614,21 @@
       switchTab(tabId, btn);
     }
 
+    function renderCustomerDirectoryList() {
+      const datalist = document.getElementById("customerDirectoryList");
+      datalist.innerHTML = customerDirectory.map(c => `<option value="${c.name}">${c.type} - ${c.phone}</option>`).join('');
+    }
+
+    function autoFillCustomerDetails() {
+      const name = document.getElementById("custName").value.trim();
+      const matched = customerDirectory.find(c => c.name.toLowerCase() === name.toLowerCase());
+      if (matched) {
+        document.getElementById("custType").value = matched.type || "Doctor";
+        document.getElementById("custPhone").value = matched.phone || "";
+        document.getElementById("custAddress").value = matched.address || "";
+      }
+    }
+
     function changeQty(fieldId, delta) {
       const input = document.getElementById(fieldId);
       if (!input) return;
@@ -503,11 +638,15 @@
       recalculate();
     }
 
+    function applySchemePreset(type, paid, free) {
+      document.getElementById("schemeType").value = type;
+      document.getElementById("paidQty").value = paid;
+      document.getElementById("freeQty").value = free;
+      recalculate();
+    }
+
     function computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty) {
-      let billingAmount = 0;
-      let cogs = 0;
-      let docSavings = 0;
-      let totalReceivedValue = 0;
+      let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0;
 
       if (schemeType === "Standard scheme") {
         billingAmount = orderQty * product.tpGst;
@@ -553,10 +692,15 @@
       document.getElementById("calcCost").innerText = `₹${calc.cogs.toFixed(2)}`;
       document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)}`;
       document.getElementById("calcDocSavings").innerText = `₹${calc.docSavings.toFixed(2)} (${calc.docMarginPct.toFixed(1)}%)`;
-    }
 
-    function loadSelectedProduct() {
-      recalculate();
+      const healthBadge = document.getElementById("calcHealthBadge");
+      if (calc.docMarginPct >= 20) {
+        healthBadge.innerHTML = `<span class="health-badge health-high">🟢 Excellent (≥20%)</span>`;
+      } else if (calc.docMarginPct >= 10) {
+        healthBadge.innerHTML = `<span class="health-badge health-mid">🟡 Moderate (10-20%)</span>`;
+      } else {
+        healthBadge.innerHTML = `<span class="health-badge health-low">🔴 Low Margin (<10%)</span>`;
+      }
     }
 
     function filterCategory(cat, btn) {
@@ -607,7 +751,6 @@
       cart.push({
         id: product.id,
         name: product.name,
-        category: product.category,
         orderQty: orderQty,
         schemeType: schemeType,
         paidQty: paidQty,
@@ -634,7 +777,7 @@
       const cartList = document.getElementById("cartItemsList");
       
       if (cart.length === 0) {
-        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Select products above to build order.</p>`;
+        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
         document.getElementById("cartTotalBilling").innerText = "₹0.00";
         document.getElementById("cartTotalProfit").innerText = "₹0.00";
         document.getElementById("cartTotalDocSavings").innerText = "₹0.00 (0.0% Margin)";
@@ -687,9 +830,21 @@
       if (cart.length === 0) return alert("Please add at least one item to cart!");
 
       const custType = document.getElementById("custType").value;
-      const custName = document.getElementById("custName").value.trim() || "General Order";
+      const custName = document.getElementById("custName").value.trim() || "General Customer";
       const custPhone = document.getElementById("custPhone").value.trim() || "N/A";
       const custAddress = document.getElementById("custAddress").value.trim() || "N/A";
+
+      if (custName !== "General Customer") {
+        const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custName.toLowerCase());
+        const newCustObj = { name: custName, type: custType, phone: custPhone, address: custAddress };
+        if (existingIdx !== -1) {
+          customerDirectory[existingIdx] = newCustObj;
+        } else {
+          customerDirectory.push(newCustObj);
+        }
+        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        renderCustomerDirectoryList();
+      }
 
       const totalBilling = cart.reduce((sum, i) => sum + i.billing, 0);
       const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
@@ -744,7 +899,7 @@
               <div style="font-size:0.75rem; color:var(--subtext);">${o.date}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-weight:bold; color:var(--primary-dark);">₹${(o.totalBilling || 0).toFixed(2)}</div>
+              <div style="font-weight:bold; color:var(--primary);">₹${(o.totalBilling || 0).toFixed(2)}</div>
               <div style="font-size:0.75rem; color:var(--subtext);">${o.items ? o.items.length : 0} items</div>
             </div>
           </div>
@@ -754,22 +909,18 @@
           </div>
 
           <div class="order-details-box" id="details-${o.id}">
-            <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item & Scheme Breakdown:</div>
+            <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item Breakdown:</div>
             ${(o.items || []).map(i => `
-              <div style="margin-bottom:6px; border-bottom: 1px dashed #e2e8f0; padding-bottom:4px;">
+              <div style="margin-bottom:6px; border-bottom: 1px dashed var(--border); padding-bottom:4px;">
                 <strong>${i.name}</strong> x${i.orderQty}<br>
-                <span>Scheme: ${i.schemeType === 'Standard scheme' ? 'Standard' : i.paidQty + '+' + i.freeQty + ' (' + i.schemeType + ')'}</span><br>
                 <span>Billing: ₹${i.billing.toFixed(2)} | Doc Profit: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
               </div>
             `).join('')}
-            <div style="color:var(--primary-dark); font-weight:bold; margin-top:4px;">
-              Total Doctor Profit: ₹${(o.totalDocSavings || 0).toFixed(2)}
-            </div>
           </div>
 
           <div class="order-actions">
             <button class="btn-sm btn-accent" onclick="toggleOrderDetails(${o.id})">👁️ Details</button>
-            <button class="btn-sm btn-whatsapp" onclick="shareOrderWhatsApp(${o.id})">📲 Forward to Stockist</button>
+            <button class="btn-sm btn-whatsapp" onclick="shareOrderWhatsApp(${o.id})">📲 Forward</button>
             <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
             <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
           </div>
@@ -779,9 +930,7 @@
 
     function toggleOrderDetails(orderId) {
       const el = document.getElementById(`details-${orderId}`);
-      if (el) {
-        el.style.display = el.style.display === "block" ? "none" : "block";
-      }
+      if (el) el.style.display = el.style.display === "block" ? "none" : "block";
     }
 
     function editOrder(orderId) {
@@ -801,7 +950,7 @@
     }
 
     function deleteOrder(orderId) {
-      if (confirm("Are you sure you want to delete this specific order?")) {
+      if (confirm("Delete this order?")) {
         savedOrders = savedOrders.filter(o => o.id !== orderId);
         localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
         renderOrdersLog();
@@ -810,7 +959,7 @@
     }
 
     function clearOrdersLog() {
-      if (confirm("Are you sure you want to clear ALL order history?")) {
+      if (confirm("Clear ALL history?")) {
         savedOrders = [];
         localStorage.removeItem('eicw_saved_orders');
         renderOrdersLog();
@@ -824,49 +973,75 @@
       document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
     }
 
+    function exportToCSV() {
+      if (savedOrders.length === 0) return alert("No orders available to export!");
+
+      let csv = "Order ID,Date,Customer Name,Type,Phone,Address,Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
+
+      savedOrders.forEach(o => {
+        o.items.forEach(i => {
+          const schemeStr = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.custPhone}","${o.custAddress}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
+        });
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.setAttribute("href", url);
+      a.setAttribute("download", `EICW_Weekly_Report_${new Date().toISOString().slice(0,10)}.csv`);
+      a.click();
+    }
+
+    function saveWebhookUrl() {
+      const url = document.getElementById("googleWebhookUrl").value.trim();
+      localStorage.setItem('eicw_webhook_url', url);
+    }
+
+    async function syncWithGoogleSheets() {
+      const url = localStorage.getItem('eicw_webhook_url');
+      if (!url) return alert("Please enter a valid Google Apps Script Webhook URL below first!");
+      if (savedOrders.length === 0) return alert("No orders to sync.");
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(savedOrders)
+        });
+        alert("Sync request sent successfully to Google Sheets!");
+      } catch (err) {
+        alert("Failed to sync: " + err.message);
+      }
+    }
+
     function shareOrderWhatsApp(orderId) {
       const o = savedOrders.find(item => item.id === orderId);
       if (!o) return;
 
-      let msg = `*EICW SALES ORDER LOG*\n`;
-      msg += `------------------------\n`;
-      msg += `*Customer:* ${o.custName} (${o.custType})\n`;
-      msg += `*Contact:* ${o.custPhone}\n`;
-      msg += `*Address:* ${o.custAddress}\n`;
-      msg += `*Date:* ${o.date}\n`;
-      msg += `------------------------\n`;
-      msg += `*ORDER ITEMS & SCHEMES:*\n`;
+      let msg = `*EICW SALES ORDER LOG*\n------------------------\n`;
+      msg += `*Customer:* ${o.custName} (${o.custType})\n*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n------------------------\n*ORDER ITEMS:*\n`;
 
-      o.items.forEach((item, idx) => {
-        const schemeInfo = item.schemeType === 'Standard scheme' ? 'Standard' : `${item.paidQty}+${item.freeQty} (${item.schemeType})`;
-        msg += `${idx + 1}. *${item.name}*\n   - Qty: ${item.orderQty}\n   - Scheme: ${schemeInfo}\n   - Billing: ₹${item.billing.toFixed(2)}\n`;
+      o.items.forEach((i, idx) => {
+        msg += `${idx + 1}. *${i.name}* x ${i.orderQty} - ₹${i.billing.toFixed(2)}\n`;
       });
 
-      msg += `------------------------\n`;
-      msg += `*TOTAL ORDER VALUE:* ₹${o.totalBilling.toFixed(2)}\n`;
-
+      msg += `------------------------\n*TOTAL:* ₹${o.totalBilling.toFixed(2)}\n`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
     function shareCartWhatsApp() {
       if (cart.length === 0) return alert("Cart is empty!");
-
       const custName = document.getElementById("custName").value.trim() || "Valued Customer";
-      const custType = document.getElementById("custType").value;
 
-      let msg = `*EICW ORDER DRAFT QUOTE*\n`;
-      msg += `*For:* ${custName} (${custType})\n`;
-      msg += `------------------------\n`;
-
+      let msg = `*EICW ORDER DRAFT QUOTE*\n*For:* ${custName}\n------------------------\n`;
       cart.forEach((i, idx) => {
-        const schemeInfo = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
-        msg += `${idx + 1}. *${i.name}* x ${i.orderQty} (Scheme ${schemeInfo}): ₹${i.billing.toFixed(2)}\n`;
+        msg += `${idx + 1}. *${i.name}* x ${i.orderQty}: ₹${i.billing.toFixed(2)}\n`;
       });
 
       const totalB = cart.reduce((sum, i) => sum + i.billing, 0);
-      msg += `------------------------\n`;
-      msg += `*ESTIMATED TOTAL:* ₹${totalB.toFixed(2)}\n`;
-
+      msg += `------------------------\n*TOTAL ESTIMATE:* ₹${totalB.toFixed(2)}\n`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
