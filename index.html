@@ -2,24 +2,399 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EICW Sales Desk</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0F172A">
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; max-width: 90%; }
-    .app-title { font-size: 24px; font-weight: bold; color: #0f172a; margin-bottom: 8px; }
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --subtext: #475569;
+      --primary: #2563EB;
+      --success-bg: #DCFCE7;
+      --success-text: #15803D;
+      --danger-bg: #FEE2E2;
+      --danger-text: #B91C1C;
+      --accent-bg: #E0F2FE;
+      --accent-text: #0369A1;
+      --warning-bg: #FEF3C7;
+      --warning-text: #B45309;
+      --border: #E2E8F0;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 2px 4px;
+    }
+
+    .app-title { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .sync-status { font-size: 0.75rem; font-weight: 700; color: #059669; background: #D1FAE5; padding: 4px 8px; border-radius: 12px; }
+    .sync-status.offline { color: var(--warning-text); background: var(--warning-bg); }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--subtext);
+      margin-bottom: 10px;
+    }
+
+    label { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 6px; }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #F1F5F9;
+      color: var(--text);
+      outline: none;
+    }
+
+    .qty-controls {
+      display: grid;
+      grid-template-columns: 56px 1fr 56px;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-qty {
+      background: #E2E8F0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-qty:active { background: #CBD5E1; }
+
+    input[type="number"] {
+      width: 100%;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 800;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #FFF;
+      outline: none;
+    }
+
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .kpi-tile {
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .kpi-tile.billing { background: var(--success-bg); color: var(--success-text); }
+    .kpi-tile.cogs { background: var(--danger-bg); color: var(--danger-text); }
+    .kpi-tile.profit { background: var(--accent-bg); color: var(--accent-text); grid-column: span 2; }
+
+    .kpi-value { font-size: 1.35rem; font-weight: 800; margin-top: 2px; }
+    .kpi-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
+
+    .scheme-badge {
+      background: #F1F5F9;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-top: 10px;
+      text-align: center;
+      border: 1px dashed #CBD5E1;
+    }
+
+    .cross-sell-box {
+      background: var(--warning-bg);
+      border: 1px solid #FCD34D;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--warning-text);
+    }
+
+    .cross-sell-title { font-weight: 800; font-size: 0.9rem; }
+    .cross-sell-desc { font-size: 0.82rem; margin-top: 2px; font-weight: 700; }
+
+    .pitch-text {
+      background: #F1F5F9;
+      border-left: 4px solid var(--primary);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      font-style: italic;
+      line-height: 1.4;
+      border-radius: 0 8px 8px 0;
+      margin-top: 10px;
+    }
+
+    .btn-copy {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-copy:active { opacity: 0.88; }
   </style>
 </head>
 <body>
-  <div class="card">
+
+  <div class="app-header">
     <div class="app-title">EICW Sales Desk</div>
-    <p>Welcome to EICW App!</p>
+    <div class="sync-status" id="syncStatus">Offline Mode</div>
   </div>
+
+  <!-- Product & Quantity Selection -->
+  <div class="card">
+    <div class="card-title">Product Selection</div>
+    <label for="productSelect">Select Product</label>
+    <select id="productSelect" onchange="calculate()"></select>
+
+    <div class="qty-controls">
+      <button class="btn-qty" onclick="changeQty(-1)">-</button>
+      <input type="number" id="buyQty" value="10" min="1" oninput="calculate()">
+      <button class="btn-qty" onclick="changeQty(1)">+</button>
+    </div>
+
+    <div class="scheme-badge" id="schemeBadge">10 Paid + 4 Free</div>
+  </div>
+
+  <!-- Deal Financials -->
+  <div class="card">
+    <div class="card-title">Deal Summary</div>
+    <div class="kpi-grid">
+      <div class="kpi-tile billing">
+        <div class="kpi-label">Total Billing</div>
+        <div class="kpi-value" id="valBilling">0</div>
+      </div>
+      <div class="kpi-tile cogs">
+        <div class="kpi-label">Total Cost</div>
+        <div class="kpi-value" id="valCogs">0</div>
+      </div>
+      <div class="kpi-tile profit">
+        <div class="kpi-label">Net Profit & Margin %</div>
+        <div class="kpi-value" id="valProfit">0 (0%)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cross-Sell & Doctor Pitch -->
+  <div class="card">
+    <div class="card-title">Cross-Sell & Detailing Pitch</div>
+    <div class="cross-sell-box">
+      <div class="cross-sell-title" id="crossName">Cross-Sell: None</div>
+      <div class="cross-sell-desc" id="crossStatus">Volume Tier Status</div>
+    </div>
+
+    <div class="pitch-text" id="pitchText">No pitch available.</div>
+    <button class="btn-copy" onclick="copyPitch()">Copy Doctor Pitch</button>
+  </div>
+
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+    // PASTE YOUR PUBLISHED GOOGLE SHEET CSV URL HERE IF AVAILABLE
+    const SHEET_CSV_URL = 'PASTE_YOUR_PUBLISHED_CSV_LINK_HERE';
+
+    const DEFAULT_CATALOG = [
+      { id: "Alvisol", name: "Alvisol (100ml)", mrp: 100, tpGst: 79.9995, costGst: 39.99975, cross: "Relief-DSR", crossCost: 33.60, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
+      { id: "Neoliv", name: "Neoliv (200ml)", mrp: 130, tpGst: 103.95, costGst: 51.975, cross: "P2Z", crossCost: 40.0008, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
+      { id: "Estozyme100", name: "Estozyme (100ml)", mrp: 85, tpGst: 67.9875, costGst: 33.99375, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
+      { id: "Estozyme200", name: "Estozyme (200ml)", mrp: 130, tpGst: 103.95, costGst: 51.975, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
+      { id: "Liv200", name: "Liv (200ml)", mrp: 130, tpGst: 103.95, costGst: 51.975, cross: "P2Z", crossCost: 40.0008, pitch: "Hepatoprotective syrup; pairing P2-Z protects gastric mucosal lining." },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", mrp: 80, tpGst: 63.9975, costGst: 31.99875, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", mrp: 130, tpGst: 47.985, costGst: 23.9925, cross: "Palavit-L 100ml", crossCost: 31.99875, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", mrp: 80, tpGst: 63.9975, costGst: 31.99875, cross: "Relief-DSR", crossCost: 33.60, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", mrp: 130, tpGst: 103.95, costGst: 51.975, cross: "Relief-DSR", crossCost: 33.60, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
+      { id: "ItronolC", name: "Itronol-C (15gm)", mrp: 89.1, tpGst: 71.253, costGst: 28.5012, cross: "Elmon", crossCost: 28.5306, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", mrp: 65, tpGst: 51.975, costGst: 20.79, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", mrp: 102, tpGst: 81.7635, costGst: 32.7054, cross: "Relief-DSR", crossCost: 33.60, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", mrp: 92.8, tpGst: 74.319, costGst: 29.7276, cross: "Relief-DSR", crossCost: 33.60, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", mrp: 89.1, tpGst: 71.3265, costGst: 28.5306, cross: "Itronol-C", crossCost: 28.5012, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", mrp: 105, tpGst: 84.00, costGst: 33.60, cross: "Epinac-P", crossCost: 20.79, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", mrp: 70, tpGst: 55.9965, costGst: 22.3986, cross: "Relief-DSR", crossCost: 33.60, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", mrp: 210, tpGst: 168.00, costGst: 67.20, cross: "P2Z", crossCost: 40.0008, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", mrp: 125, tpGst: 100.002, costGst: 40.0008, cross: "Neoliv", crossCost: 51.975, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
+    ];
+
+    let catalog = [];
+
+    function initApp() {
+      const stored = localStorage.getItem('pharma_catalog');
+      if (stored) {
+        try { catalog = JSON.parse(stored); } catch(e) { catalog = DEFAULT_CATALOG; }
+      } else {
+        catalog = DEFAULT_CATALOG;
+        localStorage.setItem('pharma_catalog', JSON.stringify(DEFAULT_CATALOG));
+      }
+      populateDropdown();
+      calculate();
+      syncWithSheet();
     }
+
+    function populateDropdown() {
+      const select = document.getElementById('productSelect');
+      const currentSelected = select.value;
+      select.innerHTML = '';
+      catalog.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.name;
+        select.appendChild(opt);
+      });
+      if (currentSelected && catalog.some(p => p.id === currentSelected)) {
+        select.value = currentSelected;
+      }
+    }
+
+    async function syncWithSheet() {
+      const statusEl = document.getElementById('syncStatus');
+      if (!SHEET_CSV_URL || SHEET_CSV_URL.startsWith('PASTE_YOUR')) {
+        statusEl.textContent = 'Offline Backup Mode';
+        statusEl.classList.add('offline');
+        return;
+      }
+      if (!navigator.onLine) {
+        statusEl.textContent = 'Offline Cached';
+        statusEl.classList.add('offline');
+        return;
+      }
+
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        const text = await res.text();
+        const parsed = parseCSV(text);
+        if (parsed && parsed.length > 0) {
+          catalog = parsed;
+          localStorage.setItem('pharma_catalog', JSON.stringify(catalog));
+          populateDropdown();
+          calculate();
+          statusEl.textContent = 'Synced Live';
+          statusEl.classList.remove('offline');
+        }
+      } catch (e) {
+        statusEl.textContent = 'Offline Cached';
+        statusEl.classList.add('offline');
+      }
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n').map(line => line.split(','));
+      if (lines.length < 2) return null;
+      
+      const newCatalog = [];
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        if (!row[0]) continue;
+        newCatalog.push({
+          id: row[0].trim(),
+          name: row[1] ? row[1].trim() : row[0].trim(),
+          mrp: parseFloat(row[2]) || 0,
+          tpGst: parseFloat(row[3]) || 0,
+          costGst: parseFloat(row[4]) || 0,
+          cross: row[5] ? row[5].trim() : "None",
+          crossCost: parseFloat(row[6]) || 0,
+          pitch: row[7] ? row[7].trim() : ""
+        });
+      }
+      return newCatalog;
+    }
+
+    function changeQty(delta) {
+      const input = document.getElementById('buyQty');
+      input.value = Math.max(1, (parseInt(input.value) || 0) + delta);
+      calculate();
+    }
+
+    function calculate() {
+      const selectedId = document.getElementById('productSelect').value;
+      const item = catalog.find(p => p.id === selectedId) || catalog[0];
+      const qty = parseInt(document.getElementById('buyQty').value) || 0;
+
+      const baseFree = Math.floor(qty / 10) * 4;
+      const crossBonus = (qty >= 12 && item.cross && item.cross !== "None") ? 1 : 0;
+
+      const totalBilling = qty * item.tpGst;
+      const totalCogs = ((qty + baseFree) * item.costGst) + (crossBonus * item.crossCost);
+      const profit = totalBilling - totalCogs;
+      const marginPct = totalBilling > 0 ? (profit / totalBilling) * 100 : 0;
+
+      const billRounded = Math.ceil(totalBilling).toLocaleString('en-IN');
+      const cogsRounded = Math.ceil(totalCogs).toLocaleString('en-IN');
+      const profitRounded = Math.ceil(profit).toLocaleString('en-IN');
+
+      document.getElementById('valBilling').textContent = billRounded;
+      document.getElementById('valCogs').textContent = cogsRounded;
+      document.getElementById('valProfit').textContent = `${profitRounded} (${marginPct.toFixed(1)}%)`;
+
+      let schemeText = `${qty} Paid + ${baseFree} Free ${item.id}`;
+      if (crossBonus > 0) schemeText += ` + 1 Free ${item.cross}`;
+      document.getElementById('schemeBadge').textContent = schemeText;
+
+      document.getElementById('crossName').textContent = `Cross-Sell: ${item.cross}`;
+      if (qty >= 12) {
+        document.getElementById('crossStatus').textContent = `12+ Volume Tier UNLOCKED (+1 Free ${item.cross})`;
+      } else {
+        document.getElementById('crossStatus').textContent = `Order ${12 - qty} more to unlock 1 FREE ${item.cross}!`;
+      }
+
+      document.getElementById('pitchText').textContent = `"${item.pitch || 'No pitch available.'}"`;
+    }
+
+    function copyPitch() {
+      const text = document.getElementById('pitchText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Doctor Pitch copied to clipboard!');
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+
+    initApp();
   </script>
 </body>
 </html>
