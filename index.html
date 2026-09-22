@@ -20,6 +20,8 @@
       --danger-text: #B91C1C;
       --accent-bg: #E0F2FE;
       --accent-text: #0369A1;
+      --warning-bg: #FEF3C7;
+      --warning-text: #B45309;
       --border: #E2E8F0;
     }
 
@@ -149,8 +151,9 @@
     .btn-secondary { background: #475569; }
     .btn-whatsapp { background: #16A34A; }
     .btn-danger { background: #EF4444; }
+    .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; border: none; font-weight: 800; cursor: pointer; }
 
-    /* Cart Items Table/List */
+    /* Cart Items List */
     .cart-item {
       background: #F8FAFC;
       border: 1px solid var(--border);
@@ -198,7 +201,7 @@
     .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
 
-    /* Orders Log */
+    /* Orders Log Cards */
     .order-card {
       background: #FFF;
       border: 1px solid var(--border);
@@ -208,7 +211,10 @@
     }
     .order-party { font-size: 1rem; font-weight: 800; color: var(--text); }
     .order-addr { font-size: 0.78rem; font-weight: 600; color: var(--subtext); margin-bottom: 8px; }
-    .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 4px 0; display: flex; justify-content: space-between; }
+    .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 6px 0; }
+    .order-item-title { font-weight: 700; color: var(--text); display: flex; justify-content: space-between; }
+    .order-item-scheme { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
+    .order-actions { display: flex; gap: 6px; margin-top: 10px; }
 
     /* Bottom Nav Bar */
     .bottom-nav {
@@ -274,7 +280,7 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Multi-product cart, client details tagging, validated salt compositions, and offline order logging active.
+        Multi-product cart, stockist order forwarding, individual edit/delete, doctor profit % tracking active.
       </p>
     </div>
   </div>
@@ -344,18 +350,18 @@
           <div class="kpi-value" id="cartTotalCogs">₹0</div>
         </div>
         <div class="kpi-tile profit">
-          <div class="kpi-label">Net Profit & Margin %</div>
+          <div class="kpi-label">Net Commission & Margin %</div>
           <div class="kpi-value" id="cartTotalProfit">₹0 (0%)</div>
         </div>
       </div>
 
       <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
-        <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0</strong></span>
+        <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0 (0%)</strong></span>
         <span>Items Count: <strong id="cartItemCount" style="color: var(--text);">0</strong></span>
       </div>
 
       <button class="btn-action" style="background: #059669; margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
-      <button class="btn-action btn-whatsapp" onclick="shareWhatsApp()">💬 Share Quote via WhatsApp</button>
+      <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">💬 Share Draft Quote via WhatsApp</button>
       <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
     </div>
   </div>
@@ -381,8 +387,8 @@
   <div class="tab-view" id="tab-orders">
     <div class="card">
       <div class="card-title">Saved Orders Log</div>
-      <div id="ordersList">No orders logged today.</div>
-      <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order Log</button>
+      <div id="ordersList">No orders logged yet.</div>
+      <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
     </div>
   </div>
 
@@ -431,6 +437,7 @@
     let currentCart = [];
     let savedOrders = [];
     let currentCategory = 'ALL';
+    let editingOrderId = null;
 
     function init() {
       populateDropdown();
@@ -491,6 +498,7 @@
         cartId: Date.now() + Math.random(),
         productId: item.id,
         name: item.name,
+        mrp: item.mrp,
         scheme: scheme,
         buyQty: buyQty,
         freeQty: freeQty,
@@ -498,6 +506,7 @@
         billing: billing,
         cogs: cogs,
         profit: profit,
+        docSalesVal: docSalesVal,
         docProfit: docProfit
       };
 
@@ -513,6 +522,7 @@
     function clearCart() {
       if (confirm("Clear current cart items?")) {
         currentCart = [];
+        editingOrderId = null;
         renderCart();
       }
     }
@@ -525,21 +535,19 @@
         document.getElementById('cartTotalBilling').textContent = '₹0';
         document.getElementById('cartTotalCogs').textContent = '₹0';
         document.getElementById('cartTotalProfit').textContent = '₹0 (0%)';
-        document.getElementById('cartDocProfit').textContent = '₹0';
+        document.getElementById('cartDocProfit').textContent = '₹0 (0%)';
         document.getElementById('cartItemCount').textContent = '0';
         return;
       }
 
       cartListEl.innerHTML = '';
-      let totBilling = 0;
-      let totCogs = 0;
-      let totProfit = 0;
-      let totDocProfit = 0;
+      let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
 
       currentCart.forEach(item => {
         totBilling += item.billing;
         totCogs += item.cogs;
         totProfit += item.profit;
+        totDocSales += item.docSalesVal;
         totDocProfit += item.docProfit;
 
         const div = document.createElement('div');
@@ -558,11 +566,12 @@
       });
 
       const marginPct = totBilling > 0 ? (totProfit / totBilling) * 100 : 0;
+      const docProfitPct = totDocSales > 0 ? (totDocProfit / totDocSales) * 100 : 0;
 
       document.getElementById('cartTotalBilling').textContent = `₹${totBilling.toLocaleString('en-IN')}`;
       document.getElementById('cartTotalCogs').textContent = `₹${totCogs.toLocaleString('en-IN')}`;
       document.getElementById('cartTotalProfit').textContent = `₹${totProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
-      document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')}`;
+      document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')} (${docProfitPct.toFixed(2)}%)`;
       document.getElementById('cartItemCount').textContent = currentCart.length;
     }
 
@@ -571,35 +580,49 @@
       const address = document.getElementById('partyAddress').value.trim();
 
       if (!name) {
-        alert("Please enter the Doctor / Chemist Name before saving!");
+        alert("Please enter Doctor / Chemist Name!");
         document.getElementById('partyName').focus();
         return;
       }
 
       if (currentCart.length === 0) {
-        alert("Your order cart is empty! Add at least one product.");
+        alert("Your order cart is empty!");
         return;
       }
 
-      let totBilling = 0, totCogs = 0, totProfit = 0;
-      currentCart.forEach(i => { totBilling += i.billing; totCogs += i.cogs; totProfit += i.profit; });
+      let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
+      currentCart.forEach(i => {
+        totBilling += i.billing;
+        totCogs += i.cogs;
+        totProfit += i.profit;
+        totDocSales += i.docSalesVal;
+        totDocProfit += i.docProfit;
+      });
+
+      if (editingOrderId) {
+        savedOrders = savedOrders.filter(o => o.id !== editingOrderId);
+      }
 
       const orderRecord = {
-        id: Date.now(),
+        id: editingOrderId || Date.now(),
         partyName: name,
         partyAddress: address || 'N/A',
         items: [...currentCart],
         billing: totBilling,
         cogs: totCogs,
         profit: totProfit,
+        docSalesVal: totDocSales,
+        docProfit: totDocProfit,
+        docProfitPct: totDocSales > 0 ? (totDocProfit / totDocSales) * 100 : 0,
         date: new Date().toLocaleDateString('en-IN'),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       savedOrders.unshift(orderRecord);
-      localStorage.setItem('eicw_orders_v2', JSON.stringify(savedOrders));
+      localStorage.setItem('eicw_orders_v3', JSON.stringify(savedOrders));
 
       currentCart = [];
+      editingOrderId = null;
       document.getElementById('partyName').value = '';
       document.getElementById('partyAddress').value = '';
       renderCart();
@@ -609,14 +632,39 @@
       switchTab('orders');
     }
 
-    function shareWhatsApp() {
+    function forwardOrderWhatsApp(orderId) {
+      const order = savedOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      let msg = `*EICW BOOKED ORDER FOR STOCKIST*\n`;
+      msg += `*Client Name:* ${order.partyName}\n`;
+      msg += `*Location:* ${order.partyAddress}\n`;
+      msg += `*Date/Time:* ${order.date} ${order.time}\n`;
+      msg += `------------------------------\n`;
+
+      order.items.forEach((item, idx) => {
+        msg += `${idx + 1}. *${item.name}*\n`;
+        msg += `   • Qty: ${item.buyQty} Paid + ${item.freeQty} Free (${item.totalQty} total)\n`;
+        msg += `   • Scheme: ${item.scheme}\n`;
+        msg += `   • Billing Amount: ₹${item.billing.toLocaleString('en-IN')}\n\n`;
+      });
+
+      msg += `------------------------------\n`;
+      msg += `*TOTAL ORDER BILLING:* ₹${order.billing.toLocaleString('en-IN')}\n`;
+      msg += `*Doctor Profit:* ₹${order.docProfit.toLocaleString('en-IN')} (${order.docProfitPct.toFixed(2)}%)\n\n`;
+      msg += `Please process and dispatch this order at the earliest.`;
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function shareCartWhatsApp() {
       const name = document.getElementById('partyName').value.trim() || 'Valued Client';
       if (currentCart.length === 0) {
-        alert("Add products to cart to generate WhatsApp quote!");
+        alert("Cart is empty! Add products to generate quote.");
         return;
       }
 
-      let msg = `*EICW Sales Quote for ${name}*\n------------------------------\n`;
+      let msg = `*EICW PROVISIONAL QUOTE*\n*Client:* ${name}\n------------------------------\n`;
       let totBilling = 0;
 
       currentCart.forEach((item, idx) => {
@@ -624,14 +672,33 @@
         msg += `${idx+1}. *${item.name}*\n   Qty: ${item.buyQty} Paid + ${item.freeQty} Free\n   Scheme: ${item.scheme}\n   Amount: ₹${item.billing}\n\n`;
       });
 
-      msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*\nThank you for your business!`;
+      msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 
-      const encoded = encodeURIComponent(msg);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    function editOrder(orderId) {
+      const order = savedOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      document.getElementById('partyName').value = order.partyName;
+      document.getElementById('partyAddress').value = order.partyAddress === 'N/A' ? '' : order.partyAddress;
+      currentCart = [...order.items];
+      editingOrderId = order.id;
+
+      renderCart();
+      switchTab('calc');
+    }
+
+    function deleteOrder(orderId) {
+      if (confirm("Are you sure you want to delete this order?")) {
+        savedOrders = savedOrders.filter(o => o.id !== orderId);
+        localStorage.setItem('eicw_orders_v3', JSON.stringify(savedOrders));
+        loadOrdersLog();
+      }
     }
 
     function loadOrdersLog() {
-      const stored = localStorage.getItem('eicw_orders_v2');
+      const stored = localStorage.getItem('eicw_orders_v3');
       savedOrders = stored ? JSON.parse(stored) : [];
       const ordersEl = document.getElementById('ordersList');
 
@@ -650,8 +717,11 @@
           o.items.forEach(it => {
             itemsHtml += `
               <div class="order-item-line">
-                <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
-                <strong>₹${it.billing}</strong>
+                <div class="order-item-title">
+                  <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
+                  <strong>₹${it.billing.toLocaleString('en-IN')}</strong>
+                </div>
+                <div class="order-item-scheme">Scheme: ${it.scheme}</div>
               </div>
             `;
           });
@@ -662,8 +732,14 @@
             <div class="order-party">👤 ${o.partyName}</div>
             <div class="order-addr">📍 ${o.partyAddress} | 🕒 ${o.date} ${o.time}</div>
             ${itemsHtml}
-            <div style="margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: var(--success-text); text-align: right;">
-              Total: ₹${o.billing.toLocaleString('en-IN')}
+            <div style="margin-top: 8px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem;">
+              <span style="color: var(--subtext);">Doctor Profit: <strong style="color: var(--text);">₹${o.docProfit.toLocaleString('en-IN')} (${o.docProfitPct.toFixed(2)}%)</strong></span>
+              <span style="color: var(--success-text);">Total: ₹${o.billing.toLocaleString('en-IN')}</span>
+            </div>
+            <div class="order-actions">
+              <button class="btn-sm btn-whatsapp" style="flex:2;" onclick="forwardOrderWhatsApp(${o.id})">📲 Forward to Stockist</button>
+              <button class="btn-sm btn-secondary" style="flex:1;" onclick="editOrder(${o.id})">✏️ Edit</button>
+              <button class="btn-sm btn-danger" style="flex:1;" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
             </div>
           `;
           ordersEl.appendChild(card);
@@ -677,7 +753,7 @@
     function clearOrdersLog() {
       if (confirm('Clear entire saved order history?')) {
         savedOrders = [];
-        localStorage.removeItem('eicw_orders_v2');
+        localStorage.removeItem('eicw_orders_v3');
         loadOrdersLog();
       }
     }
