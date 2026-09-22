@@ -20,8 +20,6 @@
       --danger-text: #B91C1C;
       --accent-bg: #E0F2FE;
       --accent-text: #0369A1;
-      --warning-bg: #FEF3C7;
-      --warning-text: #B45309;
       --border: #E2E8F0;
     }
 
@@ -134,29 +132,6 @@
     .kpi-value { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
     .kpi-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
 
-    .scheme-badge {
-      background: #F1F5F9;
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-top: 10px;
-      text-align: center;
-      border: 1px dashed #CBD5E1;
-    }
-
-    .pitch-box {
-      background: #F1F5F9;
-      border-left: 4px solid var(--primary);
-      padding: 10px 12px;
-      font-size: 0.85rem;
-      color: var(--text);
-      font-style: italic;
-      line-height: 1.4;
-      border-radius: 0 8px 8px 0;
-      margin-top: 10px;
-    }
-
     .btn-action {
       width: 100%;
       margin-top: 10px;
@@ -171,7 +146,27 @@
     }
 
     .btn-action:active { background: var(--primary-dark); }
+    .btn-secondary { background: #475569; }
+    .btn-whatsapp { background: #16A34A; }
+    .btn-danger { background: #EF4444; }
 
+    /* Cart Items Table/List */
+    .cart-item {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cart-item-info { font-size: 0.85rem; font-weight: 700; }
+    .cart-item-sub { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
+    .cart-item-price { text-align: right; font-weight: 800; font-size: 0.9rem; color: var(--text); }
+    .btn-remove { background: #FEE2E2; color: #B91C1C; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; font-weight: 800; margin-left: 8px; cursor: pointer; }
+
+    /* Catalog Cards */
     .category-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
     .pill {
       background: #E2E8F0;
@@ -203,11 +198,19 @@
     .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
 
-    .order-item { background: #FFF; border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .order-info { font-size: 0.85rem; font-weight: 700; }
-    .order-date { font-size: 0.7rem; color: var(--subtext); font-weight: 500; }
-    .order-amt { font-size: 0.95rem; font-weight: 800; color: var(--success-text); }
+    /* Orders Log */
+    .order-card {
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .order-party { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .order-addr { font-size: 0.78rem; font-weight: 600; color: var(--subtext); margin-bottom: 8px; }
+    .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 4px 0; display: flex; justify-content: space-between; }
 
+    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -264,28 +267,39 @@
 
     <div class="card">
       <div class="card-title">Quick Actions</div>
-      <button class="btn-action" onclick="switchTab('calc')" style="margin-bottom: 8px;">+ Calculate New Deal</button>
-      <button class="btn-action" style="background: #475569;" onclick="switchTab('products')">📦 View Full Catalog</button>
+      <button class="btn-action" onclick="switchTab('calc')" style="margin-bottom: 8px;">+ Build Multi-Product Order</button>
+      <button class="btn-action btn-secondary" onclick="switchTab('products')">📦 View Full Catalog</button>
     </div>
 
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Master validated active salt compositions, flexible lot ratios (5+2, 10+4), multi-scheme math, and rounding rules saved locally.
+        Multi-product cart, client details tagging, validated salt compositions, and offline order logging active.
       </p>
     </div>
   </div>
 
-  <!-- TAB 2: DEAL CALCULATOR -->
+  <!-- TAB 2: MULTI-PRODUCT ORDER BUILDER & CALCULATOR -->
   <div class="tab-view" id="tab-calc">
+    <!-- Client Details Card -->
     <div class="card">
-      <div class="card-title">Deal & Scheme Calculator</div>
+      <div class="card-title">1. Doctor / Chemist Details</div>
+      <label for="partyName">Doctor / Chemist / Stockist Name *</label>
+      <input type="text" id="partyName" placeholder="e.g. Dr. Roy / Das Pharmacy">
+
+      <label for="partyAddress">Address / Location</label>
+      <input type="text" id="partyAddress" placeholder="e.g. Diamond Harbour, Station Road">
+    </div>
+
+    <!-- Product / Item Selector Card -->
+    <div class="card">
+      <div class="card-title">2. Add Item To Cart</div>
       
       <label for="productSelect">Select Product</label>
-      <select id="productSelect" onchange="calculate()"></select>
+      <select id="productSelect"></select>
 
       <label for="schemeSelect">Select Scheme Model</label>
-      <select id="schemeSelect" onchange="calculate()">
+      <select id="schemeSelect">
         <option value="Standard scheme">Standard scheme (TP + GST)</option>
         <option value="Lot With Free Items" selected>Lot With Free Items (MRP)</option>
         <option value="Lot Adjust in Cash">Lot Adjust in Cash (20% + Lot %)</option>
@@ -296,50 +310,53 @@
           <label>Ordered Qty</label>
           <div class="qty-controls">
             <button class="btn-qty" onclick="changeQty('buyQty', -1)">-</button>
-            <input type="number" id="buyQty" value="10" min="1" oninput="calculate()">
+            <input type="number" id="buyQty" value="10" min="1">
             <button class="btn-qty" onclick="changeQty('buyQty', 1)">+</button>
           </div>
         </div>
-        <div id="freeQtyContainer">
-          <label>Free Qty (Lot Ratio)</label>
+        <div>
+          <label>Free Qty (Ratio)</label>
           <div class="qty-controls">
             <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
-            <input type="number" id="freeQty" value="4" min="0" oninput="calculate()">
+            <input type="number" id="freeQty" value="4" min="0">
             <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
           </div>
         </div>
       </div>
 
-      <div class="scheme-badge" id="schemeBadge">10 Paid + 4 Free</div>
+      <button class="btn-action" onclick="addToCart()" style="margin-top: 14px;">+ Add Item To Order Cart</button>
     </div>
 
+    <!-- Cart Summary & Financials -->
     <div class="card">
-      <div class="card-title">Deal Financials</div>
-      <div class="kpi-grid">
+      <div class="card-title">3. Order Cart Summary</div>
+      <div id="cartItemsList">
+        <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Add products above.</p>
+      </div>
+
+      <div class="kpi-grid" style="margin-top: 12px;">
         <div class="kpi-tile billing">
-          <div class="kpi-label">Total Billing</div>
-          <div class="kpi-value" id="valBilling">₹0</div>
+          <div class="kpi-label">Total Order Billing</div>
+          <div class="kpi-value" id="cartTotalBilling">₹0</div>
         </div>
         <div class="kpi-tile cogs">
-          <div class="kpi-label">Total Cost</div>
-          <div class="kpi-value" id="valCogs">₹0</div>
+          <div class="kpi-label">Total Company Cost</div>
+          <div class="kpi-value" id="cartTotalCogs">₹0</div>
         </div>
         <div class="kpi-tile profit">
-          <div class="kpi-label">Net Commission & Margin %</div>
-          <div class="kpi-value" id="valProfit">₹0 (0%)</div>
+          <div class="kpi-label">Net Profit & Margin %</div>
+          <div class="kpi-value" id="cartTotalProfit">₹0 (0%)</div>
         </div>
       </div>
-      <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
-        <span>Doctor Profit: <strong id="docProfit" style="color: var(--text);">₹0 (0%)</strong></span>
-        <span>Cost/Btl: <strong id="docCostBtl" style="color: var(--text);">₹0</strong></span>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="card-title">Detailing Pitch</div>
-      <div class="pitch-box" id="pitchText">Select a product...</div>
-      <button class="btn-action" onclick="copyPitch()" style="margin-bottom: 8px;">Copy Doctor Pitch</button>
-      <button class="btn-action" style="background: #059669;" onclick="saveOrder()">Save to Recent Orders</button>
+      <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
+        <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0</strong></span>
+        <span>Items Count: <strong id="cartItemCount" style="color: var(--text);">0</strong></span>
+      </div>
+
+      <button class="btn-action" style="background: #059669; margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
+      <button class="btn-action btn-whatsapp" onclick="shareWhatsApp()">💬 Share Quote via WhatsApp</button>
+      <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
     </div>
   </div>
 
@@ -365,7 +382,7 @@
     <div class="card">
       <div class="card-title">Saved Orders Log</div>
       <div id="ordersList">No orders logged today.</div>
-      <button class="btn-action" style="background: #EF4444; margin-top: 12px;" onclick="clearOrders()">Clear Log</button>
+      <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order Log</button>
     </div>
   </div>
 
@@ -391,34 +408,35 @@
 
   <script>
     const CATALOG = [
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
-      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
-      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Hepatoprotective sugar-free syrup; pairing P2-Z protects gastric mucosal lining." },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Bronchodilator & expectorant cough syrup; pairing Relief-DSR prevents stomach irritation." },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99, pitch: "Pediatric appetite drops; pairing Palavit-L supports infant growth and weight gain." },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Pediatric multivitamin & lysine syrup; pairing Relief-DSR ensures optimal GI absorption." },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances appetite and nutritional recovery." },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50, pitch: "Broad-spectrum dermal cream; pairing Elmon provides complete internal and external symptom relief." },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
-      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
-      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
-      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
-      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
-      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00 },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99 },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99 },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79 },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71 },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60 },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40 },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20 },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00 }
     ];
 
-    let currentCategory = 'ALL';
+    let currentCart = [];
     let savedOrders = [];
+    let currentCategory = 'ALL';
 
     function init() {
       populateDropdown();
-      calculate();
       renderProducts();
-      loadOrders();
+      loadOrdersLog();
+      renderCart();
     }
 
     function switchTab(tabId) {
@@ -443,10 +461,9 @@
     function changeQty(id, delta) {
       const input = document.getElementById(id);
       input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
-      calculate();
     }
 
-    function calculate() {
+    function addToCart() {
       const selectedId = document.getElementById('productSelect').value;
       const item = CATALOG.find(p => p.id === selectedId) || CATALOG[0];
       const scheme = document.getElementById('schemeSelect').value;
@@ -455,49 +472,214 @@
       const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
       const totalQty = buyQty + freeQty;
 
-      let totalBilling = 0;
-      let totalCogs = 0;
+      let billing = 0;
+      let cogs = Math.round(totalQty * item.costGst);
 
       if (scheme === "Standard scheme") {
-        totalBilling = Math.round(buyQty * item.tpGst);
-        totalCogs = Math.round(totalQty * item.costGst);
+        billing = Math.round(buyQty * item.tpGst);
       } else if (scheme === "Lot With Free Items") {
-        totalBilling = Math.round(buyQty * item.mrp);
-        totalCogs = Math.round(totalQty * item.costGst);
+        billing = Math.round(buyQty * item.mrp);
       } else if (scheme === "Lot Adjust in Cash") {
-        // Calculates cash discount based on total lot ratio (buyQty + freeQty)
-        totalBilling = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
-        totalCogs = Math.round(totalQty * item.costGst);
+        billing = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
       }
 
-      const netProfit = totalBilling - totalCogs;
-      const marginPct = totalBilling > 0 ? (netProfit / totalBilling) * 100 : 0;
-
+      const profit = billing - cogs;
       const docSalesVal = totalQty * item.mrp;
-      const docProfit = docSalesVal - totalBilling;
-      const docProfitPct = docSalesVal > 0 ? (docProfit / docSalesVal) * 100 : 0;
-      const docPerUnitCost = totalQty > 0 ? totalBilling / totalQty : 0;
+      const docProfit = docSalesVal - billing;
 
-      document.getElementById('valBilling').textContent = `₹${totalBilling.toLocaleString('en-IN')}`;
-      document.getElementById('valCogs').textContent = `₹${totalCogs.toLocaleString('en-IN')}`;
-      document.getElementById('valProfit').textContent = `₹${netProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
+      const cartItem = {
+        cartId: Date.now() + Math.random(),
+        productId: item.id,
+        name: item.name,
+        scheme: scheme,
+        buyQty: buyQty,
+        freeQty: freeQty,
+        totalQty: totalQty,
+        billing: billing,
+        cogs: cogs,
+        profit: profit,
+        docProfit: docProfit
+      };
 
-      document.getElementById('docProfit').textContent = `₹${docProfit.toLocaleString('en-IN')} (${docProfitPct.toFixed(2)}%)`;
-      document.getElementById('docCostBtl').textContent = `₹${docPerUnitCost.toFixed(2)}`;
-
-      if (scheme === "Lot Adjust in Cash") {
-        const cashDiscPct = (100 / totalQty).toFixed(2);
-        document.getElementById('schemeBadge').textContent = `${buyQty}+${freeQty} Lot (${totalQty} Btls) @ 20% Trade + ${cashDiscPct}% Cash Disc`;
-      } else {
-        document.getElementById('schemeBadge').textContent = `${buyQty} Paid + ${freeQty} Free ${item.name}`;
-      }
-
-      document.getElementById('pitchText').textContent = `"${item.pitch}"`;
+      currentCart.push(cartItem);
+      renderCart();
     }
 
-    function copyPitch() {
-      const text = document.getElementById('pitchText').textContent;
-      navigator.clipboard.writeText(text).then(() => alert('Pitch copied to clipboard!'));
+    function removeFromCart(cartId) {
+      currentCart = currentCart.filter(item => item.cartId !== cartId);
+      renderCart();
+    }
+
+    function clearCart() {
+      if (confirm("Clear current cart items?")) {
+        currentCart = [];
+        renderCart();
+      }
+    }
+
+    function renderCart() {
+      const cartListEl = document.getElementById('cartItemsList');
+      
+      if (currentCart.length === 0) {
+        cartListEl.innerHTML = '<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Add products above.</p>';
+        document.getElementById('cartTotalBilling').textContent = '₹0';
+        document.getElementById('cartTotalCogs').textContent = '₹0';
+        document.getElementById('cartTotalProfit').textContent = '₹0 (0%)';
+        document.getElementById('cartDocProfit').textContent = '₹0';
+        document.getElementById('cartItemCount').textContent = '0';
+        return;
+      }
+
+      cartListEl.innerHTML = '';
+      let totBilling = 0;
+      let totCogs = 0;
+      let totProfit = 0;
+      let totDocProfit = 0;
+
+      currentCart.forEach(item => {
+        totBilling += item.billing;
+        totCogs += item.cogs;
+        totProfit += item.profit;
+        totDocProfit += item.docProfit;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <div>
+            <div class="cart-item-info">${item.name} (${item.buyQty}+${item.freeQty})</div>
+            <div class="cart-item-sub">${item.scheme}</div>
+          </div>
+          <div style="display:flex; align-items:center;">
+            <div class="cart-item-price">₹${item.billing.toLocaleString('en-IN')}</div>
+            <button class="btn-remove" onclick="removeFromCart(${item.cartId})">✕</button>
+          </div>
+        `;
+        cartListEl.appendChild(div);
+      });
+
+      const marginPct = totBilling > 0 ? (totProfit / totBilling) * 100 : 0;
+
+      document.getElementById('cartTotalBilling').textContent = `₹${totBilling.toLocaleString('en-IN')}`;
+      document.getElementById('cartTotalCogs').textContent = `₹${totCogs.toLocaleString('en-IN')}`;
+      document.getElementById('cartTotalProfit').textContent = `₹${totProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
+      document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')}`;
+      document.getElementById('cartItemCount').textContent = currentCart.length;
+    }
+
+    function saveOrder() {
+      const name = document.getElementById('partyName').value.trim();
+      const address = document.getElementById('partyAddress').value.trim();
+
+      if (!name) {
+        alert("Please enter the Doctor / Chemist Name before saving!");
+        document.getElementById('partyName').focus();
+        return;
+      }
+
+      if (currentCart.length === 0) {
+        alert("Your order cart is empty! Add at least one product.");
+        return;
+      }
+
+      let totBilling = 0, totCogs = 0, totProfit = 0;
+      currentCart.forEach(i => { totBilling += i.billing; totCogs += i.cogs; totProfit += i.profit; });
+
+      const orderRecord = {
+        id: Date.now(),
+        partyName: name,
+        partyAddress: address || 'N/A',
+        items: [...currentCart],
+        billing: totBilling,
+        cogs: totCogs,
+        profit: totProfit,
+        date: new Date().toLocaleDateString('en-IN'),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      savedOrders.unshift(orderRecord);
+      localStorage.setItem('eicw_orders_v2', JSON.stringify(savedOrders));
+
+      currentCart = [];
+      document.getElementById('partyName').value = '';
+      document.getElementById('partyAddress').value = '';
+      renderCart();
+      loadOrdersLog();
+
+      alert(`Order saved successfully for ${name}!`);
+      switchTab('orders');
+    }
+
+    function shareWhatsApp() {
+      const name = document.getElementById('partyName').value.trim() || 'Valued Client';
+      if (currentCart.length === 0) {
+        alert("Add products to cart to generate WhatsApp quote!");
+        return;
+      }
+
+      let msg = `*EICW Sales Quote for ${name}*\n------------------------------\n`;
+      let totBilling = 0;
+
+      currentCart.forEach((item, idx) => {
+        totBilling += item.billing;
+        msg += `${idx+1}. *${item.name}*\n   Qty: ${item.buyQty} Paid + ${item.freeQty} Free\n   Scheme: ${item.scheme}\n   Amount: ₹${item.billing}\n\n`;
+      });
+
+      msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*\nThank you for your business!`;
+
+      const encoded = encodeURIComponent(msg);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    }
+
+    function loadOrdersLog() {
+      const stored = localStorage.getItem('eicw_orders_v2');
+      savedOrders = stored ? JSON.parse(stored) : [];
+      const ordersEl = document.getElementById('ordersList');
+
+      let todaySales = 0;
+      let todayProfit = 0;
+
+      if (savedOrders.length === 0) {
+        ordersEl.innerHTML = '<p style="font-size:0.85rem; color: var(--subtext);">No orders logged yet.</p>';
+      } else {
+        ordersEl.innerHTML = '';
+        savedOrders.forEach(o => {
+          todaySales += o.billing;
+          todayProfit += o.profit;
+
+          let itemsHtml = '';
+          o.items.forEach(it => {
+            itemsHtml += `
+              <div class="order-item-line">
+                <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
+                <strong>₹${it.billing}</strong>
+              </div>
+            `;
+          });
+
+          const card = document.createElement('div');
+          card.className = 'order-card';
+          card.innerHTML = `
+            <div class="order-party">👤 ${o.partyName}</div>
+            <div class="order-addr">📍 ${o.partyAddress} | 🕒 ${o.date} ${o.time}</div>
+            ${itemsHtml}
+            <div style="margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: var(--success-text); text-align: right;">
+              Total: ₹${o.billing.toLocaleString('en-IN')}
+            </div>
+          `;
+          ordersEl.appendChild(card);
+        });
+      }
+
+      document.getElementById('homeSales').textContent = `₹${todaySales.toLocaleString('en-IN')}`;
+      document.getElementById('homeProfit').textContent = `₹${todayProfit.toLocaleString('en-IN')}`;
+    }
+
+    function clearOrdersLog() {
+      if (confirm('Clear entire saved order history?')) {
+        savedOrders = [];
+        localStorage.removeItem('eicw_orders_v2');
+        loadOrdersLog();
+      }
     }
 
     function filterCategory(cat, btn) {
@@ -544,77 +726,6 @@
         `;
         listEl.appendChild(card);
       });
-    }
-
-    function saveOrder() {
-      const selectedId = document.getElementById('productSelect').value;
-      const item = CATALOG.find(p => p.id === selectedId);
-      const scheme = document.getElementById('schemeSelect').value;
-      const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
-      const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
-      const totalQty = buyQty + freeQty;
-
-      let billing = 0;
-      if (scheme === "Standard scheme") billing = Math.round(buyQty * item.tpGst);
-      else if (scheme === "Lot With Free Items") billing = Math.round(buyQty * item.mrp);
-      else if (scheme === "Lot Adjust in Cash") billing = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
-
-      const cost = Math.round(totalQty * item.costGst);
-      const profit = billing - cost;
-
-      const order = {
-        id: Date.now(),
-        item: item.name,
-        qty: `${buyQty}+${freeQty}`,
-        billing: billing,
-        profit: profit,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      savedOrders.unshift(order);
-      localStorage.setItem('eicw_orders', JSON.stringify(savedOrders));
-      loadOrders();
-      alert('Order saved successfully!');
-    }
-
-    function loadOrders() {
-      const stored = localStorage.getItem('eicw_orders');
-      savedOrders = stored ? JSON.parse(stored) : [];
-      const ordersEl = document.getElementById('ordersList');
-      
-      let totalSales = 0;
-      let totalProfit = 0;
-
-      if (savedOrders.length === 0) {
-        ordersEl.innerHTML = '<p style="font-size:0.85rem; color: var(--subtext);">No orders logged today.</p>';
-      } else {
-        ordersEl.innerHTML = '';
-        savedOrders.forEach(o => {
-          totalSales += o.billing;
-          totalProfit += o.profit;
-          const itemDiv = document.createElement('div');
-          itemDiv.className = 'order-item';
-          itemDiv.innerHTML = `
-            <div>
-              <div class="order-info">${o.item} (${o.qty})</div>
-              <div class="order-date">Today at ${o.time}</div>
-            </div>
-            <div class="order-amt">₹${o.billing.toLocaleString('en-IN')}</div>
-          `;
-          ordersEl.appendChild(itemDiv);
-        });
-      }
-
-      document.getElementById('homeSales').textContent = `₹${totalSales.toLocaleString('en-IN')}`;
-      document.getElementById('homeProfit').textContent = `₹${totalProfit.toLocaleString('en-IN')}`;
-    }
-
-    function clearOrders() {
-      if (confirm('Clear all saved orders?')) {
-        savedOrders = [];
-        localStorage.removeItem('eicw_orders');
-        loadOrders();
-      }
     }
 
     if ('serviceWorker' in navigator) {
