@@ -38,7 +38,6 @@
       margin-right: auto;
     }
 
-    /* Header */
     .app-header {
       position: sticky;
       top: 0;
@@ -55,11 +54,9 @@
     .app-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.2px; }
     .sync-badge { font-size: 0.7rem; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* Views */
     .tab-view { display: none; padding: 12px; }
     .tab-view.active { display: block; }
 
-    /* Cards */
     .card {
       background: var(--card-bg);
       border-radius: 14px;
@@ -78,13 +75,11 @@
       margin-bottom: 10px;
     }
 
-    /* Grid Stats */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     .stat-card { background: #FFF; border-radius: 12px; padding: 12px; border: 1px solid var(--border); text-align: center; }
     .stat-val { font-size: 1.35rem; font-weight: 800; color: var(--text); }
     .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; margin-top: 2px; }
 
-    /* Inputs */
     label { font-size: 0.82rem; font-weight: 700; display: block; margin-bottom: 6px; color: var(--text); }
     select, input[type="text"] {
       width: 100%;
@@ -131,7 +126,6 @@
       outline: none;
     }
 
-    /* Financial KPIs */
     .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .kpi-tile { padding: 10px 12px; border-radius: 10px; text-align: center; }
     .kpi-tile.billing { background: var(--success-bg); color: var(--success-text); }
@@ -178,7 +172,6 @@
 
     .btn-action:active { background: var(--primary-dark); }
 
-    /* Catalog Cards */
     .category-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
     .pill {
       background: #E2E8F0;
@@ -210,13 +203,11 @@
     .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
 
-    /* Orders Log */
     .order-item { background: #FFF; border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .order-info { font-size: 0.85rem; font-weight: 700; }
     .order-date { font-size: 0.7rem; color: var(--subtext); font-weight: 500; }
     .order-amt { font-size: 0.95rem; font-weight: 800; color: var(--success-text); }
 
-    /* Bottom Nav Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -227,7 +218,7 @@
       background: #FFFFFF;
       border-top: 1px solid var(--border);
       display: flex;
-      justify-content: space-around;
+      justify-style: space-around;
       padding: 6px 0 8px 0;
       z-index: 1000;
     }
@@ -253,7 +244,6 @@
 </head>
 <body>
 
-  <!-- Header -->
   <div class="app-header">
     <div class="app-title">EICW Sales Desk</div>
     <div class="sync-badge">OFFLINE READY</div>
@@ -281,7 +271,7 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Master validated products, compositions, multi-scheme logic, and rounding rules stored locally.
+        Master validated products, flexible lot ratios (5+2, 10+4), multi-scheme math, and rounding rules saved locally.
       </p>
     </div>
   </div>
@@ -295,7 +285,7 @@
       <select id="productSelect" onchange="calculate()"></select>
 
       <label for="schemeSelect">Select Scheme Model</label>
-      <select id="schemeSelect" onchange="toggleSchemeFields(); calculate();">
+      <select id="schemeSelect" onchange="calculate()">
         <option value="Standard scheme">Standard scheme (TP + GST)</option>
         <option value="Lot With Free Items" selected>Lot With Free Items (MRP)</option>
         <option value="Lot Adjust in Cash">Lot Adjust in Cash (20% + Lot %)</option>
@@ -311,7 +301,7 @@
           </div>
         </div>
         <div id="freeQtyContainer">
-          <label>Free Qty</label>
+          <label>Free Qty (Lot Ratio)</label>
           <div class="qty-controls">
             <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
             <input type="number" id="freeQty" value="4" min="0" oninput="calculate()">
@@ -426,7 +416,6 @@
 
     function init() {
       populateDropdown();
-      toggleSchemeFields();
       calculate();
       renderProducts();
       loadOrders();
@@ -451,25 +440,8 @@
       });
     }
 
-    function toggleSchemeFields() {
-      const scheme = document.getElementById('schemeSelect').value;
-      const freeContainer = document.getElementById('freeQtyContainer');
-      if (scheme === "Lot Adjust in Cash") {
-        freeContainer.style.opacity = "0.4";
-        document.getElementById('freeQty').value = 0;
-        document.getElementById('freeQty').disabled = true;
-      } else {
-        freeContainer.style.opacity = "1";
-        document.getElementById('freeQty').disabled = false;
-        if (parseInt(document.getElementById('freeQty').value) === 0) {
-          document.getElementById('freeQty').value = 4;
-        }
-      }
-    }
-
     function changeQty(id, delta) {
       const input = document.getElementById(id);
-      if (input.disabled) return;
       input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
       calculate();
     }
@@ -480,18 +452,22 @@
       const scheme = document.getElementById('schemeSelect').value;
       
       const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
-      const freeQty = scheme === "Lot Adjust in Cash" ? 0 : Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
+      const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
       const totalQty = buyQty + freeQty;
 
       let totalBilling = 0;
-      let totalCogs = Math.round((buyQty * item.costGst) + (freeQty * item.costGst));
+      let totalCogs = 0;
 
       if (scheme === "Standard scheme") {
         totalBilling = Math.round(buyQty * item.tpGst);
+        totalCogs = Math.round(totalQty * item.costGst);
       } else if (scheme === "Lot With Free Items") {
         totalBilling = Math.round(buyQty * item.mrp);
+        totalCogs = Math.round(totalQty * item.costGst);
       } else if (scheme === "Lot Adjust in Cash") {
-        totalBilling = Math.round((buyQty * item.mrp * 0.80) * (1 - (1 / buyQty)));
+        // Calculates cash discount based on total lot ratio (buyQty + freeQty)
+        totalBilling = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
+        totalCogs = Math.round(totalQty * item.costGst);
       }
 
       const netProfit = totalBilling - totalCogs;
@@ -510,10 +486,10 @@
       document.getElementById('docCostBtl').textContent = `₹${docPerUnitCost.toFixed(2)}`;
 
       if (scheme === "Lot Adjust in Cash") {
-        const lotDiscPct = (100 / buyQty).toFixed(2);
-        document.getElementById('schemeBadge').textContent = `${buyQty} Btls Lot @ 20% + ${lotDiscPct}% Cash Disc`;
+        const cashDiscPct = (100 / totalQty).toFixed(2);
+        document.getElementById('schemeBadge').textContent = `${buyQty}+${freeQty} Lot (${totalQty} Btls) @ 20% Trade + ${cashDiscPct}% Cash Disc`;
       } else {
-        document.getElementById('schemeBadge').textContent = `${buyQty} Paid + ${freeQty} Free ${item.id}`;
+        document.getElementById('schemeBadge').textContent = `${buyQty} Paid + ${freeQty} Free ${item.name}`;
       }
 
       document.getElementById('pitchText').textContent = `"${item.pitch}"`;
@@ -575,19 +551,21 @@
       const item = CATALOG.find(p => p.id === selectedId);
       const scheme = document.getElementById('schemeSelect').value;
       const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
+      const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
+      const totalQty = buyQty + freeQty;
 
       let billing = 0;
       if (scheme === "Standard scheme") billing = Math.round(buyQty * item.tpGst);
       else if (scheme === "Lot With Free Items") billing = Math.round(buyQty * item.mrp);
-      else if (scheme === "Lot Adjust in Cash") billing = Math.round((buyQty * item.mrp * 0.80) * (1 - (1 / buyQty)));
+      else if (scheme === "Lot Adjust in Cash") billing = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
 
-      const cost = Math.round(buyQty * item.costGst);
+      const cost = Math.round(totalQty * item.costGst);
       const profit = billing - cost;
 
       const order = {
         id: Date.now(),
         item: item.name,
-        qty: buyQty,
+        qty: `${buyQty}+${freeQty}`,
         billing: billing,
         profit: profit,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -618,7 +596,7 @@
           itemDiv.className = 'order-item';
           itemDiv.innerHTML = `
             <div>
-              <div class="order-info">${o.item} (x${o.qty})</div>
+              <div class="order-info">${o.item} (${o.qty})</div>
               <div class="order-date">Today at ${o.time}</div>
             </div>
             <div class="order-amt">₹${o.billing.toLocaleString('en-IN')}</div>
