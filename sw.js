@@ -1,4 +1,5 @@
-const CACHE_NAME = 'eicw-sales-v3';const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'eicw-sales-v3';
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json'
