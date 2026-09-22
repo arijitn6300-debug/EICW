@@ -137,7 +137,6 @@
     .btn-warning { background-color: var(--warning); color: white; }
     .btn-accent { background-color: var(--accent); }
 
-    /* Category Pills */
     .category-pills {
       display: flex;
       gap: 8px;
@@ -160,7 +159,6 @@
       font-weight: bold;
     }
 
-    /* Product Item */
     .prod-card {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -172,7 +170,6 @@
     .prod-comp { font-size: 0.8rem; color: var(--subtext); margin: 4px 0 8px 0; }
     .prod-meta { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
 
-    /* KPI Grid */
     .kpi-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -186,7 +183,6 @@
     .kpi-label { font-size: 0.75rem; color: var(--subtext); }
     .kpi-value { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
 
-    /* Saved Order Card */
     .order-card {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -216,7 +212,6 @@
       flex-wrap: wrap;
     }
 
-    /* Bottom Nav */
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -280,8 +275,6 @@
 
     <!-- TAB 2: CALCULATOR & ORDER BUILDER -->
     <div class="tab-view" id="tab-calc">
-      
-      <!-- Doctor / Chemist Details Card -->
       <div class="card">
         <div class="card-title">
           <span>1. Customer Details</span>
@@ -313,13 +306,11 @@
         </div>
       </div>
 
-      <!-- Item Calculator -->
       <div class="card">
         <div class="card-title">2. Select Product & Scheme</div>
         
         <label>Select Product</label>
         <select id="productSelect" onchange="loadSelectedProduct()">
-          <!-- Populated by JS -->
         </select>
 
         <label>Scheme Type</label>
@@ -357,7 +348,6 @@
           </div>
         </div>
 
-        <!-- Single Item Live Breakdown -->
         <div class="kpi-grid" style="margin-bottom: 12px;">
           <div class="kpi-tile">
             <div class="kpi-label">Billing Amount</div>
@@ -380,7 +370,6 @@
         <button class="btn-action" style="background: var(--primary-dark);" onclick="addToCart()">+ Add Item To Order Cart</button>
       </div>
 
-      <!-- Multi-Product Cart Summary -->
       <div class="card">
         <div class="card-title">3. Multi-Product Order Cart (<span id="cartItemCount">0</span>)</div>
         <div id="cartItemsList">
@@ -435,7 +424,6 @@
 
   </div>
 
-  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <button class="nav-btn active" id="btn-tab-home" onclick="switchTab('tab-home', this)">
       <span>🏠</span> Home
@@ -515,6 +503,41 @@
       recalculate();
     }
 
+    function computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty) {
+      let billingAmount = 0;
+      let cogs = 0;
+      let docSavings = 0;
+      let totalReceivedValue = 0;
+
+      if (schemeType === "Standard scheme") {
+        billingAmount = orderQty * product.tpGst;
+        cogs = orderQty * product.costGst;
+        totalReceivedValue = orderQty * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
+      } else if (schemeType === "Lot With Free Items") {
+        const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
+        const totalUnitsReceived = orderQty + actualFreeQty;
+        
+        billingAmount = orderQty * product.mrp;
+        cogs = totalUnitsReceived * product.costGst;
+        totalReceivedValue = totalUnitsReceived * product.mrp;
+        docSavings = actualFreeQty * product.mrp;
+      } else if (schemeType === "Lot Adjust in Cash %") {
+        const totalBase = paidQty + freeQty;
+        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+        
+        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
+        cogs = orderQty * product.costGst;
+        totalReceivedValue = orderQty * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
+      }
+
+      const netProfit = billingAmount - cogs;
+      const docMarginPct = totalReceivedValue > 0 ? ((docSavings / totalReceivedValue) * 100) : 0;
+
+      return { billingAmount, cogs, netProfit, docSavings, docMarginPct, totalReceivedValue };
+    }
+
     function recalculate() {
       const pId = document.getElementById("productSelect").value;
       const product = CATALOG.find(p => p.id === pId) || CATALOG[0];
@@ -524,29 +547,12 @@
       const freeQty = Number(document.getElementById("freeQty").value) || 0;
       const orderQty = Number(document.getElementById("orderQty").value) || 1;
 
-      let billingAmount = 0;
-      let cogs = orderQty * product.costGst;
+      const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
 
-      if (schemeType === "Standard scheme") {
-        billingAmount = orderQty * product.tpGst;
-      } else if (schemeType === "Lot With Free Items") {
-        billingAmount = orderQty * product.mrp;
-        cogs += (freeQty * product.costGst);
-      } else if (schemeType === "Lot Adjust in Cash %") {
-        const totalBase = paidQty + freeQty;
-        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
-        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
-      }
-
-      const netProfit = billingAmount - cogs;
-      const totalMrp = orderQty * product.mrp;
-      const docSavings = totalMrp - billingAmount;
-      const docMarginPct = totalMrp > 0 ? ((docSavings / totalMrp) * 100) : 0;
-
-      document.getElementById("calcBilling").innerText = `₹${billingAmount.toFixed(2)}`;
-      document.getElementById("calcCost").innerText = `₹${cogs.toFixed(2)}`;
-      document.getElementById("calcProfit").innerText = `₹${netProfit.toFixed(2)}`;
-      document.getElementById("calcDocSavings").innerText = `₹${docSavings.toFixed(2)} (${docMarginPct.toFixed(1)}%)`;
+      document.getElementById("calcBilling").innerText = `₹${calc.billingAmount.toFixed(2)}`;
+      document.getElementById("calcCost").innerText = `₹${calc.cogs.toFixed(2)}`;
+      document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)}`;
+      document.getElementById("calcDocSavings").innerText = `₹${calc.docSavings.toFixed(2)} (${calc.docMarginPct.toFixed(1)}%)`;
     }
 
     function loadSelectedProduct() {
@@ -596,24 +602,7 @@
       const freeQty = Number(document.getElementById("freeQty").value) || 0;
       const orderQty = Number(document.getElementById("orderQty").value) || 1;
 
-      let billing = 0;
-      let cogs = orderQty * product.costGst;
-
-      if (schemeType === "Standard scheme") {
-        billing = orderQty * product.tpGst;
-      } else if (schemeType === "Lot With Free Items") {
-        billing = orderQty * product.mrp;
-        cogs += (freeQty * product.costGst);
-      } else if (schemeType === "Lot Adjust in Cash %") {
-        const totalBase = paidQty + freeQty;
-        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
-        billing = (orderQty * product.mrp) * (1 - discountRatio);
-      }
-
-      const totalMrp = orderQty * product.mrp;
-      const docSavings = totalMrp - billing;
-      const docMarginPct = totalMrp > 0 ? ((docSavings / totalMrp) * 100) : 0;
-      const profit = billing - cogs;
+      const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
 
       cart.push({
         id: product.id,
@@ -624,11 +613,12 @@
         paidQty: paidQty,
         freeQty: freeQty,
         mrp: product.mrp,
-        billing: billing,
-        cogs: cogs,
-        profit: profit,
-        docSavings: docSavings,
-        docMarginPct: docMarginPct
+        billing: calc.billingAmount,
+        cogs: calc.cogs,
+        profit: calc.netProfit,
+        docSavings: calc.docSavings,
+        docMarginPct: calc.docMarginPct,
+        totalReceivedValue: calc.totalReceivedValue
       });
 
       renderCart();
@@ -651,13 +641,13 @@
         return;
       }
 
-      let totalB = 0, totalP = 0, totalDocSav = 0, totalMrpVal = 0;
+      let totalB = 0, totalP = 0, totalDocSav = 0, totalReceivedVal = 0;
       
       cartList.innerHTML = cart.map((item, idx) => {
         totalB += item.billing;
         totalP += item.profit;
         totalDocSav += item.docSavings;
-        totalMrpVal += (item.orderQty * item.mrp);
+        totalReceivedVal += (item.totalReceivedValue || (item.orderQty * item.mrp));
 
         const schemeText = item.schemeType === 'Standard scheme' ? 'Standard' : `${item.paidQty}+${item.freeQty}`;
 
@@ -676,7 +666,7 @@
         `;
       }).join('');
 
-      const overallDocMargin = totalMrpVal > 0 ? ((totalDocSav / totalMrpVal) * 100) : 0;
+      const overallDocMargin = totalReceivedVal > 0 ? ((totalDocSav / totalReceivedVal) * 100) : 0;
 
       document.getElementById("cartTotalBilling").innerText = `₹${totalB.toFixed(2)}`;
       document.getElementById("cartTotalProfit").innerText = `₹${totalP.toFixed(2)}`;
@@ -707,7 +697,6 @@
       const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0);
 
       if (editingOrderId) {
-        // Update existing order
         const index = savedOrders.findIndex(o => o.id === editingOrderId);
         if (index !== -1) {
           savedOrders[index] = {
@@ -722,7 +711,6 @@
         document.getElementById("editingBadge").style.display = "none";
         alert("Order updated successfully!");
       } else {
-        // Create new order
         savedOrders.unshift({
           id: Date.now(),
           date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
@@ -765,14 +753,13 @@
             📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
           </div>
 
-          <!-- Expandable Details -->
           <div class="order-details-box" id="details-${o.id}">
             <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item & Scheme Breakdown:</div>
             ${(o.items || []).map(i => `
               <div style="margin-bottom:6px; border-bottom: 1px dashed #e2e8f0; padding-bottom:4px;">
                 <strong>${i.name}</strong> x${i.orderQty}<br>
                 <span>Scheme: ${i.schemeType === 'Standard scheme' ? 'Standard' : i.paidQty + '+' + i.freeQty + ' (' + i.schemeType + ')'}</span><br>
-                <span>Billing: ₹${i.billing.toFixed(2)} | Doc Margin: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
+                <span>Billing: ₹${i.billing.toFixed(2)} | Doc Profit: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
               </div>
             `).join('')}
             <div style="color:var(--primary-dark); font-weight:bold; margin-top:4px;">
