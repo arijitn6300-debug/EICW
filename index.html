@@ -96,20 +96,23 @@
       background: #F8FAFC;
       color: var(--text);
       outline: none;
+      margin-bottom: 10px;
     }
+
+    .qty-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
     .qty-controls {
       display: grid;
-      grid-template-columns: 52px 1fr 52px;
-      gap: 8px;
-      margin-top: 10px;
+      grid-template-columns: 40px 1fr 40px;
+      gap: 4px;
+      margin-top: 4px;
     }
 
     .btn-qty {
       background: #E2E8F0;
       border: none;
-      border-radius: 10px;
-      font-size: 1.4rem;
+      border-radius: 8px;
+      font-size: 1.2rem;
       font-weight: 800;
       color: var(--text);
       cursor: pointer;
@@ -120,9 +123,9 @@
     input[type="number"] {
       width: 100%;
       text-align: center;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 800;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
       background: #FFF;
       outline: none;
@@ -278,7 +281,7 @@
     <div class="card">
       <div class="card-title">System Status</div>
       <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        All products, exact compositions, schemes, and prices are stored locally. Fully functional without internet connection.
+        Master validated products, compositions, multi-scheme logic, and rounding rules stored locally.
       </p>
     </div>
   </div>
@@ -287,13 +290,34 @@
   <div class="tab-view" id="tab-calc">
     <div class="card">
       <div class="card-title">Deal & Scheme Calculator</div>
+      
       <label for="productSelect">Select Product</label>
       <select id="productSelect" onchange="calculate()"></select>
 
-      <div class="qty-controls">
-        <button class="btn-qty" onclick="changeQty(-1)">-</button>
-        <input type="number" id="buyQty" value="10" min="1" oninput="calculate()">
-        <button class="btn-qty" onclick="changeQty(1)">+</button>
+      <label for="schemeSelect">Select Scheme Model</label>
+      <select id="schemeSelect" onchange="toggleSchemeFields(); calculate();">
+        <option value="Standard scheme">Standard scheme (TP + GST)</option>
+        <option value="Lot With Free Items" selected>Lot With Free Items (MRP)</option>
+        <option value="Lot Adjust in Cash">Lot Adjust in Cash (20% + Lot %)</option>
+      </select>
+
+      <div class="qty-row">
+        <div>
+          <label>Ordered Qty</label>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="changeQty('buyQty', -1)">-</button>
+            <input type="number" id="buyQty" value="10" min="1" oninput="calculate()">
+            <button class="btn-qty" onclick="changeQty('buyQty', 1)">+</button>
+          </div>
+        </div>
+        <div id="freeQtyContainer">
+          <label>Free Qty</label>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
+            <input type="number" id="freeQty" value="4" min="0" oninput="calculate()">
+            <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
+          </div>
+        </div>
       </div>
 
       <div class="scheme-badge" id="schemeBadge">10 Paid + 4 Free</div>
@@ -311,15 +335,18 @@
           <div class="kpi-value" id="valCogs">₹0</div>
         </div>
         <div class="kpi-tile profit">
-          <div class="kpi-label">Net Profit & Margin %</div>
+          <div class="kpi-label">Net Commission & Margin %</div>
           <div class="kpi-value" id="valProfit">₹0 (0%)</div>
         </div>
+      </div>
+      <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
+        <span>Doctor Profit: <strong id="docProfit" style="color: var(--text);">₹0 (0%)</strong></span>
+        <span>Cost/Btl: <strong id="docCostBtl" style="color: var(--text);">₹0</strong></span>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Detailing Pitch & Cross-Sell</div>
-      <div id="crossSellStatus" style="font-size: 0.82rem; font-weight: 700; color: var(--warning-text); margin-bottom: 6px;"></div>
+      <div class="card-title">Detailing Pitch</div>
       <div class="pitch-box" id="pitchText">Select a product...</div>
       <button class="btn-action" onclick="copyPitch()" style="margin-bottom: 8px;">Copy Doctor Pitch</button>
       <button class="btn-action" style="background: #059669;" onclick="saveOrder()">Save to Recent Orders</button>
@@ -374,24 +401,24 @@
 
   <script>
     const CATALOG = [
-      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid (Urinary Alkalizer)", mrp: 100, tpGst: 80.00, costGst: 40.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Ayurvedic Liver Corrective & Appetite Stimulant Herbal Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
-      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol Syrup (Sugar Free)", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "P2Z", crossCost: 40.00, pitch: "Hepatoprotective sugar-free syrup; pairing P2-Z protects gastric mucosal lining." },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Digestive Enzyme Syrup", mrp: 85, tpGst: 67.99, costGst: 33.99, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Digestive Enzyme Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Paracetamol & Mefenamic Acid Oral Suspension", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Pediatric Ayurvedic Liver Support Drops", mrp: 130, tpGst: 47.99, costGst: 23.99, cross: "Palavit-L 100ml", crossCost: 32.00, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Multivitamin with L-Lysine & Zinc Syrup", mrp: 80, tpGst: 64.00, costGst: 32.00, cross: "Relief-DSR", crossCost: 33.60, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Multivitamin with L-Lysine & Zinc Syrup", mrp: 130, tpGst: 103.95, costGst: 51.98, cross: "Relief-DSR", crossCost: 33.60, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole 1% w/w, Clobetasol Propionate & Ofloxacin Ointment", mrp: 89.1, tpGst: 71.25, costGst: 28.50, cross: "Elmon", crossCost: 28.53, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg Tablets", mrp: 65, tpGst: 51.98, costGst: 20.79, cross: "Relief-DSR", crossCost: 33.60, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
-      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Serratiopeptidase 15mg Tablets", mrp: 102, tpGst: 81.76, costGst: 32.71, cross: "Relief-DSR", crossCost: 33.60, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
-      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg + Paracetamol 325mg + Chlorzoxazone 250mg Tablets", mrp: 92.8, tpGst: 74.32, costGst: 29.73, cross: "Relief-DSR", crossCost: 33.60, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
-      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine Dihydrochloride 5mg + Montelukast Sodium 10mg Tablets", mrp: 89.1, tpGst: 71.33, costGst: 28.53, cross: "Itronol-C", crossCost: 28.50, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
-      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole Sodium 20mg + Domperidone 30mg Sustained Release Capsules", mrp: 105, tpGst: 84.00, costGst: 33.60, cross: "Epinac-P", crossCost: 20.79, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
-      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal Tablets", mrp: 70, tpGst: 56.00, costGst: 22.40, cross: "Relief-DSR", crossCost: 33.60, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene with Multivitamins, Minerals & Zinc Softgel Capsules", mrp: 210, tpGst: 168.00, costGst: 67.20, cross: "P2Z", crossCost: 40.00, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Prebiotic & Probiotic with Zinc Sulphate Capsules", mrp: 125, tpGst: 100.00, costGst: 40.00, cross: "Neoliv", crossCost: 51.98, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Herbal Extracts (Bhringraj, Kalmegh, Punarnava), Liver Tonic", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Adult appetite & liver stimulant; pairing P2-Z restores gut microflora to optimize nutrient absorption." },
+      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00, pitch: "Systemic urinary alkalizer; pairing Relief-DSR balances gastric mucosal acidity for complete GI comfort." },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99, pitch: "Digestive enzyme booster; pairing Relief-DSR prevents bloating and acid reflux." },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Digestive enzyme booster; pairing Relief-DSR stops chronic post-meal acidity." },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Hepatoprotective sugar-free syrup; pairing P2-Z protects gastric mucosal lining." },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Paracetamol & Mefenamic Acid, Analgesic", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Analgesic liquid; pairing Relief-DSR protects against NSAID-induced hyperacidity." },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Pediatric Herbal Extracts, Liver Tonic", mrp: 60, tpGst: 47.99, costGst: 23.99, pitch: "Pediatric drops; pairing Palavit-L supports infant appetite and weight gain." },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Multivitamins, L-Lysine & Zinc, Appetite Stimulant", mrp: 80, tpGst: 64.00, costGst: 32.00, pitch: "Pediatric multivitamin; pairing Relief-DSR ensures optimal digestive tolerance." },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Multivitamins, L-Lysine & Zinc, Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98, pitch: "Multivitamin & lysine syrup; pairing Relief-DSR enhances GI absorption." },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole 1% w/w, Clobetasol Propionate & Ofloxacin, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50, pitch: "Broad-spectrum antifungal ointment; pairing Elmon provides systemic symptom relief." },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79, pitch: "Analgesic NSAID; pairing Relief-DSR eliminates gastric distress and heartburn." },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71, pitch: "Anti-inflammatory pain reliever; pairing Relief-DSR prevents stomach irritation." },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73, pitch: "Muscle relaxant combination; pairing Relief-DSR ensures complete patient comfort." },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53, pitch: "Anti-allergic treatment; pairing Itronol-C offers total topical and systemic coverage." },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60, pitch: "PPI acid reducer; pairing Epinac-P provides acute pain relief alongside GI protection." },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40, pitch: "Enzymatic digestive health formulation; pairing Relief-DSR stops chronic indigestion." },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Multivitamins, Minerals & Zinc, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20, pitch: "Antioxidant & mineral supplement; pairing P2-Z aids gut health and micronutrient absorption." },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Prebiotic, Probiotic & Zinc Sulphate, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00, pitch: "Restores gut microflora; pairing Neoliv enhances hepatic detoxification and appetite." }
     ];
 
     let currentCategory = 'ALL';
@@ -399,6 +426,7 @@
 
     function init() {
       populateDropdown();
+      toggleSchemeFields();
       calculate();
       renderProducts();
       loadOrders();
@@ -423,40 +451,69 @@
       });
     }
 
-    function changeQty(delta) {
-      const input = document.getElementById('buyQty');
-      input.value = Math.max(1, (parseInt(input.value) || 0) + delta);
+    function toggleSchemeFields() {
+      const scheme = document.getElementById('schemeSelect').value;
+      const freeContainer = document.getElementById('freeQtyContainer');
+      if (scheme === "Lot Adjust in Cash") {
+        freeContainer.style.opacity = "0.4";
+        document.getElementById('freeQty').value = 0;
+        document.getElementById('freeQty').disabled = true;
+      } else {
+        freeContainer.style.opacity = "1";
+        document.getElementById('freeQty').disabled = false;
+        if (parseInt(document.getElementById('freeQty').value) === 0) {
+          document.getElementById('freeQty').value = 4;
+        }
+      }
+    }
+
+    function changeQty(id, delta) {
+      const input = document.getElementById(id);
+      if (input.disabled) return;
+      input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
       calculate();
     }
 
     function calculate() {
       const selectedId = document.getElementById('productSelect').value;
       const item = CATALOG.find(p => p.id === selectedId) || CATALOG[0];
-      const qty = parseInt(document.getElementById('buyQty').value) || 0;
+      const scheme = document.getElementById('schemeSelect').value;
+      
+      const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
+      const freeQty = scheme === "Lot Adjust in Cash" ? 0 : Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
+      const totalQty = buyQty + freeQty;
 
-      const baseFree = Math.floor(qty / 10) * 4;
-      const crossBonus = (qty >= 12 && item.cross && item.cross !== "None") ? 1 : 0;
+      let totalBilling = 0;
+      let totalCogs = Math.round((buyQty * item.costGst) + (freeQty * item.costGst));
 
-      const totalBilling = qty * item.tpGst;
-      const totalCogs = ((qty + baseFree) * item.costGst) + (crossBonus * item.crossCost);
-      const profit = totalBilling - totalCogs;
-      const marginPct = totalBilling > 0 ? (profit / totalBilling) * 100 : 0;
+      if (scheme === "Standard scheme") {
+        totalBilling = Math.round(buyQty * item.tpGst);
+      } else if (scheme === "Lot With Free Items") {
+        totalBilling = Math.round(buyQty * item.mrp);
+      } else if (scheme === "Lot Adjust in Cash") {
+        totalBilling = Math.round((buyQty * item.mrp * 0.80) * (1 - (1 / buyQty)));
+      }
 
-      document.getElementById('valBilling').textContent = `₹${Math.ceil(totalBilling).toLocaleString('en-IN')}`;
-      document.getElementById('valCogs').textContent = `₹${Math.ceil(totalCogs).toLocaleString('en-IN')}`;
-      document.getElementById('valProfit').textContent = `₹${Math.ceil(profit).toLocaleString('en-IN')} (${marginPct.toFixed(1)}%)`;
+      const netProfit = totalBilling - totalCogs;
+      const marginPct = totalBilling > 0 ? (netProfit / totalBilling) * 100 : 0;
 
-      let schemeText = `${qty} Paid + ${baseFree} Free ${item.id}`;
-      if (crossBonus > 0) schemeText += ` + 1 Free ${item.cross}`;
-      document.getElementById('schemeBadge').textContent = schemeText;
+      const docSalesVal = totalQty * item.mrp;
+      const docProfit = docSalesVal - totalBilling;
+      const docProfitPct = docSalesVal > 0 ? (docProfit / docSalesVal) * 100 : 0;
+      const docPerUnitCost = totalQty > 0 ? totalBilling / totalQty : 0;
 
-      const crossStatusEl = document.getElementById('crossSellStatus');
-      if (qty >= 12) {
-        crossStatusEl.textContent = `✔ 12+ Volume Tier UNLOCKED (+1 Free ${item.cross})`;
-        crossStatusEl.style.color = "#059669";
+      document.getElementById('valBilling').textContent = `₹${totalBilling.toLocaleString('en-IN')}`;
+      document.getElementById('valCogs').textContent = `₹${totalCogs.toLocaleString('en-IN')}`;
+      document.getElementById('valProfit').textContent = `₹${netProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
+
+      document.getElementById('docProfit').textContent = `₹${docProfit.toLocaleString('en-IN')} (${docProfitPct.toFixed(2)}%)`;
+      document.getElementById('docCostBtl').textContent = `₹${docPerUnitCost.toFixed(2)}`;
+
+      if (scheme === "Lot Adjust in Cash") {
+        const lotDiscPct = (100 / buyQty).toFixed(2);
+        document.getElementById('schemeBadge').textContent = `${buyQty} Btls Lot @ 20% + ${lotDiscPct}% Cash Disc`;
       } else {
-        crossStatusEl.textContent = `⚡ Order ${12 - qty} more to unlock 1 FREE ${item.cross}!`;
-        crossStatusEl.style.color = "#B45309";
+        document.getElementById('schemeBadge').textContent = `${buyQty} Paid + ${freeQty} Free ${item.id}`;
       }
 
       document.getElementById('pitchText').textContent = `"${item.pitch}"`;
@@ -516,14 +573,21 @@
     function saveOrder() {
       const selectedId = document.getElementById('productSelect').value;
       const item = CATALOG.find(p => p.id === selectedId);
-      const qty = parseInt(document.getElementById('buyQty').value) || 0;
-      const billing = Math.ceil(qty * item.tpGst);
-      const profit = Math.ceil(billing - (((qty + Math.floor(qty/10)*4) * item.costGst)));
+      const scheme = document.getElementById('schemeSelect').value;
+      const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
+
+      let billing = 0;
+      if (scheme === "Standard scheme") billing = Math.round(buyQty * item.tpGst);
+      else if (scheme === "Lot With Free Items") billing = Math.round(buyQty * item.mrp);
+      else if (scheme === "Lot Adjust in Cash") billing = Math.round((buyQty * item.mrp * 0.80) * (1 - (1 / buyQty)));
+
+      const cost = Math.round(buyQty * item.costGst);
+      const profit = billing - cost;
 
       const order = {
         id: Date.now(),
         item: item.name,
-        qty: qty,
+        qty: buyQty,
         billing: billing,
         profit: profit,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
