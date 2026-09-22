@@ -109,6 +109,7 @@
       font-weight: bold;
       color: white;
       cursor: pointer;
+      margin-bottom: 8px;
     }
     .btn-whatsapp { background-color: #25D366; }
     .btn-danger { background-color: var(--danger); }
@@ -200,8 +201,32 @@
 
   <div class="container">
 
-    <!-- TAB 1: DASHBOARD / CALCULATOR -->
+    <!-- TAB 1: HOME DASHBOARD -->
     <div class="tab-view active" id="tab-home">
+      <div class="card" style="text-align: center;">
+        <div class="card-title">Dashboard Summary</div>
+        <div class="kpi-grid" style="margin-top: 12px;">
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL ORDERS SAVED</div>
+            <div class="kpi-value" id="homeOrdersCount">0</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL BOOKED SALES</div>
+            <div class="kpi-value" id="homeTotalSales">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <button class="btn-action" style="background: var(--accent);" onclick="switchTabById('tab-calc')">🧮 Open Scheme Calculator</button>
+        <button class="btn-action" style="background: var(--primary-dark);" onclick="switchTabById('tab-products')">💊 Browse Product Catalog</button>
+        <button class="btn-action" style="background: #475569;" onclick="switchTabById('tab-orders')">📋 View Saved Orders Log</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: CALCULATOR -->
+    <div class="tab-view" id="tab-calc">
       <div class="card">
         <div class="card-title">1. Select Product & Scheme</div>
         
@@ -280,20 +305,20 @@
         <div class="kpi-grid" style="margin-top: 12px;">
           <div class="kpi-tile">
             <div class="kpi-label">Total Cart Billing</div>
-            <div class="kpi-value" id="cartTotalBilling">₹0</div>
+            <div class="kpi-value" id="cartTotalBilling">₹0.00</div>
           </div>
           <div class="kpi-tile">
             <div class="kpi-label">Total Cart Cost</div>
-            <div class="kpi-value" id="cartTotalCogs">₹0</div>
+            <div class="kpi-value" id="cartTotalCogs">₹0.00</div>
           </div>
         </div>
         <button class="btn-action" style="background: var(--primary); margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
-        <button class="btn-action btn-whatsapp" style="margin-top: 6px;" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
-        <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
+        <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
+        <button class="btn-action btn-danger" onclick="clearCart()">Clear Current Cart</button>
       </div>
     </div>
 
-    <!-- TAB 2: PRODUCTS CATALOG -->
+    <!-- TAB 3: PRODUCTS CATALOG -->
     <div class="tab-view" id="tab-products">
       <div style="margin-bottom: 10px;">
         <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
@@ -310,7 +335,7 @@
       <div id="productList"></div>
     </div>
 
-    <!-- TAB 3: RECENT ORDERS -->
+    <!-- TAB 4: RECENT ORDERS -->
     <div class="tab-view" id="tab-orders">
       <div class="card">
         <div class="card-title">Saved Orders Log</div>
@@ -323,13 +348,16 @@
 
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('tab-home', this)">
+    <button class="nav-btn active" id="btn-tab-home" onclick="switchTab('tab-home', this)">
+      <span>🏠</span> Home
+    </button>
+    <button class="nav-btn" id="btn-tab-calc" onclick="switchTab('tab-calc', this)">
       <span>🧮</span> Calc
     </button>
-    <button class="nav-btn" onclick="switchTab('tab-products', this)">
+    <button class="nav-btn" id="btn-tab-products" onclick="switchTab('tab-products', this)">
       <span>💊</span> Catalog
     </button>
-    <button class="nav-btn" onclick="switchTab('tab-orders', this)">
+    <button class="nav-btn" id="btn-tab-orders" onclick="switchTab('tab-orders', this)">
       <span>📋</span> Orders
     </button>
   </nav>
@@ -361,10 +389,20 @@
     let savedOrders = [];
 
     function init() {
+      // Load orders from localStorage so refreshes keep order history
+      try {
+        const stored = localStorage.getItem('eicw_saved_orders');
+        if (stored) savedOrders = JSON.parse(stored);
+      } catch (e) {
+        savedOrders = [];
+      }
+
       const pSelect = document.getElementById("productSelect");
       pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
       renderProducts();
       recalculate();
+      renderOrdersLog();
+      updateDashboard();
     }
 
     function switchTab(tabId, btn) {
@@ -372,6 +410,11 @@
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       if (btn) btn.classList.add('active');
+    }
+
+    function switchTabById(tabId) {
+      const btn = document.getElementById('btn-' + tabId);
+      switchTab(tabId, btn);
     }
 
     function changeQty(fieldId, delta) {
@@ -483,13 +526,13 @@
       const cartList = document.getElementById("cartItemsList");
       if (cart.length === 0) {
         cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
-        document.getElementById("cartTotalBilling").innerText = "₹0";
-        document.getElementById("cartTotalCogs").innerText = "₹0";
+        document.getElementById("cartTotalBilling").innerText = "₹0.00";
+        document.getElementById("cartTotalCogs").innerText = "₹0.00";
         return;
       }
 
       let totalB = 0, totalC = 0;
-      cartList.innerHTML = cart.map((item, idx) => {
+      cartList.innerHTML = cart.map((item) => {
         totalB += item.billing;
         totalC += item.cogs;
         return `
@@ -511,10 +554,22 @@
 
     function saveOrder() {
       if (cart.length === 0) return alert("Cart is empty!");
-      savedOrders.push({ id: Date.now(), items: [...cart] });
+      
+      let orderBilling = cart.reduce((sum, i) => sum + i.billing, 0);
+      savedOrders.push({
+        id: Date.now(),
+        date: new Date().toLocaleDateString(),
+        items: [...cart],
+        totalBilling: orderBilling
+      });
+
+      // Persist to localStorage
+      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+
       cart = [];
       renderCart();
       renderOrdersLog();
+      updateDashboard();
       alert("Order saved successfully!");
     }
 
@@ -526,14 +581,25 @@
       }
       container.innerHTML = savedOrders.map((o, idx) => `
         <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:0.85rem;">
-          <strong>Order #${idx + 1}</strong> (${o.items.length} items)
+          <strong>Order #${idx + 1}</strong> - ${o.date || 'Saved'} (${o.items.length} items)
+          <div style="color: var(--primary-dark); font-weight: bold; margin-top:2px;">Total Billing: ₹${(o.totalBilling || 0).toFixed(2)}</div>
         </div>
       `).join('');
     }
 
     function clearOrdersLog() {
-      savedOrders = [];
-      renderOrdersLog();
+      if (confirm("Are you sure you want to clear all order history?")) {
+        savedOrders = [];
+        localStorage.removeItem('eicw_saved_orders');
+        renderOrdersLog();
+        updateDashboard();
+      }
+    }
+
+    function updateDashboard() {
+      document.getElementById("homeOrdersCount").innerText = savedOrders.length;
+      const totalRev = savedOrders.reduce((sum, o) => sum + (o.totalBilling || 0), 0);
+      document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
     }
 
     function shareCartWhatsApp() {
