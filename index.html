@@ -16,6 +16,7 @@
       --border: #e2e8f0;
       --accent: #2563eb;
       --danger: #ef4444;
+      --warning: #d97706;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -45,12 +46,8 @@
       margin: 12px auto;
       padding: 0 12px;
     }
-    .tab-view {
-      display: none;
-    }
-    .tab-view.active {
-      display: block;
-    }
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
     .card {
       background: var(--card-bg);
       padding: 16px;
@@ -63,6 +60,16 @@
       color: var(--text);
       margin-bottom: 12px;
       font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge-edit {
+      background: var(--warning);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
     }
     label {
       display: block;
@@ -79,6 +86,11 @@
       font-size: 0.95rem;
       box-sizing: border-box;
       margin-bottom: 10px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
     .qty-controls {
       display: flex;
@@ -103,16 +115,27 @@
     }
     .btn-action {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       color: white;
       cursor: pointer;
       margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
     }
     .btn-whatsapp { background-color: #25D366; }
     .btn-danger { background-color: var(--danger); }
+    .btn-warning { background-color: var(--warning); color: white; }
+    .btn-accent { background-color: var(--accent); }
 
     /* Category Pills */
     .category-pills {
@@ -161,7 +184,37 @@
       border-radius: 8px;
     }
     .kpi-label { font-size: 0.75rem; color: var(--subtext); }
-    .kpi-value { font-weight: bold; font-size: 1rem; margin-top: 2px; }
+    .kpi-value { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
+
+    /* Saved Order Card */
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #ffffff;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+    .order-details-box {
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      margin-top: 8px;
+      display: none;
+    }
+    .order-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
 
     /* Bottom Nav */
     nav.bottom-nav {
@@ -204,7 +257,7 @@
     <!-- TAB 1: HOME DASHBOARD -->
     <div class="tab-view active" id="tab-home">
       <div class="card" style="text-align: center;">
-        <div class="card-title">Dashboard Summary</div>
+        <div class="card-title" style="justify-content: center;">Dashboard Summary</div>
         <div class="kpi-grid" style="margin-top: 12px;">
           <div class="kpi-tile">
             <div class="kpi-label">TOTAL ORDERS SAVED</div>
@@ -219,16 +272,50 @@
 
       <div class="card">
         <div class="card-title">Quick Actions</div>
-        <button class="btn-action" style="background: var(--accent);" onclick="switchTabById('tab-calc')">🧮 Open Scheme Calculator</button>
+        <button class="btn-action" style="background: var(--accent);" onclick="switchTabById('tab-calc')">🧮 Create / Build Order</button>
         <button class="btn-action" style="background: var(--primary-dark);" onclick="switchTabById('tab-products')">💊 Browse Product Catalog</button>
         <button class="btn-action" style="background: #475569;" onclick="switchTabById('tab-orders')">📋 View Saved Orders Log</button>
       </div>
     </div>
 
-    <!-- TAB 2: CALCULATOR -->
+    <!-- TAB 2: CALCULATOR & ORDER BUILDER -->
     <div class="tab-view" id="tab-calc">
+      
+      <!-- Doctor / Chemist Details Card -->
       <div class="card">
-        <div class="card-title">1. Select Product & Scheme</div>
+        <div class="card-title">
+          <span>1. Customer Details</span>
+          <span id="editingBadge" class="badge-edit" style="display:none;">Editing Order</span>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Customer Type</label>
+            <select id="custType">
+              <option value="Doctor">Doctor</option>
+              <option value="Chemist">Chemist / Retailer</option>
+              <option value="Wholesaler">Stockist / Wholesaler</option>
+            </select>
+          </div>
+          <div>
+            <label>Doctor/Chemist Name</label>
+            <input type="text" id="custName" placeholder="e.g. Dr. A. K. Roy">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Contact Number</label>
+            <input type="tel" id="custPhone" placeholder="e.g. 9876543210">
+          </div>
+          <div>
+            <label>Address / Location</label>
+            <input type="text" id="custAddress" placeholder="e.g. Diamond Harbour">
+          </div>
+        </div>
+      </div>
+
+      <!-- Item Calculator -->
+      <div class="card">
+        <div class="card-title">2. Select Product & Scheme</div>
         
         <label>Select Product</label>
         <select id="productSelect" onchange="loadSelectedProduct()">
@@ -242,7 +329,7 @@
           <option value="Lot Adjust in Cash %" selected>Lot Adjust in Cash %</option>
         </select>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-row">
           <div>
             <label>Paid Qty (Ratio Base)</label>
             <div class="qty-controls">
@@ -270,37 +357,34 @@
           </div>
         </div>
 
-        <button class="btn-action" style="background: var(--primary-dark); margin-top: 8px;" onclick="addToCart()">+ Add Item To Order Cart</button>
-      </div>
-
-      <!-- Financial Summary -->
-      <div class="card">
-        <div class="card-title">2. Order Financial Breakdown</div>
-        <div class="kpi-grid">
+        <!-- Single Item Live Breakdown -->
+        <div class="kpi-grid" style="margin-bottom: 12px;">
           <div class="kpi-tile">
-            <div class="kpi-label">Total Billing</div>
+            <div class="kpi-label">Billing Amount</div>
             <div class="kpi-value" id="calcBilling">₹0.00</div>
           </div>
           <div class="kpi-tile">
-            <div class="kpi-label">Out-Of-Pocket Cost</div>
+            <div class="kpi-label">Rep Cost (COGS)</div>
             <div class="kpi-value" id="calcCost">₹0.00</div>
           </div>
           <div class="kpi-tile">
-            <div class="kpi-label">Net Profit</div>
+            <div class="kpi-label">Rep Net Profit</div>
             <div class="kpi-value" id="calcProfit">₹0.00</div>
           </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">Doctor Savings</div>
-            <div class="kpi-value" id="calcDocSavings">₹0.00</div>
+          <div class="kpi-tile" style="background: #e0f2fe;">
+            <div class="kpi-label" style="color:#0369a1;">Doctor Profit / Savings</div>
+            <div class="kpi-value" id="calcDocSavings" style="color:#0369a1;">₹0.00 (0%)</div>
           </div>
         </div>
+
+        <button class="btn-action" style="background: var(--primary-dark);" onclick="addToCart()">+ Add Item To Order Cart</button>
       </div>
 
-      <!-- Cart Summary -->
+      <!-- Multi-Product Cart Summary -->
       <div class="card">
-        <div class="card-title">3. Order Cart Summary (<span id="cartItemCount">0</span>)</div>
+        <div class="card-title">3. Multi-Product Order Cart (<span id="cartItemCount">0</span>)</div>
         <div id="cartItemsList">
-          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>
+          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Select products above to build order.</p>
         </div>
         <div class="kpi-grid" style="margin-top: 12px;">
           <div class="kpi-tile">
@@ -308,13 +392,18 @@
             <div class="kpi-value" id="cartTotalBilling">₹0.00</div>
           </div>
           <div class="kpi-tile">
-            <div class="kpi-label">Total Cart Cost</div>
-            <div class="kpi-value" id="cartTotalCogs">₹0.00</div>
+            <div class="kpi-label">Total Rep Profit</div>
+            <div class="kpi-value" id="cartTotalProfit">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: #e0f2fe;">
+            <div class="kpi-label" style="color:#0369a1;">Total Doctor Savings & Profit Margin</div>
+            <div class="kpi-value" id="cartTotalDocSavings" style="color:#0369a1;">₹0.00 (0.0% Margin)</div>
           </div>
         </div>
+
         <button class="btn-action" style="background: var(--primary); margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
         <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
-        <button class="btn-action btn-danger" onclick="clearCart()">Clear Current Cart</button>
+        <button class="btn-action btn-danger" onclick="clearCart()">Clear / Reset Cart</button>
       </div>
     </div>
 
@@ -335,12 +424,12 @@
       <div id="productList"></div>
     </div>
 
-    <!-- TAB 4: RECENT ORDERS -->
+    <!-- TAB 4: RECENT SAVED ORDERS LOG -->
     <div class="tab-view" id="tab-orders">
       <div class="card">
         <div class="card-title">Saved Orders Log</div>
         <div id="ordersList">No orders logged yet.</div>
-        <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
+        <button class="btn-action btn-danger" style="margin-top: 16px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
       </div>
     </div>
 
@@ -352,13 +441,13 @@
       <span>🏠</span> Home
     </button>
     <button class="nav-btn" id="btn-tab-calc" onclick="switchTab('tab-calc', this)">
-      <span>🧮</span> Calc
+      <span>🧮</span> Order Builder
     </button>
     <button class="nav-btn" id="btn-tab-products" onclick="switchTab('tab-products', this)">
       <span>💊</span> Catalog
     </button>
     <button class="nav-btn" id="btn-tab-orders" onclick="switchTab('tab-orders', this)">
-      <span>📋</span> Orders
+      <span>📋</span> Orders Log
     </button>
   </nav>
 
@@ -387,9 +476,9 @@
     let currentCategory = "ALL";
     let cart = [];
     let savedOrders = [];
+    let editingOrderId = null;
 
     function init() {
-      // Load orders from localStorage so refreshes keep order history
       try {
         const stored = localStorage.getItem('eicw_saved_orders');
         if (stored) savedOrders = JSON.parse(stored);
@@ -433,7 +522,7 @@
       const schemeType = document.getElementById("schemeType").value;
       const paidQty = Number(document.getElementById("paidQty").value) || 0;
       const freeQty = Number(document.getElementById("freeQty").value) || 0;
-      const orderQty = Number(document.getElementById("orderQty").value) || paidQty;
+      const orderQty = Number(document.getElementById("orderQty").value) || 1;
 
       let billingAmount = 0;
       let cogs = orderQty * product.costGst;
@@ -443,19 +532,21 @@
       } else if (schemeType === "Lot With Free Items") {
         billingAmount = orderQty * product.mrp;
         cogs += (freeQty * product.costGst);
-      } else if (schemeType === "Lot Adjust in Cash" || schemeType === "Lot Adjust in Cash %") {
+      } else if (schemeType === "Lot Adjust in Cash %") {
         const totalBase = paidQty + freeQty;
         const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
         billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
       }
 
       const netProfit = billingAmount - cogs;
-      const doctorSavings = (orderQty * product.mrp) - billingAmount;
+      const totalMrp = orderQty * product.mrp;
+      const docSavings = totalMrp - billingAmount;
+      const docMarginPct = totalMrp > 0 ? ((docSavings / totalMrp) * 100) : 0;
 
       document.getElementById("calcBilling").innerText = `₹${billingAmount.toFixed(2)}`;
       document.getElementById("calcCost").innerText = `₹${cogs.toFixed(2)}`;
       document.getElementById("calcProfit").innerText = `₹${netProfit.toFixed(2)}`;
-      document.getElementById("calcDocSavings").innerText = `₹${doctorSavings.toFixed(2)}`;
+      document.getElementById("calcDocSavings").innerText = `₹${docSavings.toFixed(2)} (${docMarginPct.toFixed(1)}%)`;
     }
 
     function loadSelectedProduct() {
@@ -505,90 +596,234 @@
       const freeQty = Number(document.getElementById("freeQty").value) || 0;
       const orderQty = Number(document.getElementById("orderQty").value) || 1;
 
-      const totalBase = paidQty + freeQty;
-      const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
-      const billing = (orderQty * product.mrp) * (1 - discountRatio);
-      const cogs = orderQty * product.costGst;
+      let billing = 0;
+      let cogs = orderQty * product.costGst;
+
+      if (schemeType === "Standard scheme") {
+        billing = orderQty * product.tpGst;
+      } else if (schemeType === "Lot With Free Items") {
+        billing = orderQty * product.mrp;
+        cogs += (freeQty * product.costGst);
+      } else if (schemeType === "Lot Adjust in Cash %") {
+        const totalBase = paidQty + freeQty;
+        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+        billing = (orderQty * product.mrp) * (1 - discountRatio);
+      }
+
+      const totalMrp = orderQty * product.mrp;
+      const docSavings = totalMrp - billing;
+      const docMarginPct = totalMrp > 0 ? ((docSavings / totalMrp) * 100) : 0;
+      const profit = billing - cogs;
 
       cart.push({
+        id: product.id,
         name: product.name,
+        category: product.category,
         orderQty: orderQty,
-        scheme: `${paidQty}+${freeQty}`,
+        schemeType: schemeType,
+        paidQty: paidQty,
+        freeQty: freeQty,
+        mrp: product.mrp,
         billing: billing,
-        cogs: cogs
+        cogs: cogs,
+        profit: profit,
+        docSavings: docSavings,
+        docMarginPct: docMarginPct
       });
 
+      renderCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
       renderCart();
     }
 
     function renderCart() {
       document.getElementById("cartItemCount").innerText = cart.length;
       const cartList = document.getElementById("cartItemsList");
+      
       if (cart.length === 0) {
-        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
+        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Select products above to build order.</p>`;
         document.getElementById("cartTotalBilling").innerText = "₹0.00";
-        document.getElementById("cartTotalCogs").innerText = "₹0.00";
+        document.getElementById("cartTotalProfit").innerText = "₹0.00";
+        document.getElementById("cartTotalDocSavings").innerText = "₹0.00 (0.0% Margin)";
         return;
       }
 
-      let totalB = 0, totalC = 0;
-      cartList.innerHTML = cart.map((item) => {
+      let totalB = 0, totalP = 0, totalDocSav = 0, totalMrpVal = 0;
+      
+      cartList.innerHTML = cart.map((item, idx) => {
         totalB += item.billing;
-        totalC += item.cogs;
+        totalP += item.profit;
+        totalDocSav += item.docSavings;
+        totalMrpVal += (item.orderQty * item.mrp);
+
+        const schemeText = item.schemeType === 'Standard scheme' ? 'Standard' : `${item.paidQty}+${item.freeQty}`;
+
         return `
-          <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding: 4px 0; border-bottom: 1px dashed var(--border);">
-            <span>${item.name} (${item.orderQty} btl, Scheme: ${item.scheme})</span>
-            <span>₹${item.billing.toFixed(2)}</span>
+          <div style="padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.85rem;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+              <span>${item.name} x ${item.orderQty}</span>
+              <span>₹${item.billing.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:var(--subtext); font-size:0.78rem; margin-top:2px;">
+              <span>Scheme: ${schemeText} (${item.schemeType})</span>
+              <span>Doc Profit: ₹${item.docSavings.toFixed(1)} (${item.docMarginPct.toFixed(1)}%)</span>
+              <button class="btn-sm btn-danger" style="padding:2px 6px;" onclick="removeFromCart(${idx})">✕</button>
+            </div>
           </div>
         `;
       }).join('');
 
+      const overallDocMargin = totalMrpVal > 0 ? ((totalDocSav / totalMrpVal) * 100) : 0;
+
       document.getElementById("cartTotalBilling").innerText = `₹${totalB.toFixed(2)}`;
-      document.getElementById("cartTotalCogs").innerText = `₹${totalC.toFixed(2)}`;
+      document.getElementById("cartTotalProfit").innerText = `₹${totalP.toFixed(2)}`;
+      document.getElementById("cartTotalDocSavings").innerText = `₹${totalDocSav.toFixed(2)} (${overallDocMargin.toFixed(1)}% Margin)`;
     }
 
     function clearCart() {
       cart = [];
+      editingOrderId = null;
+      document.getElementById("custName").value = "";
+      document.getElementById("custPhone").value = "";
+      document.getElementById("custAddress").value = "";
+      document.getElementById("editingBadge").style.display = "none";
       renderCart();
     }
 
     function saveOrder() {
-      if (cart.length === 0) return alert("Cart is empty!");
-      
-      let orderBilling = cart.reduce((sum, i) => sum + i.billing, 0);
-      savedOrders.push({
-        id: Date.now(),
-        date: new Date().toLocaleDateString(),
-        items: [...cart],
-        totalBilling: orderBilling
-      });
+      if (cart.length === 0) return alert("Please add at least one item to cart!");
 
-      // Persist to localStorage
+      const custType = document.getElementById("custType").value;
+      const custName = document.getElementById("custName").value.trim() || "General Order";
+      const custPhone = document.getElementById("custPhone").value.trim() || "N/A";
+      const custAddress = document.getElementById("custAddress").value.trim() || "N/A";
+
+      const totalBilling = cart.reduce((sum, i) => sum + i.billing, 0);
+      const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
+      const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0);
+      const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0);
+
+      if (editingOrderId) {
+        // Update existing order
+        const index = savedOrders.findIndex(o => o.id === editingOrderId);
+        if (index !== -1) {
+          savedOrders[index] = {
+            id: editingOrderId,
+            date: savedOrders[index].date || new Date().toLocaleDateString(),
+            custType, custName, custPhone, custAddress,
+            items: [...cart],
+            totalBilling, totalCogs, totalProfit, totalDocSavings
+          };
+        }
+        editingOrderId = null;
+        document.getElementById("editingBadge").style.display = "none";
+        alert("Order updated successfully!");
+      } else {
+        // Create new order
+        savedOrders.unshift({
+          id: Date.now(),
+          date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+          custType, custName, custPhone, custAddress,
+          items: [...cart],
+          totalBilling, totalCogs, totalProfit, totalDocSavings
+        });
+        alert("Order booked & saved successfully!");
+      }
+
       localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
 
-      cart = [];
-      renderCart();
+      clearCart();
       renderOrdersLog();
       updateDashboard();
-      alert("Order saved successfully!");
+      switchTabById('tab-orders');
     }
 
     function renderOrdersLog() {
       const container = document.getElementById("ordersList");
       if (savedOrders.length === 0) {
-        container.innerHTML = "No orders logged yet.";
+        container.innerHTML = "<p style='color:var(--subtext); text-align:center;'>No orders logged yet.</p>";
         return;
       }
-      container.innerHTML = savedOrders.map((o, idx) => `
-        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:0.85rem;">
-          <strong>Order #${idx + 1}</strong> - ${o.date || 'Saved'} (${o.items.length} items)
-          <div style="color: var(--primary-dark); font-weight: bold; margin-top:2px;">Total Billing: ₹${(o.totalBilling || 0).toFixed(2)}</div>
+
+      container.innerHTML = savedOrders.map((o) => `
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <strong>${o.custName}</strong> (${o.custType})
+              <div style="font-size:0.75rem; color:var(--subtext);">${o.date}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:bold; color:var(--primary-dark);">₹${(o.totalBilling || 0).toFixed(2)}</div>
+              <div style="font-size:0.75rem; color:var(--subtext);">${o.items ? o.items.length : 0} items</div>
+            </div>
+          </div>
+
+          <div style="font-size:0.82rem; color:var(--subtext);">
+            📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
+          </div>
+
+          <!-- Expandable Details -->
+          <div class="order-details-box" id="details-${o.id}">
+            <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item & Scheme Breakdown:</div>
+            ${(o.items || []).map(i => `
+              <div style="margin-bottom:6px; border-bottom: 1px dashed #e2e8f0; padding-bottom:4px;">
+                <strong>${i.name}</strong> x${i.orderQty}<br>
+                <span>Scheme: ${i.schemeType === 'Standard scheme' ? 'Standard' : i.paidQty + '+' + i.freeQty + ' (' + i.schemeType + ')'}</span><br>
+                <span>Billing: ₹${i.billing.toFixed(2)} | Doc Margin: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
+              </div>
+            `).join('')}
+            <div style="color:var(--primary-dark); font-weight:bold; margin-top:4px;">
+              Total Doctor Profit: ₹${(o.totalDocSavings || 0).toFixed(2)}
+            </div>
+          </div>
+
+          <div class="order-actions">
+            <button class="btn-sm btn-accent" onclick="toggleOrderDetails(${o.id})">👁️ Details</button>
+            <button class="btn-sm btn-whatsapp" onclick="shareOrderWhatsApp(${o.id})">📲 Forward to Stockist</button>
+            <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
+            <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
+          </div>
         </div>
       `).join('');
     }
 
+    function toggleOrderDetails(orderId) {
+      const el = document.getElementById(`details-${orderId}`);
+      if (el) {
+        el.style.display = el.style.display === "block" ? "none" : "block";
+      }
+    }
+
+    function editOrder(orderId) {
+      const order = savedOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      editingOrderId = order.id;
+      document.getElementById("custType").value = order.custType || "Doctor";
+      document.getElementById("custName").value = order.custName || "";
+      document.getElementById("custPhone").value = order.custPhone || "";
+      document.getElementById("custAddress").value = order.custAddress || "";
+      document.getElementById("editingBadge").style.display = "inline-block";
+
+      cart = [...order.items];
+      renderCart();
+      switchTabById('tab-calc');
+    }
+
+    function deleteOrder(orderId) {
+      if (confirm("Are you sure you want to delete this specific order?")) {
+        savedOrders = savedOrders.filter(o => o.id !== orderId);
+        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        renderOrdersLog();
+        updateDashboard();
+      }
+    }
+
     function clearOrdersLog() {
-      if (confirm("Are you sure you want to clear all order history?")) {
+      if (confirm("Are you sure you want to clear ALL order history?")) {
         savedOrders = [];
         localStorage.removeItem('eicw_saved_orders');
         renderOrdersLog();
@@ -602,13 +837,50 @@
       document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
     }
 
+    function shareOrderWhatsApp(orderId) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o) return;
+
+      let msg = `*EICW SALES ORDER LOG*\n`;
+      msg += `------------------------\n`;
+      msg += `*Customer:* ${o.custName} (${o.custType})\n`;
+      msg += `*Contact:* ${o.custPhone}\n`;
+      msg += `*Address:* ${o.custAddress}\n`;
+      msg += `*Date:* ${o.date}\n`;
+      msg += `------------------------\n`;
+      msg += `*ORDER ITEMS & SCHEMES:*\n`;
+
+      o.items.forEach((item, idx) => {
+        const schemeInfo = item.schemeType === 'Standard scheme' ? 'Standard' : `${item.paidQty}+${item.freeQty} (${item.schemeType})`;
+        msg += `${idx + 1}. *${item.name}*\n   - Qty: ${item.orderQty}\n   - Scheme: ${schemeInfo}\n   - Billing: ₹${item.billing.toFixed(2)}\n`;
+      });
+
+      msg += `------------------------\n`;
+      msg += `*TOTAL ORDER VALUE:* ₹${o.totalBilling.toFixed(2)}\n`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
+
     function shareCartWhatsApp() {
       if (cart.length === 0) return alert("Cart is empty!");
-      let text = "EICW Sales Quote:\n";
-      cart.forEach(i => {
-        text += `- ${i.name} x ${i.orderQty} (Scheme ${i.scheme}): ₹${i.billing.toFixed(2)}\n`;
+
+      const custName = document.getElementById("custName").value.trim() || "Valued Customer";
+      const custType = document.getElementById("custType").value;
+
+      let msg = `*EICW ORDER DRAFT QUOTE*\n`;
+      msg += `*For:* ${custName} (${custType})\n`;
+      msg += `------------------------\n`;
+
+      cart.forEach((i, idx) => {
+        const schemeInfo = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+        msg += `${idx + 1}. *${i.name}* x ${i.orderQty} (Scheme ${schemeInfo}): ₹${i.billing.toFixed(2)}\n`;
       });
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+
+      const totalB = cart.reduce((sum, i) => sum + i.billing, 0);
+      msg += `------------------------\n`;
+      msg += `*ESTIMATED TOTAL:* ₹${totalB.toFixed(2)}\n`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
 
     document.addEventListener("DOMContentLoaded", init);
