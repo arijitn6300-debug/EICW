@@ -2,813 +2,225 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EICW Sales Desk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EICW Sales Desk PWA</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0F172A">
   <style>
-    :root {
-      --bg: #F8FAFC;
-      --card-bg: #FFFFFF;
-      --text: #0F172A;
-      --subtext: #64748B;
-      --primary: #2563EB;
-      --primary-dark: #1D4ED8;
-      --success-bg: #DCFCE7;
-      --success-text: #15803D;
-      --danger-bg: #FEE2E2;
-      --danger-text: #B91C1C;
-      --accent-bg: #E0F2FE;
-      --accent-text: #0369A1;
-      --warning-bg: #FEF3C7;
-      --warning-text: #B45309;
-      --border: #E2E8F0;
-    }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f6f9;
       margin: 0;
-      padding: 0 0 75px 0;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
+      padding: 20px;
+      color: #333;
     }
-
-    .app-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: #0F172A;
-      color: #FFFFFF;
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    .app-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.2px; }
-    .sync-badge { font-size: 0.7rem; font-weight: 700; color: #10B981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
-
-    .tab-view { display: none; padding: 12px; }
-    .tab-view.active { display: block; }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-
-    .card-title {
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--subtext);
-      margin-bottom: 10px;
-    }
-
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .stat-card { background: #FFF; border-radius: 12px; padding: 12px; border: 1px solid var(--border); text-align: center; }
-    .stat-val { font-size: 1.35rem; font-weight: 800; color: var(--text); }
-    .stat-lbl { font-size: 0.7rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; margin-top: 2px; }
-
-    label { font-size: 0.82rem; font-weight: 700; display: block; margin-bottom: 6px; color: var(--text); }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 11px 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #F8FAFC;
-      color: var(--text);
-      outline: none;
-      margin-bottom: 10px;
-    }
-
-    .qty-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    .qty-controls {
-      display: grid;
-      grid-template-columns: 40px 1fr 40px;
-      gap: 4px;
-      margin-top: 4px;
-    }
-
-    .btn-qty {
-      background: #E2E8F0;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    .btn-qty:active { background: #CBD5E1; }
-
-    input[type="number"] {
-      width: 100%;
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 800;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #FFF;
-      outline: none;
-    }
-
-    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .kpi-tile { padding: 10px 12px; border-radius: 10px; text-align: center; }
-    .kpi-tile.billing { background: var(--success-bg); color: var(--success-text); }
-    .kpi-tile.cogs { background: var(--danger-bg); color: var(--danger-text); }
-    .kpi-tile.profit { background: var(--accent-bg); color: var(--accent-text); grid-column: span 2; }
-    .kpi-value { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
-    .kpi-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; opacity: 0.85; }
-
-    .btn-action {
-      width: 100%;
-      margin-top: 10px;
-      padding: 12px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-action:active { background: var(--primary-dark); }
-    .btn-secondary { background: #475569; }
-    .btn-whatsapp { background: #16A34A; }
-    .btn-danger { background: #EF4444; }
-    .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; border: none; font-weight: 800; cursor: pointer; }
-
-    /* Cart Items List */
-    .cart-item {
-      background: #F8FAFC;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .cart-item-info { font-size: 0.85rem; font-weight: 700; }
-    .cart-item-sub { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
-    .cart-item-price { text-align: right; font-weight: 800; font-size: 0.9rem; color: var(--text); }
-    .btn-remove { background: #FEE2E2; color: #B91C1C; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; font-weight: 800; margin-left: 8px; cursor: pointer; }
-
-    /* Catalog Cards */
-    .category-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
-    .pill {
-      background: #E2E8F0;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--subtext);
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .pill.active { background: var(--primary); color: white; }
-
-    .product-card {
-      background: #FFF;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-
-    .prod-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-    .prod-title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
-    .prod-cat { font-size: 0.65rem; font-weight: 800; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-    .prod-comp { font-size: 0.8rem; font-weight: 700; color: #2563EB; margin-bottom: 10px; line-height: 1.35; background: #F0F9FF; padding: 6px 8px; border-radius: 6px; }
-
-    .prod-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #F8FAFC; padding: 8px; border-radius: 8px; text-align: center; }
-    .pm-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
-    .pm-lbl { font-size: 0.62rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; }
-
-    /* Orders Log Cards */
-    .order-card {
-      background: #FFF;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .order-party { font-size: 1rem; font-weight: 800; color: var(--text); }
-    .order-addr { font-size: 0.78rem; font-weight: 600; color: var(--subtext); margin-bottom: 8px; }
-    .order-item-line { font-size: 0.8rem; border-bottom: 1px dashed var(--border); padding: 6px 0; }
-    .order-item-title { font-weight: 700; color: var(--text); display: flex; justify-content: space-between; }
-    .order-item-scheme { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
-    .order-actions { display: flex; gap: 6px; margin-top: 10px; }
-
-    /* Bottom Nav Bar */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-width: 500px;
+    .calculator-card {
+      max-width: 480px;
       margin: 0 auto;
-      background: #FFFFFF;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-style: space-around;
-      padding: 6px 0 8px 0;
-      z-index: 1000;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--subtext);
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-decoration: none;
-      border: none;
-      background: none;
-      cursor: pointer;
-      width: 25%;
+    h2 {
+      margin-top: 0;
+      color: #1a252c;
+      font-size: 1.4rem;
+      border-bottom: 2px solid #eef2f5;
+      padding-bottom: 10px;
     }
-
-    .nav-item svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; margin-bottom: 2px; }
-    .nav-item.active { color: var(--primary); }
-    .nav-item.active svg { stroke: var(--primary); }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #4a5568;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #fff;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49,130,206,0.15);
+    }
+    .row-2 {
+      display: flex;
+      gap: 12px;
+    }
+    .row-2 .form-group {
+      flex: 1;
+    }
+    .results-panel {
+      margin-top: 24px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 0.95rem;
+    }
+    .result-row:last-child {
+      border-bottom: none;
+    }
+    .result-row.highlight {
+      background-color: #e6fffa;
+      margin: 4px -8px;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .val {
+      font-weight: 600;
+      color: #2d3748;
+    }
+    .val-highlight {
+      color: #2b6cb0;
+    }
   </style>
 </head>
 <body>
 
-  <div class="app-header">
-    <div class="app-title">EICW Sales Desk</div>
-    <div class="sync-badge">OFFLINE READY</div>
+<div class="calculator-card">
+  <h2>EICW Scheme Calculator</h2>
+
+  <div class="form-group">
+    <label for="mrp">Product MRP (₹)</label>
+    <input type="number" id="mrp" value="100" oninput="recalculate()">
   </div>
 
-  <!-- TAB 1: HOME DASHBOARD -->
-  <div class="tab-view active" id="tab-home">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val" id="homeSales">₹0</div>
-        <div class="stat-lbl">Today's Sales</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="homeProfit">₹0</div>
-        <div class="stat-lbl">Est. Profit</div>
-      </div>
-    </div>
+  <div class="form-group">
+    <label for="schemeType">Scheme Type</label>
+    <select id="schemeType" onchange="recalculate()">
+      <option value="Standard scheme">Standard Scheme</option>
+      <option value="Lot With Free Items">Lot With Free Items</option>
+      <option value="Lot Adjust in Cash %" selected>Lot Adjust in Cash %</option>
+    </select>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Quick Actions</div>
-      <button class="btn-action" onclick="switchTab('calc')" style="margin-bottom: 8px;">+ Build Multi-Product Order</button>
-      <button class="btn-action btn-secondary" onclick="switchTab('products')">📦 View Full Catalog</button>
+  <div class="row-2">
+    <div class="form-group">
+      <label for="schemePaidQty">Scheme Paid Base</label>
+      <input type="number" id="schemePaidQty" value="5" oninput="recalculate()">
     </div>
-
-    <div class="card">
-      <div class="card-title">System Status</div>
-      <p style="font-size: 0.85rem; color: var(--subtext); margin: 0; line-height: 1.4;">
-        Multi-product cart, stockist order forwarding, individual edit/delete, doctor profit % tracking active.
-      </p>
+    <div class="form-group">
+      <label for="schemeFreeQty">Scheme Free Base</label>
+      <input type="number" id="schemeFreeQty" value="2" oninput="recalculate()">
     </div>
   </div>
 
-  <!-- TAB 2: MULTI-PRODUCT ORDER BUILDER & CALCULATOR -->
-  <div class="tab-view" id="tab-calc">
-    <!-- Client Details Card -->
-    <div class="card">
-      <div class="card-title">1. Doctor / Chemist Details</div>
-      <label for="partyName">Doctor / Chemist / Stockist Name *</label>
-      <input type="text" id="partyName" placeholder="e.g. Dr. Roy / Das Pharmacy">
+  <div class="form-group">
+    <label for="orderQty" style="color: #2b6cb0;">Doctor Order Qty (Bottles)</label>
+    <input type="number" id="orderQty" value="5" oninput="recalculate()" style="border-color: #3182ce; font-weight: bold;">
+  </div>
 
-      <label for="partyAddress">Address / Location</label>
-      <input type="text" id="partyAddress" placeholder="e.g. Diamond Harbour, Station Road">
+  <div class="row-2">
+    <div class="form-group">
+      <label for="costPerUnit">Cost Per Unit (COGS)</label>
+      <input type="number" id="costPerUnit" value="40" oninput="recalculate()">
     </div>
-
-    <!-- Product / Item Selector Card -->
-    <div class="card">
-      <div class="card-title">2. Add Item To Cart</div>
-      
-      <label for="productSelect">Select Product</label>
-      <select id="productSelect"></select>
-
-      <label for="schemeSelect">Select Scheme Model</label>
-      <select id="schemeSelect">
-        <option value="Standard scheme">Standard scheme (TP + GST)</option>
-        <option value="Lot With Free Items" selected>Lot With Free Items (MRP)</option>
-        <option value="Lot Adjust in Cash">Lot Adjust in Cash (20% + Lot %)</option>
-      </select>
-
-      <div class="qty-row">
-        <div>
-          <label>Ordered Qty</label>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="changeQty('buyQty', -1)">-</button>
-            <input type="number" id="buyQty" value="10" min="1">
-            <button class="btn-qty" onclick="changeQty('buyQty', 1)">+</button>
-          </div>
-        </div>
-        <div>
-          <label>Free Qty (Ratio)</label>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
-            <input type="number" id="freeQty" value="4" min="0">
-            <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn-action" onclick="addToCart()" style="margin-top: 14px;">+ Add Item To Order Cart</button>
-    </div>
-
-    <!-- Cart Summary & Financials -->
-    <div class="card">
-      <div class="card-title">3. Order Cart Summary</div>
-      <div id="cartItemsList">
-        <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Add products above.</p>
-      </div>
-
-      <div class="kpi-grid" style="margin-top: 12px;">
-        <div class="kpi-tile billing">
-          <div class="kpi-label">Total Order Billing</div>
-          <div class="kpi-value" id="cartTotalBilling">₹0</div>
-        </div>
-        <div class="kpi-tile cogs">
-          <div class="kpi-label">Total Company Cost</div>
-          <div class="kpi-value" id="cartTotalCogs">₹0</div>
-        </div>
-        <div class="kpi-tile profit">
-          <div class="kpi-label">Net Commission & Margin %</div>
-          <div class="kpi-value" id="cartTotalProfit">₹0 (0%)</div>
-        </div>
-      </div>
-
-      <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--subtext); display: flex; justify-content: space-between;">
-        <span>Doctor Total Profit: <strong id="cartDocProfit" style="color: var(--text);">₹0 (0%)</strong></span>
-        <span>Items Count: <strong id="cartItemCount" style="color: var(--text);">0</strong></span>
-      </div>
-
-      <button class="btn-action" style="background: #059669; margin-top: 12px;" onclick="saveOrder()">💾 Save Order & Log</button>
-      <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">💬 Share Draft Quote via WhatsApp</button>
-      <button class="btn-action btn-danger" style="margin-top: 6px;" onclick="clearCart()">Clear Current Cart</button>
+    <div class="form-group">
+      <label for="tpGst">TP + GST Per Unit</label>
+      <input type="number" id="tpGst" value="80" oninput="recalculate()">
     </div>
   </div>
 
-  <!-- TAB 3: PRODUCTS CATALOG -->
-  <div class="tab-view" id="tab-products">
-    <div style="margin-bottom: 10px;">
-      <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
+  <div class="results-panel">
+    <div class="result-row highlight">
+      <span>Total Billing Amount:</span>
+      <span class="val val-highlight">₹<span id="outBilling">0.00</span></span>
     </div>
-
-    <div class="category-pills">
-      <button class="pill active" onclick="filterCategory('ALL', this)">All</button>
-      <button class="pill" onclick="filterCategory('Syrup', this)">Syrups</button>
-      <button class="pill" onclick="filterCategory('Tablet', this)">Tablets</button>
-      <button class="pill" onclick="filterCategory('Capsule', this)">Capsules</button>
-      <button class="pill" onclick="filterCategory('Ointment/Drops', this)">Ointments & Drops</button>
+    <div class="result-row">
+      <span>Total Out-Of-Pocket Cost:</span>
+      <span class="val">₹<span id="outCost">0.00</span></span>
     </div>
-
-    <div id="productList"></div>
-  </div>
-
-  <!-- TAB 4: RECENT ORDERS -->
-  <div class="tab-view" id="tab-orders">
-    <div class="card">
-      <div class="card-title">Saved Orders Log</div>
-      <div id="ordersList">No orders logged yet.</div>
-      <button class="btn-action btn-danger" style="margin-top: 12px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
+    <div class="result-row">
+      <span>Net Commission / Profit:</span>
+      <span class="val">₹<span id="outNetProfit">0.00</span></span>
+    </div>
+    <div class="result-row">
+      <span>Net Commission %:</span>
+      <span class="val"><span id="outNetProfitPct">0.00</span>%</span>
+    </div>
+    <div class="result-row">
+      <span>Doctor Profit / Savings:</span>
+      <span class="val">₹<span id="outDocProfit">0.00</span></span>
+    </div>
+    <div class="result-row">
+      <span>Doctor Profit %:</span>
+      <span class="val"><span id="outDocProfitPct">0.00</span>%</span>
+    </div>
+    <div class="result-row">
+      <span>Per Unit Cost to Doctor:</span>
+      <span class="val">₹<span id="outDocUnitCost">0.00</span> / btl</span>
     </div>
   </div>
+</div>
 
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-      Home
-    </button>
-    <button class="nav-item" id="nav-calc" onclick="switchTab('calc')">
-      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01M12 10h.01M8 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"></path></svg>
-      Calculator
-    </button>
-    <button class="nav-item" id="nav-products" onclick="switchTab('products')">
-      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-      Products
-    </button>
-    <button class="nav-item" id="nav-orders" onclick="switchTab('orders')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-      Orders
-    </button>
-  </div>
+<script>
+function recalculate() {
+  const mrp = Number(document.getElementById("mrp").value) || 0;
+  const schemeType = document.getElementById("schemeType").value;
+  const schemePaidQty = Number(document.getElementById("schemePaidQty").value) || 0;
+  const schemeFreeQty = Number(document.getElementById("schemeFreeQty").value) || 0;
+  const orderQty = Number(document.getElementById("orderQty").value) || 0;
+  const costPerUnit = Number(document.getElementById("costPerUnit").value) || 0;
+  const tpGst = Number(document.getElementById("tpGst").value) || 0;
 
-  <script>
-    const CATALOG = [
-      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl 2mg & Tricholine Citrate 275mg (Sugar Free), Appetite Stimulant", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid, Urinary Alkalizer", mrp: 100, tpGst: 80.00, costGst: 40.00 },
-      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 85, tpGst: 67.99, costGst: 33.99 },
-      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid, Digestive Enzyme", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol (Sugar Free), Hepatoprotective", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin & Menthol, Expectorant", mrp: 80, tpGst: 64.00, costGst: 32.00 },
-      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl 1.5mg & Tricholine Citrate 55mg (Sugar Free), Pediatric Drops", mrp: 60, tpGst: 47.99, costGst: 23.99 },
-      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
-      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine & D-Panthenol Syrup, Multivitamin", mrp: 130, tpGst: 103.95, costGst: 51.98 },
-      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole & Clobetasol Propionate Cream, Antifungal", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg, Analgesic", mrp: 65, tpGst: 51.98, costGst: 20.79 },
-      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Serratiopeptidase 15mg, Anti-inflammatory", mrp: 102, tpGst: 81.76, costGst: 32.71 },
-      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg, Paracetamol 325mg & Chlorzoxazone 250mg, Muscle Relaxant", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
-      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg, Anti-allergic", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
-      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg (SR), Antacid", mrp: 105, tpGst: 84.00, costGst: 33.60 },
-      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Activated Charcoal, Digestive Helper", mrp: 70, tpGst: 56.00, costGst: 22.40 },
-      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3, Multivitamins & Multiminerals, Antioxidant", mrp: 210, tpGst: 168.00, costGst: 67.20 },
-      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics (5 Strains), Fructo Oligosaccharides & Zinc Sulphate 20mg, Gut Restorative", mrp: 125, tpGst: 100.00, costGst: 40.00 }
-    ];
+  let billingAmount = 0;
+  let cogs = orderQty * costPerUnit;
+  let schemeCost = 0;
 
-    let currentCart = [];
-    let savedOrders = [];
-    let currentCategory = 'ALL';
-    let editingOrderId = null;
+  if (schemeType === "Standard scheme") {
+    billingAmount = orderQty * tpGst;
+    schemeCost = 0;
+  } 
+  else if (schemeType === "Lot With Free Items") {
+    billingAmount = orderQty * mrp;
+    schemeCost = schemeFreeQty * costPerUnit;
+  } 
+  else if (schemeType === "Lot Adjust in Cash" || schemeType === "Lot Adjust in Cash %") {
+    const totalSchemeBase = schemePaidQty + schemeFreeQty;
+    const discountRatio = totalSchemeBase > 0 ? (schemeFreeQty / totalSchemeBase) : 0;
+    
+    // Total Billing uses Order Qty and locked discount ratio
+    billingAmount = (orderQty * mrp) * (1 - discountRatio);
+    schemeCost = 0;
+  }
 
-    function init() {
-      populateDropdown();
-      renderProducts();
-      loadOrdersLog();
-      renderCart();
-    }
+  const totalOutofPocketCost = cogs + schemeCost;
+  const netProfit = billingAmount - totalOutofPocketCost;
+  const netProfitPercent = billingAmount > 0 ? (netProfit / billingAmount) * 100 : 0;
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      document.getElementById(`tab-${tabId}`).classList.add('active');
-      document.getElementById(`nav-${tabId}`).classList.add('active');
-      window.scrollTo(0,0);
-    }
+  const grossMrpValue = orderQty * mrp;
+  const doctorProfit = grossMrpValue - billingAmount;
+  const doctorProfitPercent = grossMrpValue > 0 ? (doctorProfit / grossMrpValue) * 100 : 0;
+  const perUnitCostToDoctor = orderQty > 0 ? billingAmount / orderQty : 0;
 
-    function populateDropdown() {
-      const select = document.getElementById('productSelect');
-      select.innerHTML = '';
-      CATALOG.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = `${p.name} (MRP ₹${p.mrp})`;
-        select.appendChild(opt);
-      });
-    }
+  document.getElementById("outBilling").innerText = billingAmount.toFixed(2);
+  document.getElementById("outCost").innerText = totalOutofPocketCost.toFixed(2);
+  document.getElementById("outNetProfit").innerText = netProfit.toFixed(2);
+  document.getElementById("outNetProfitPct").innerText = netProfitPercent.toFixed(2);
+  document.getElementById("outDocProfit").innerText = doctorProfit.toFixed(2);
+  document.getElementById("outDocProfitPct").innerText = doctorProfitPercent.toFixed(2);
+  document.getElementById("outDocUnitCost").innerText = perUnitCostToDoctor.toFixed(2);
+}
 
-    function changeQty(id, delta) {
-      const input = document.getElementById(id);
-      input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
-    }
+document.addEventListener("DOMContentLoaded", recalculate);
+</script>
 
-    function addToCart() {
-      const selectedId = document.getElementById('productSelect').value;
-      const item = CATALOG.find(p => p.id === selectedId) || CATALOG[0];
-      const scheme = document.getElementById('schemeSelect').value;
-      
-      const buyQty = Math.max(1, parseInt(document.getElementById('buyQty').value) || 1);
-      const freeQty = Math.max(0, parseInt(document.getElementById('freeQty').value) || 0);
-      const totalQty = buyQty + freeQty;
-
-      let billing = 0;
-      let cogs = Math.round(totalQty * item.costGst);
-
-      if (scheme === "Standard scheme") {
-        billing = Math.round(buyQty * item.tpGst);
-      } else if (scheme === "Lot With Free Items") {
-        billing = Math.round(buyQty * item.mrp);
-      } else if (scheme === "Lot Adjust in Cash") {
-        billing = Math.round((totalQty * item.tpGst) * (1 - (1 / totalQty)));
-      }
-
-      const profit = billing - cogs;
-      const docSalesVal = totalQty * item.mrp;
-      const docProfit = docSalesVal - billing;
-
-      const cartItem = {
-        cartId: Date.now() + Math.random(),
-        productId: item.id,
-        name: item.name,
-        mrp: item.mrp,
-        scheme: scheme,
-        buyQty: buyQty,
-        freeQty: freeQty,
-        totalQty: totalQty,
-        billing: billing,
-        cogs: cogs,
-        profit: profit,
-        docSalesVal: docSalesVal,
-        docProfit: docProfit
-      };
-
-      currentCart.push(cartItem);
-      renderCart();
-    }
-
-    function removeFromCart(cartId) {
-      currentCart = currentCart.filter(item => item.cartId !== cartId);
-      renderCart();
-    }
-
-    function clearCart() {
-      if (confirm("Clear current cart items?")) {
-        currentCart = [];
-        editingOrderId = null;
-        renderCart();
-      }
-    }
-
-    function renderCart() {
-      const cartListEl = document.getElementById('cartItemsList');
-      
-      if (currentCart.length === 0) {
-        cartListEl.innerHTML = '<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty. Add products above.</p>';
-        document.getElementById('cartTotalBilling').textContent = '₹0';
-        document.getElementById('cartTotalCogs').textContent = '₹0';
-        document.getElementById('cartTotalProfit').textContent = '₹0 (0%)';
-        document.getElementById('cartDocProfit').textContent = '₹0 (0%)';
-        document.getElementById('cartItemCount').textContent = '0';
-        return;
-      }
-
-      cartListEl.innerHTML = '';
-      let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
-
-      currentCart.forEach(item => {
-        totBilling += item.billing;
-        totCogs += item.cogs;
-        totProfit += item.profit;
-        totDocSales += item.docSalesVal;
-        totDocProfit += item.docProfit;
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-          <div>
-            <div class="cart-item-info">${item.name} (${item.buyQty}+${item.freeQty})</div>
-            <div class="cart-item-sub">${item.scheme}</div>
-          </div>
-          <div style="display:flex; align-items:center;">
-            <div class="cart-item-price">₹${item.billing.toLocaleString('en-IN')}</div>
-            <button class="btn-remove" onclick="removeFromCart(${item.cartId})">✕</button>
-          </div>
-        `;
-        cartListEl.appendChild(div);
-      });
-
-      const marginPct = totBilling > 0 ? (totProfit / totBilling) * 100 : 0;
-      const docProfitPct = totDocSales > 0 ? (totDocProfit / totDocSales) * 100 : 0;
-
-      document.getElementById('cartTotalBilling').textContent = `₹${totBilling.toLocaleString('en-IN')}`;
-      document.getElementById('cartTotalCogs').textContent = `₹${totCogs.toLocaleString('en-IN')}`;
-      document.getElementById('cartTotalProfit').textContent = `₹${totProfit.toLocaleString('en-IN')} (${marginPct.toFixed(2)}%)`;
-      document.getElementById('cartDocProfit').textContent = `₹${totDocProfit.toLocaleString('en-IN')} (${docProfitPct.toFixed(2)}%)`;
-      document.getElementById('cartItemCount').textContent = currentCart.length;
-    }
-
-    function saveOrder() {
-      const name = document.getElementById('partyName').value.trim();
-      const address = document.getElementById('partyAddress').value.trim();
-
-      if (!name) {
-        alert("Please enter Doctor / Chemist Name!");
-        document.getElementById('partyName').focus();
-        return;
-      }
-
-      if (currentCart.length === 0) {
-        alert("Your order cart is empty!");
-        return;
-      }
-
-      let totBilling = 0, totCogs = 0, totProfit = 0, totDocSales = 0, totDocProfit = 0;
-      currentCart.forEach(i => {
-        totBilling += i.billing;
-        totCogs += i.cogs;
-        totProfit += i.profit;
-        totDocSales += i.docSalesVal;
-        totDocProfit += i.docProfit;
-      });
-
-      if (editingOrderId) {
-        savedOrders = savedOrders.filter(o => o.id !== editingOrderId);
-      }
-
-      const orderRecord = {
-        id: editingOrderId || Date.now(),
-        partyName: name,
-        partyAddress: address || 'N/A',
-        items: [...currentCart],
-        billing: totBilling,
-        cogs: totCogs,
-        profit: totProfit,
-        docSalesVal: totDocSales,
-        docProfit: totDocProfit,
-        docProfitPct: totDocSales > 0 ? (totDocProfit / totDocSales) * 100 : 0,
-        date: new Date().toLocaleDateString('en-IN'),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      savedOrders.unshift(orderRecord);
-      localStorage.setItem('eicw_orders_v3', JSON.stringify(savedOrders));
-
-      currentCart = [];
-      editingOrderId = null;
-      document.getElementById('partyName').value = '';
-      document.getElementById('partyAddress').value = '';
-      renderCart();
-      loadOrdersLog();
-
-      alert(`Order saved successfully for ${name}!`);
-      switchTab('orders');
-    }
-
-    function forwardOrderWhatsApp(orderId) {
-      const order = savedOrders.find(o => o.id === orderId);
-      if (!order) return;
-
-      let msg = `*EICW BOOKED ORDER FOR STOCKIST*\n`;
-      msg += `*Client Name:* ${order.partyName}\n`;
-      msg += `*Location:* ${order.partyAddress}\n`;
-      msg += `*Date/Time:* ${order.date} ${order.time}\n`;
-      msg += `------------------------------\n`;
-
-      order.items.forEach((item, idx) => {
-        msg += `${idx + 1}. *${item.name}*\n`;
-        msg += `   • Qty: ${item.buyQty} Paid + ${item.freeQty} Free (${item.totalQty} total)\n`;
-        msg += `   • Scheme: ${item.scheme}\n`;
-        msg += `   • Billing Amount: ₹${item.billing.toLocaleString('en-IN')}\n\n`;
-      });
-
-      msg += `------------------------------\n`;
-      msg += `*TOTAL ORDER BILLING:* ₹${order.billing.toLocaleString('en-IN')}\n`;
-      msg += `*Doctor Profit:* ₹${order.docProfit.toLocaleString('en-IN')} (${order.docProfitPct.toFixed(2)}%)\n\n`;
-      msg += `Please process and dispatch this order at the earliest.`;
-
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function shareCartWhatsApp() {
-      const name = document.getElementById('partyName').value.trim() || 'Valued Client';
-      if (currentCart.length === 0) {
-        alert("Cart is empty! Add products to generate quote.");
-        return;
-      }
-
-      let msg = `*EICW PROVISIONAL QUOTE*\n*Client:* ${name}\n------------------------------\n`;
-      let totBilling = 0;
-
-      currentCart.forEach((item, idx) => {
-        totBilling += item.billing;
-        msg += `${idx+1}. *${item.name}*\n   Qty: ${item.buyQty} Paid + ${item.freeQty} Free\n   Scheme: ${item.scheme}\n   Amount: ₹${item.billing}\n\n`;
-      });
-
-      msg += `------------------------------\n*Total Order Value: ₹${totBilling.toLocaleString('en-IN')}*`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function editOrder(orderId) {
-      const order = savedOrders.find(o => o.id === orderId);
-      if (!order) return;
-
-      document.getElementById('partyName').value = order.partyName;
-      document.getElementById('partyAddress').value = order.partyAddress === 'N/A' ? '' : order.partyAddress;
-      currentCart = [...order.items];
-      editingOrderId = order.id;
-
-      renderCart();
-      switchTab('calc');
-    }
-
-    function deleteOrder(orderId) {
-      if (confirm("Are you sure you want to delete this order?")) {
-        savedOrders = savedOrders.filter(o => o.id !== orderId);
-        localStorage.setItem('eicw_orders_v3', JSON.stringify(savedOrders));
-        loadOrdersLog();
-      }
-    }
-
-    function loadOrdersLog() {
-      const stored = localStorage.getItem('eicw_orders_v3');
-      savedOrders = stored ? JSON.parse(stored) : [];
-      const ordersEl = document.getElementById('ordersList');
-
-      let todaySales = 0;
-      let todayProfit = 0;
-
-      if (savedOrders.length === 0) {
-        ordersEl.innerHTML = '<p style="font-size:0.85rem; color: var(--subtext);">No orders logged yet.</p>';
-      } else {
-        ordersEl.innerHTML = '';
-        savedOrders.forEach(o => {
-          todaySales += o.billing;
-          todayProfit += o.profit;
-
-          let itemsHtml = '';
-          o.items.forEach(it => {
-            itemsHtml += `
-              <div class="order-item-line">
-                <div class="order-item-title">
-                  <span>${it.name} (${it.buyQty}+${it.freeQty})</span>
-                  <strong>₹${it.billing.toLocaleString('en-IN')}</strong>
-                </div>
-                <div class="order-item-scheme">Scheme: ${it.scheme}</div>
-              </div>
-            `;
-          });
-
-          const card = document.createElement('div');
-          card.className = 'order-card';
-          card.innerHTML = `
-            <div class="order-party">👤 ${o.partyName}</div>
-            <div class="order-addr">📍 ${o.partyAddress} | 🕒 ${o.date} ${o.time}</div>
-            ${itemsHtml}
-            <div style="margin-top: 8px; display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem;">
-              <span style="color: var(--subtext);">Doctor Profit: <strong style="color: var(--text);">₹${o.docProfit.toLocaleString('en-IN')} (${o.docProfitPct.toFixed(2)}%)</strong></span>
-              <span style="color: var(--success-text);">Total: ₹${o.billing.toLocaleString('en-IN')}</span>
-            </div>
-            <div class="order-actions">
-              <button class="btn-sm btn-whatsapp" style="flex:2;" onclick="forwardOrderWhatsApp(${o.id})">📲 Forward to Stockist</button>
-              <button class="btn-sm btn-secondary" style="flex:1;" onclick="editOrder(${o.id})">✏️ Edit</button>
-              <button class="btn-sm btn-danger" style="flex:1;" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
-            </div>
-          `;
-          ordersEl.appendChild(card);
-        });
-      }
-
-      document.getElementById('homeSales').textContent = `₹${todaySales.toLocaleString('en-IN')}`;
-      document.getElementById('homeProfit').textContent = `₹${todayProfit.toLocaleString('en-IN')}`;
-    }
-
-    function clearOrdersLog() {
-      if (confirm('Clear entire saved order history?')) {
-        savedOrders = [];
-        localStorage.removeItem('eicw_orders_v3');
-        loadOrdersLog();
-      }
-    }
-
-    function filterCategory(cat, btn) {
-      currentCategory = cat;
-      document.querySelectorAll('.pill').forEach(el => el.classList.remove('active'));
-      btn.classList.add('active');
-      renderProducts();
-    }
-
-    function renderProducts() {
-      const search = document.getElementById('searchProduct').value.toLowerCase();
-      const listEl = document.getElementById('productList');
-      listEl.innerHTML = '';
-
-      const filtered = CATALOG.filter(p => {
-        const matchesCat = (currentCategory === 'ALL' || p.category === currentCategory);
-        const matchesSearch = p.name.toLowerCase().includes(search) || p.composition.toLowerCase().includes(search);
-        return matchesCat && matchesSearch;
-      });
-
-      filtered.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-          <div class="prod-header">
-            <div class="prod-title">${p.name}</div>
-            <span class="prod-cat">${p.category}</span>
-          </div>
-          <div class="prod-comp">🧪 ${p.composition}</div>
-          <div class="prod-metrics">
-            <div>
-              <div class="pm-val">₹${p.mrp}</div>
-              <div class="pm-lbl">MRP</div>
-            </div>
-            <div>
-              <div class="pm-val">₹${p.tpGst.toFixed(2)}</div>
-              <div class="pm-lbl">TP (incl GST)</div>
-            </div>
-            <div>
-              <div class="pm-val">₹${p.costGst.toFixed(2)}</div>
-              <div class="pm-lbl">Cost</div>
-            </div>
-          </div>
-        `;
-        listEl.appendChild(card);
-      });
-    }
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-    }
-
-    init();
-  </script>
 </body>
 </html>
