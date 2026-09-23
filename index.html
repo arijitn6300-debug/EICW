@@ -1021,7 +1021,7 @@
         const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
         totalUnitsReceived = orderQty + actualFreeQty;
         
-        billingAmount = orderQty * product.tpGst;
+        billingAmount = orderQty * product.mrp;
         cogs = totalUnitsReceived * product.costGst;
         totalReceivedValue = totalUnitsReceived * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
