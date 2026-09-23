@@ -1026,9 +1026,8 @@
       } else if (schemeType === "Lot Adjust in Cash %") {
         const totalBase = paidQty + freeQty;
         const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
-        totalUnitsReceived = orderQty; // Exact total units delivered to doctor as requested
+        totalUnitsReceived = orderQty;
         
-        // Exact 1000 billing for 10 units at 100 MRP (MRP * orderQty * (1 - discountRatio))
         billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
         cogs = orderQty * product.costGst;
         totalReceivedValue = orderQty * product.mrp;
