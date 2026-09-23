@@ -1,828 +1,1411 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EICW Order & Field Manager</title>
-  
-  <!-- App Favicon: EICW Circular Monogram -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%232e2b70' stroke-width='6'/><circle cx='50' cy='50' r='38' fill='none' stroke='%232e2b70' stroke-width='2'/><text x='50' y='60' font-family='Arial, sans-serif' font-weight='bold' font-size='24' fill='%232e2b70' text-anchor='middle'>EICW</text></svg>">
-  
+  <title>EICW Sales Desk PWA</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     :root {
-      --primary: #2e2b70;
-      --primary-light: #413d96;
-      --accent-red: #c0392b;
-      --success: #198754;
-      --warning: #ffc107;
-      --danger: #dc3545;
-      --bg: #f4f6f8;
+      --primary: #059669;
+      --primary-dark: #047857;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
+      --text: #1e293b;
+      --subtext: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --danger: #ef4444;
+      --warning: #d97706;
+      --tile-bg: #f1f5f9;
+      --info-bg: #e0f2fe;
+      --info-text: #0369a1;
+      --badge-paid: #dcfce7;
+      --text-paid: #15803d;
+      --badge-due: #fee2e2;
+      --text-due: #b91c1c;
     }
+
+    [data-theme="dark"] {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --subtext: #94a3b8;
+      --border: #334155;
+      --accent: #3b82f6;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --tile-bg: #334155;
+      --info-bg: #1e3a8a;
+      --info-text: #bae6fd;
+      --badge-paid: #064e3b;
+      --text-paid: #6ee7b7;
+      --badge-due: #7f1d1d;
+      --text-due: #fca5a5;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
+      color: var(--text);
       margin: 0;
-      padding: 12px;
-      color: #333;
+      padding: 0 0 85px 0;
+      transition: background-color 0.2s, color 0.2s;
     }
-    .container {
-      max-width: 650px;
-      margin: 0 auto;
-    }
-    /* BRANDING HEADER */
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--card-bg);
+
+    header {
+      background-color: var(--primary-dark);
+      color: white;
       padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
-      border-left: 5px solid var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .brand-title {
+
+    .header-title {
       display: flex;
       align-items: center;
-      gap: 12px;
-    }
-    .brand-title h2 {
-      margin: 0;
+      gap: 8px;
       font-size: 1.1rem;
-      color: var(--primary);
     }
-    .brand-title p {
-      margin: 2px 0 0 0;
-      font-size: 0.75rem;
-      color: #666;
+
+    .brand-emblem {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 900;
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
     }
-    /* NAVIGATION TABS */
-    .nav-tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 12px;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px 6px;
-      border: 1px solid #ced4da;
-      background: #e9ecef;
-      font-weight: bold;
+
+    .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 6px 10px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.82rem;
-      white-space: nowrap;
-      text-align: center;
+      font-size: 0.85rem;
     }
-    .tab-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
+
+    .container {
+      max-width: 650px;
+      margin: 12px auto;
+      padding: 0 12px;
     }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
     .card {
       background: var(--card-bg);
-      border-radius: 8px;
-      padding: 15px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-weight: bold;
+      color: var(--text);
       margin-bottom: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border: 1px solid #e0e0e0;
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .form-group {
-      margin-bottom: 10px;
-    }
+
     label {
       display: block;
+      font-size: 0.85rem;
       font-weight: 600;
-      font-size: 0.85em;
       margin-bottom: 4px;
+      color: var(--subtext);
     }
-    .form-control {
+
+    input, select, textarea {
       width: 100%;
-      padding: 9px;
-      border: 1px solid #ced4da;
+      padding: 10px;
+      border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
       border-radius: 6px;
+      font-size: 0.95rem;
       box-sizing: border-box;
-      font-size: 14px;
+      margin-bottom: 10px;
+      font-family: inherit;
     }
+
     .form-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    .form-row .form-group {
-      flex: 1;
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    .btn {
+
+    .qty-controls input {
+      text-align: center;
+      margin-bottom: 0;
+      font-weight: bold;
+    }
+
+    .btn-qty {
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .health-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .health-high { background: var(--badge-paid); color: var(--text-paid); }
+    .health-mid { background: #fef9c3; color: #a16207; }
+    .health-low { background: var(--badge-due); color: var(--text-due); }
+
+    .btn-action {
       width: 100%;
       padding: 11px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
-      font-size: 14px;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-whatsapp { background-color: #25D366; }
+    .btn-danger { background-color: var(--danger); }
+    .btn-warning { background-color: var(--warning); color: white; }
+    .btn-accent { background-color: var(--accent); }
+
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      white-space: nowrap;
       cursor: pointer;
     }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-success { background: var(--success); color: white; }
-    .btn-warning { background: var(--warning); color: #000; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-sm { padding: 6px 10px; font-size: 0.8rem; width: auto; }
-    .alert-box {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 0.85em;
+
+    .pill.active {
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
     }
-    .alert-box ul {
-      margin: 4px 0 0 16px;
-      padding: 0;
-    }
-    .order-item {
-      border: 1px solid #e0e0e0;
+
+    .prod-card {
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 10px;
-      background: #fff;
+      background: var(--card-bg);
     }
-    .badge {
-      display: inline-block;
-      padding: 3px 7px;
-      font-size: 0.72em;
-      border-radius: 4px;
-      font-weight: bold;
+
+    .prod-name { font-weight: bold; font-size: 1rem; color: var(--primary); }
+    .prod-comp { font-size: 0.8rem; color: var(--subtext); margin: 4px 0 8px 0; }
+    .prod-meta { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-    .badge-delivered { background: #d1e7dd; color: #0f5132; }
-    .badge-pending { background: #fff3cd; color: #664d03; }
-    .badge-paid { background: #cfe2ff; color: #084298; }
-    .badge-partial { background: #ffe69c; color: #664d03; }
-    .badge-unpaid { background: #f8d7da; color: #842029; }
-    .collection-box {
-      background: #f8f9fa;
-      border: 1px dashed #cccccc;
+
+    .kpi-tile {
+      background: var(--tile-bg);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .kpi-label { font-size: 0.75rem; color: var(--subtext); }
+    .kpi-value { font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
+
+    .alert-box {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: var(--card-bg);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .order-details-box {
+      background: var(--tile-bg);
+      padding: 10px;
       border-radius: 6px;
-      padding: 8px;
+      font-size: 0.82rem;
       margin-top: 8px;
-      font-size: 0.85em;
+      display: none;
     }
-    /* FOOTER BRANDING */
+
+    .order-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-tag {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-transit { background: #e0f2fe; color: #0369a1; }
+    .status-delivered { background: var(--badge-paid); color: var(--text-paid); }
+
     .app-footer {
       text-align: center;
-      padding: 15px 0 10px 0;
+      padding: 14px 0 6px 0;
+      color: var(--subtext);
       font-size: 0.82rem;
-      color: #6c757d;
       font-weight: 600;
     }
+
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      font-size: 0.72rem;
+      text-align: center;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .nav-btn span { display: block; font-size: 1.15rem; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  
-  <!-- APP HEADER WITH EICW LOGO -->
-  <div class="app-header">
-    <div class="brand-title">
-      <!-- Inline EICW Circular SVG Emblem -->
-      <svg width="42" height="42" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="45" fill="#ffffff" stroke="#2e2b70" stroke-width="6"/>
-        <circle cx="50" cy="50" r="38" fill="none" stroke="#2e2b70" stroke-width="2"/>
-        <text x="50" y="60" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#2e2b70" text-anchor="middle">EICW</text>
-      </svg>
-      <div>
-        <h2>East India Chemical Works</h2>
-        <p>Order, Delivery & Collection Manager</p>
+  <header>
+    <div class="header-title">
+      <span class="brand-emblem">EICW</span>
+      <span>Sales Desk</span>
+    </div>
+    <div>
+      <button class="theme-toggle-btn" onclick="toggleTheme()">🌙 / ☀️ Mode</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- TAB 1: HOME DASHBOARD -->
+    <div class="tab-view active" id="tab-home">
+      <div class="card" style="text-align: center;">
+        <div class="card-title" style="justify-content: center;">Dashboard Summary</div>
+        <div class="kpi-grid" style="margin-top: 12px;">
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL ORDERS SAVED</div>
+            <div class="kpi-value" id="homeOrdersCount">0</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL BOOKED SALES</div>
+            <div class="kpi-value" id="homeTotalSales">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL COLLECTED</div>
+            <div class="kpi-value" id="homeTotalCollected" style="color:var(--text-paid);">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">PENDING BALANCES</div>
+            <div class="kpi-value" id="homeTotalDue" style="color:var(--text-due);">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <button class="btn-action" style="background: var(--accent);" onclick="switchTabById('tab-calc')">🧮 Create / Build Order</button>
+        <button class="btn-action" style="background: var(--primary-dark);" onclick="switchTabById('tab-products')">💊 Browse Product Catalog</button>
+        <button class="btn-action" style="background: #0284c7;" onclick="switchTabById('tab-directory')">📇 Customer Directory</button>
+        <button class="btn-action" style="background: #475569;" onclick="switchTabById('tab-orders')">📋 View Saved Orders Log</button>
       </div>
     </div>
-  </div>
 
-  <!-- NAVIGATION TABS -->
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('builder')">New Order</button>
-    <button class="tab-btn" onclick="switchTab('history')">Orders Log</button>
-    <button class="tab-btn" onclick="switchTab('directory')">Directory</button>
-    <button class="tab-btn" onclick="switchTab('backup')">Backup & Sync</button>
-  </div>
+    <!-- TAB 2: CALCULATOR & ORDER BUILDER -->
+    <div class="tab-view" id="tab-calc">
+      <div class="card">
+        <div class="card-title">
+          <span>1. Customer Directory Selection</span>
+          <span id="editingBadge" style="display:none; background:var(--warning); color:white; font-size:0.75rem; padding:2px 8px; border-radius:4px;">Editing Order</span>
+        </div>
 
-  <!-- TAB 1: ORDER BUILDER -->
-  <div id="builderTab" class="tab-content active card">
-    <h3 style="margin-top:0; font-size:1.05rem;">Book New Order</h3>
+        <div id="custAlertBox" class="alert-box"></div>
 
-    <!-- Customer Details -->
-    <div class="form-group">
-      <label>Doctor / Chemist / Stockist Name:</label>
-      <input type="text" id="customerNameInput" class="form-control" placeholder="Search or type customer name..." oninput="checkCustomerRemarks(this.value)">
-      
-      <!-- CUSTOMER REMARKS ALERT BOX -->
-      <div id="customerAlertBox" class="alert-box" style="display:none;">
-        <strong>⚠️ Past Conduct / Customer Remarks:</strong>
-        <ul id="customerAlertList"></ul>
+        <div class="form-row">
+          <div>
+            <label>Customer Type</label>
+            <select id="custType">
+              <option value="Doctor">Doctor</option>
+              <option value="Chemist">Chemist / Retailer</option>
+              <option value="Wholesaler">Stockist / Wholesaler</option>
+            </select>
+          </div>
+          <div>
+            <label>Doctor/Chemist Name</label>
+            <input type="text" id="custName" list="customerDirectoryList" placeholder="Search or add name..." oninput="autoFillCustomerDetails()">
+            <datalist id="customerDirectoryList"></datalist>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Contact Number</label>
+            <input type="tel" id="custPhone" placeholder="e.g. 9876543210">
+          </div>
+          <div>
+            <label>Address / Location</label>
+            <input type="text" id="custAddress" placeholder="e.g. Diamond Harbour">
+          </div>
+        </div>
+        <div>
+          <label>Customer Remarks / Behavioral Note</label>
+          <input type="text" id="custRemarks" placeholder="e.g. Prompt payer, prefers WhatsApp bill" onchange="saveCustomerRemarksFromForm()">
+        </div>
       </div>
-    </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Type:</label>
-        <select id="customerTypeSelect" class="form-control">
-          <option value="Doctor">Doctor</option>
-          <option value="Chemist">Chemist</option>
-          <option value="Stockist">Stockist</option>
+      <div class="card">
+        <div class="card-title">2. Dynamic Scheme & Quantity Builder</div>
+        
+        <label>Select Product</label>
+        <select id="productSelect" onchange="recalculate()"></select>
+
+        <label>One-Tap Scheme Presets</label>
+        <div class="preset-chips">
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 2)">10 + 2 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 5, 1)">5 + 1 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 4)">10 + 4 Free</button>
+          <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 5, 2)">5+2 Cash %</button>
+          <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 10, 2)">10+2 Cash %</button>
+          <button class="chip" onclick="applySchemePreset('Standard scheme', 1, 0)">Standard TP</button>
+        </div>
+
+        <label>Scheme Type</label>
+        <select id="schemeType" onchange="recalculate()">
+          <option value="Standard scheme">Standard scheme</option>
+          <option value="Lot With Free Items">Lot With Free Items</option>
+          <option value="Lot Adjust in Cash %" selected>Lot Adjust in Cash %</option>
         </select>
-      </div>
-      <div class="form-group">
-        <label>Phone Number:</label>
-        <input type="tel" id="phoneInput" class="form-control" placeholder="Phone number">
-      </div>
-    </div>
 
-    <div class="form-group">
-      <label>Address / Location:</label>
-      <input type="text" id="addressInput" class="form-control" placeholder="Area / Chamber / Address">
-    </div>
+        <div class="form-row">
+          <div>
+            <label>Paid Qty Ratio Base</label>
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="changeQty('paidQty', -1)">-</button>
+              <input type="number" id="paidQty" value="5" min="0" oninput="recalculate()">
+              <button class="btn-qty" onclick="changeQty('paidQty', 1)">+</button>
+            </div>
+          </div>
+          <div>
+            <label>Free Qty Ratio Base</label>
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
+              <input type="number" id="freeQty" value="2" min="0" oninput="recalculate()">
+              <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
+            </div>
+          </div>
+        </div>
 
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
+        <div>
+          <label style="color: var(--accent);">Doctor Requested Qty (Order Qty)</label>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="changeQty('orderQty', -1)">-</button>
+            <input type="number" id="orderQty" value="5" min="1" oninput="recalculate()" style="border-color: var(--accent);">
+            <button class="btn-qty" onclick="changeQty('orderQty', 1)">+</button>
+          </div>
+        </div>
 
-    <!-- Product Details -->
-    <div class="form-group">
-      <label>Product Name:</label>
-      <input type="text" id="productInput" class="form-control" placeholder="e.g. Palavit-L Syrup">
-    </div>
+        <div class="kpi-grid" style="margin-bottom: 12px;">
+          <div class="kpi-tile">
+            <div class="kpi-label">Billing Amount</div>
+            <div class="kpi-value" id="calcBilling">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Rep Cost (COGS)</div>
+            <div class="kpi-value" id="calcCost">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Rep Net Profit</div>
+            <div class="kpi-value" id="calcProfit">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">Doctor Profit & Health</div>
+            <div class="kpi-value" id="calcDocSavings" style="color:var(--info-text);">₹0.00 (0%)</div>
+            <div id="calcHealthBadge"></div>
+          </div>
+        </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Qty:</label>
-        <input type="number" id="qtyInput" class="form-control" placeholder="0" oninput="calculateNet()">
-      </div>
-      <div class="form-group">
-        <label>MRP (₹):</label>
-        <input type="number" id="mrpInput" class="form-control" placeholder="0.00">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Rate / Disc. Rate (₹):</label>
-        <input type="number" id="rateInput" class="form-control" placeholder="0.00" oninput="calculateNet()">
-      </div>
-      <div class="form-group">
-        <label>Net Amount (₹):</label>
-        <input type="number" id="netInput" class="form-control" placeholder="0.00">
-      </div>
-    </div>
-
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
-
-    <!-- Delivery & Payment Due Date -->
-    <div class="form-group">
-      <label><input type="checkbox" id="isDeliveredCheck" onchange="toggleDeliverySection()"> Mark Order as Delivered</label>
-    </div>
-
-    <div id="deliveryDetailsBlock" style="display: none; background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; border-radius: 6px;" class="form-group">
-      <div class="form-group">
-        <label>Delivery Date:</label>
-        <input type="date" id="deliveryDate" onchange="calculateDueDate()" class="form-control">
+        <button class="btn-action" style="background: var(--primary-dark);" onclick="addToCart()">+ Add Item To Order Cart</button>
       </div>
 
-      <div class="form-group">
-        <label>Credit Period (Days):</label>
-        <input type="number" id="creditDays" placeholder="e.g. 14 or 21" oninput="calculateDueDate()" class="form-control">
-      </div>
+      <div class="card">
+        <div class="card-title">3. Multi-Product Order Cart (<span id="cartItemCount">0</span>)</div>
+        <div id="cartItemsList">
+          <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>
+        </div>
+        <div class="kpi-grid" style="margin-top: 12px;">
+          <div class="kpi-tile">
+            <div class="kpi-label">Total Cart Billing</div>
+            <div class="kpi-value" id="cartTotalBilling">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">Total Rep Profit</div>
+            <div class="kpi-value" id="cartTotalProfit">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">Total Doctor Savings & Overall Margin</div>
+            <div class="kpi-value" id="cartTotalDocSavings" style="color:var(--info-text);">₹0.00 (0.0% Margin)</div>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label>Calculated Payment Due Date:</label>
-        <input type="date" id="paymentDueDate" class="form-control" readonly style="background-color: #e9ecef;">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Customer Remarks / Payment Behavior Notes:</label>
-      <textarea id="orderRemarks" placeholder="e.g. Delays payment, prefers check, cash on delivery, etc." class="form-control" rows="2"></textarea>
-    </div>
-
-    <button onclick="saveOrder()" class="btn btn-success" style="margin-top: 5px;">Save Order</button>
-  </div>
-
-  <!-- TAB 2: ORDERS LOG -->
-  <div id="historyTab" class="tab-content card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <h3 style="margin: 0; font-size:1.05rem;">Saved Orders Log</h3>
-      <button onclick="syncToGoogleSheets()" class="btn btn-primary btn-sm">Sync to Sheets</button>
-    </div>
-    <div id="ordersContainer"></div>
-  </div>
-
-  <!-- TAB 3: CUSTOMER DIRECTORY -->
-  <div id="directoryTab" class="tab-content card">
-    <h3 style="margin-top:0; font-size:1.05rem;">Customer Directory & Conduct Notes</h3>
-    <input type="text" id="directorySearch" class="form-control" placeholder="Filter customer directory..." oninput="renderCustomerDirectory()" style="margin-bottom: 12px;">
-    <div id="directoryContainer"></div>
-  </div>
-
-  <!-- TAB 4: BACKUP & SETTINGS -->
-  <div id="backupTab" class="tab-content">
-    <div class="card">
-      <h3 style="margin-top:0; font-size:1.05rem;">Google Sheets Cloud Sync</h3>
-      <div class="form-group">
-        <label>Google Apps Script Web App URL:</label>
-        <input type="text" id="scriptUrlInput" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
-      </div>
-      <button onclick="saveScriptUrl()" class="btn btn-primary">Save Sync URL</button>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-top:0; font-size:1.05rem;">Backup & Restore Data</h3>
-      <button onclick="exportToCSV()" class="btn btn-warning" style="margin-bottom: 12px;">📤 Export All Orders to CSV</button>
-      
-      <div style="border-top: 1px solid #eee; padding-top: 12px;">
-        <label>📥 Restore / Import Orders from CSV:</label>
-        <input type="file" id="csvFileInput" accept=".csv" class="form-control" style="margin-top: 6px; margin-bottom: 10px;">
-        <button onclick="importCSVData()" class="btn btn-primary">Import CSV File</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- FOOTER BRANDING -->
-  <div class="app-footer">
-    For EICW | Made With ❤️ By Arijit
-  </div>
-
-</div>
-
-<script>
-  // Helper to load order data safely
-  function getStoredOrders() {
-    return JSON.parse(localStorage.getItem('eicw_saved_orders') || '[]');
-  }
-
-  function saveStoredOrders(orders) {
-    localStorage.setItem('eicw_saved_orders', JSON.stringify(orders));
-  }
-
-  // 1. Tab Navigation
-  function switchTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    if (tabName === 'builder') {
-      document.querySelectorAll('.tab-btn')[0].classList.add('active');
-      document.getElementById('builderTab').classList.add('active');
-    } else if (tabName === 'history') {
-      document.querySelectorAll('.tab-btn')[1].classList.add('active');
-      document.getElementById('historyTab').classList.add('active');
-      renderOrdersLog();
-    } else if (tabName === 'directory') {
-      document.querySelectorAll('.tab-btn')[2].classList.add('active');
-      document.getElementById('directoryTab').classList.add('active');
-      renderCustomerDirectory();
-    } else if (tabName === 'backup') {
-      document.querySelectorAll('.tab-btn')[3].classList.add('active');
-      document.getElementById('backupTab').classList.add('active');
-      document.getElementById('scriptUrlInput').value = localStorage.getItem('eicw_script_url') || '';
-    }
-  }
-
-  // 2. Net Amount Auto-Calculation
-  function calculateNet() {
-    const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
-    const rate = parseFloat(document.getElementById('rateInput').value) || 0;
-    if (qty > 0 && rate > 0) {
-      document.getElementById('netInput').value = (qty * rate).toFixed(2);
-    }
-  }
-
-  // 3. Toggle Delivery Section & Default Date
-  function toggleDeliverySection() {
-    const isChecked = document.getElementById('isDeliveredCheck').checked;
-    const block = document.getElementById('deliveryDetailsBlock');
-    block.style.display = isChecked ? 'block' : 'none';
-    
-    if (isChecked && !document.getElementById('deliveryDate').value) {
-      document.getElementById('deliveryDate').value = new Date().toISOString().split('T')[0];
-      calculateDueDate();
-    }
-  }
-
-  // 4. Auto-Calculate Payment Due Date
-  function calculateDueDate() {
-    const deliveryDateInput = document.getElementById('deliveryDate').value;
-    const creditDaysInput = parseInt(document.getElementById('creditDays').value) || 0;
-    const dueDateInput = document.getElementById('paymentDueDate');
-
-    if (!deliveryDateInput) {
-      dueDateInput.value = '';
-      return;
-    }
-
-    const delDate = new Date(deliveryDateInput);
-    delDate.setDate(delDate.getDate() + creditDaysInput);
-    dueDateInput.value = delDate.toISOString().split('T')[0];
-  }
-
-  // 5. Customer Remarks Warning System (Triggered while booking order)
-  function checkCustomerRemarks(customerName) {
-    const alertBox = document.getElementById('customerAlertBox');
-    const alertList = document.getElementById('customerAlertList');
-    
-    if (!customerName || !customerName.trim()) {
-      alertBox.style.display = 'none';
-      return;
-    }
-
-    const allOrders = getStoredOrders();
-    const query = customerName.toLowerCase().trim();
-    
-    const pastRemarks = allOrders
-      .filter(o => o.customerName && o.customerName.toLowerCase().trim() === query)
-      .map(o => o.remarks)
-      .filter(r => r && r.trim() !== '');
-
-    if (pastRemarks.length > 0) {
-      const uniqueRemarks = [...new Set(pastRemarks)];
-      alertList.innerHTML = uniqueRemarks.map(r => `<li>${r}</li>`).join('');
-      alertBox.style.display = 'block';
-    } else {
-      alertBox.style.display = 'none';
-    }
-  }
-
-  // 6. Save New Order
-  function saveOrder() {
-    const isDelivered = document.getElementById('isDeliveredCheck').checked;
-    const customerName = document.getElementById('customerNameInput').value.trim();
-    const product = document.getElementById('productInput').value.trim();
-
-    if (!customerName || !product) {
-      alert("Please enter Customer Name and Product Name!");
-      return;
-    }
-
-    const newOrder = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleString(),
-      customerName: customerName,
-      type: document.getElementById('customerTypeSelect').value,
-      phone: document.getElementById('phoneInput').value.trim(),
-      address: document.getElementById('addressInput').value.trim(),
-      product: product,
-      qty: parseFloat(document.getElementById('qtyInput').value) || 0,
-      mrp: parseFloat(document.getElementById('mrpInput').value) || 0,
-      rate: parseFloat(document.getElementById('rateInput').value) || 0,
-      net: parseFloat(document.getElementById('netInput').value) || 0,
-      delivered: isDelivered,
-      deliveryDate: isDelivered ? document.getElementById('deliveryDate').value : "",
-      creditDays: isDelivered ? (parseInt(document.getElementById('creditDays').value) || 0) : 0,
-      paymentDueDate: isDelivered ? document.getElementById('paymentDueDate').value : "",
-      payments: [], // List of { date, amount, note }
-      remarks: document.getElementById('orderRemarks').value.trim()
-    };
-
-    let orders = getStoredOrders();
-    orders.push(newOrder);
-    saveStoredOrders(orders);
-
-    alert("Order Saved Successfully!");
-
-    // Reset Form
-    document.getElementById('customerNameInput').value = '';
-    document.getElementById('phoneInput').value = '';
-    document.getElementById('addressInput').value = '';
-    document.getElementById('productInput').value = '';
-    document.getElementById('qtyInput').value = '';
-    document.getElementById('mrpInput').value = '';
-    document.getElementById('rateInput').value = '';
-    document.getElementById('netInput').value = '';
-    document.getElementById('orderRemarks').value = '';
-    document.getElementById('isDeliveredCheck').checked = false;
-    toggleDeliverySection();
-    document.getElementById('customerAlertBox').style.display = 'none';
-  }
-
-  // 7. Render Orders Log with Payment Collections
-  function renderOrdersLog() {
-    const container = document.getElementById('ordersContainer');
-    const orders = getStoredOrders();
-
-    if (orders.length === 0) {
-      container.innerHTML = '<p style="color:#6c757d; text-align:center;">No orders recorded yet.</p>';
-      return;
-    }
-
-    container.innerHTML = orders.slice().reverse().map(o => {
-      const payments = o.payments || [];
-      const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-      const balance = (o.net - totalPaid).toFixed(2);
-      
-      let payStatusBadge = `<span class="badge badge-unpaid">Unpaid</span>`;
-      if (totalPaid >= o.net && o.net > 0) {
-        payStatusBadge = `<span class="badge badge-paid">Paid</span>`;
-      } else if (totalPaid > 0) {
-        payStatusBadge = `<span class="badge badge-partial">Partial (₹${totalPaid})</span>`;
-      }
-
-      return `
-        <div class="order-item">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>${o.customerName} <small>(${o.type})</small></strong>
+        <div style="margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 12px;">
+          <div class="form-row">
             <div>
-              <span class="badge ${o.delivered ? 'badge-delivered' : 'badge-pending'}">
-                ${o.delivered ? 'Delivered' : 'Pending Delivery'}
-              </span>
-              ${payStatusBadge}
+              <label>Delivery Status</label>
+              <select id="orderDeliveryStatus">
+                <option value="Pending">Pending</option>
+                <option value="In Transit">In Transit</option>
+                <option value="Delivered">Delivered</option>
+              </select>
+            </div>
+            <div>
+              <label>Payment Term (Days)</label>
+              <select id="orderPaymentTerm" onchange="updateDueDateFromTerm()">
+                <option value="0">Cash on Delivery (0 Days)</option>
+                <option value="15">15 Days Credit</option>
+                <option value="30" selected>30 Days Credit</option>
+                <option value="45">45 Days Credit</option>
+              </select>
             </div>
           </div>
-
-          <div style="font-size: 0.86em; color: #444; margin-top: 6px;">
-            <b>Product:</b> ${o.product} | <b>Qty:</b> ${o.qty} | <b>Net Total:</b> ₹${o.net}<br>
-            ${o.delivered ? `<b>Delivered On:</b> ${o.deliveryDate || 'N/A'} | <b>Payment Due:</b> <span style="color:#d9534f; font-weight:bold;">${o.paymentDueDate \vert{}\vert{} 'N/A'}</span> (${o.creditDays || 0} days credit)<br>` : ''}
-            ${o.remarks ? `<div style="color:#856404; background:#fff3cd; padding:3px 6px; border-radius:4px; margin-top:4px;"><b>Note:</b> ${o.remarks}</div>` : ''}
-          </div>
-
-          <!-- Payment Collection Section -->
-          <div class="collection-box">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:4px;">
-              <span>Collected: ₹${totalPaid.toFixed(2)}</span>
-              <span style="color:${balance > 0 ? '#dc3545' : '#198754'};">Balance Due: ₹${balance}</span>
+          <div class="form-row">
+            <div>
+              <label>Advance / Initial Payment (₹)</label>
+              <input type="number" id="orderPaidAmount" value="0" min="0" placeholder="0">
             </div>
-
-            ${payments.length > 0 ? `
-              <div style="font-size:0.8em; color:#555; margin-bottom:6px;">
-                ${payments.map(p => `• ₹${p.amount} on ${p.date} ${p.note ? `(${p.note})` : ''}`).join('<br>')}
-              </div>
-            ` : ''}
-
-            <!-- Record Payment Input Form -->
-            <div style="display:flex; gap:6px; margin-top:6px;">
-              <input type="date" id="payDate_${o.id}" value="${new Date().toISOString().split('T')[0]}" class="form-control" style="padding:4px; font-size:0.8em; flex:1;">
-              <input type="number" id="payAmt_${o.id}" placeholder="Amt (₹)" class="form-control" style="padding:4px; font-size:0.8em; flex:1;">
-              <button onclick="recordPayment('${o.id}')" class="btn btn-primary btn-sm">+ Collection</button>
+            <div>
+              <label>Auto Due Date</label>
+              <input type="date" id="orderDueDate">
             </div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-            ${!o.delivered ? `<button onclick="markDeliveredPrompt('${o.id}')" class="btn btn-warning btn-sm">Mark Delivered</button>` : '<span></span>'}
-            <button onclick="deleteOrder('${o.id}')" style="background:none; border:none; color:var(--danger); font-size:0.8em; cursor:pointer;">Delete Order</button>
           </div>
         </div>
-      `;
-    }).join('');
-  }
 
-  // 8. Record Payment for an Order
-  function recordPayment(orderId) {
-    const amtInput = document.getElementById(`payAmt_${orderId}`);
-    const dateInput = document.getElementById(`payDate_${orderId}`);
-    const amount = parseFloat(amtInput.value);
-    const date = dateInput.value;
+        <button class="btn-action" style="background: var(--primary); margin-top: 8px;" onclick="saveOrder()">💾 Save Order & Update Directory</button>
+        <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
+        <button class="btn-action btn-danger" onclick="clearCart()">Clear / Reset Cart</button>
+      </div>
+    </div>
 
-    if (!amount || amount <= 0 || !date) {
-      alert("Please enter a valid payment amount and date!");
-      return;
-    }
+    <!-- TAB 3: PRODUCTS CATALOG -->
+    <div class="tab-view" id="tab-products">
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
+      </div>
 
-    let orders = getStoredOrders();
-    let order = orders.find(o => o.id === orderId);
-    if (order) {
-      if (!order.payments) order.payments = [];
-      order.payments.push({
-        date: date,
-        amount: amount
-      });
-      saveStoredOrders(orders);
+      <div class="category-pills">
+        <button class="pill active" onclick="filterCategory('ALL', this)">All</button>
+        <button class="pill" onclick="filterCategory('Syrup', this)">Syrups</button>
+        <button class="pill" onclick="filterCategory('Tablet', this)">Tablets</button>
+        <button class="pill" onclick="filterCategory('Capsule', this)">Capsules</button>
+        <button class="pill" onclick="filterCategory('Ointment/Drops', this)">Ointments & Drops</button>
+      </div>
+
+      <div id="productList"></div>
+    </div>
+
+    <!-- TAB 4: CUSTOMER DIRECTORY -->
+    <div class="tab-view" id="tab-directory">
+      <div class="card">
+        <div class="card-title">Add / Edit Customer Record</div>
+        <div class="form-row">
+          <div>
+            <label>Name</label>
+            <input type="text" id="dirName" placeholder="Dr. or Chemist Name">
+          </div>
+          <div>
+            <label>Type</label>
+            <select id="dirType">
+              <option value="Doctor">Doctor</option>
+              <option value="Chemist">Chemist / Retailer</option>
+              <option value="Wholesaler">Stockist / Wholesaler</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Phone Number</label>
+            <input type="tel" id="dirPhone" placeholder="Phone">
+          </div>
+          <div>
+            <label>Address</label>
+            <input type="text" id="dirAddress" placeholder="Location/Address">
+          </div>
+        </div>
+        <label>Past Behavior / Customer Remarks</label>
+        <input type="text" id="dirRemarks" placeholder="e.g. Prefers morning delivery, payment delay 15 days">
+        <button class="btn-action" style="background: var(--primary);" onclick="saveDirectoryCustomer()">💾 Save Customer to Directory</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Saved Customer Contacts</div>
+        <input type="text" id="searchDirectory" placeholder="Search customer name or phone..." oninput="renderCustomerDirectoryTab()">
+        <div id="directoryContainer"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SAVED ORDERS & INTEGRATIONS -->
+    <div class="tab-view" id="tab-orders">
+      <div class="card">
+        <div class="card-title">Cloud & CSV Backup / Sync Tools</div>
+        <button class="btn-action" style="background: #0284c7;" onclick="exportToCSV()">📊 Export Full CSV / Excel Sales Ledger</button>
+        
+        <label style="margin-top: 8px;">Restore / Import Backup from CSV File:</label>
+        <input type="file" id="csvFileInput" accept=".csv" onchange="importFromCSV(event)" style="font-size: 0.8rem;">
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 12px 0;">
+
+        <button class="btn-action" style="background: #16a34a;" onclick="syncWithGoogleSheets()">☁️ Sync All Orders to Google Sheets</button>
+        <input type="url" id="googleWebhookUrl" placeholder="Enter Google Apps Script Webhook URL" style="font-size:0.8rem; margin-top:4px;" onchange="saveWebhookUrl()">
+      </div>
+
+      <div class="card">
+        <div class="card-title">Saved Orders Log & Payment Collection</div>
+        <div id="ordersList">No orders logged yet.</div>
+        <button class="btn-action btn-danger" style="margin-top: 16px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      For EICW | Made With ❤️ By Arijit
+    </footer>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="btn-tab-home" onclick="switchTab('tab-home', this)">
+      <span>🏠</span> Home
+    </button>
+    <button class="nav-btn" id="btn-tab-calc" onclick="switchTab('tab-calc', this)">
+      <span>🧮</span> Order Builder
+    </button>
+    <button class="nav-btn" id="btn-tab-products" onclick="switchTab('tab-products', this)">
+      <span>💊</span> Catalog
+    </button>
+    <button class="nav-btn" id="btn-tab-directory" onclick="switchTab('tab-directory', this)">
+      <span>📇</span> Directory
+    </button>
+    <button class="nav-btn" id="btn-tab-orders" onclick="switchTab('tab-orders', this)">
+      <span>📋</span> Orders Log
+    </button>
+  </nav>
+
+  <script>
+    const CATALOG = [
+      { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl & Tricholine Citrate", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid", mrp: 100, tpGst: 80.00, costGst: 40.00 },
+      { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid", mrp: 85, tpGst: 67.99, costGst: 33.99 },
+      { id: "Estozyme200", name: "Estozyme (200ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "Liv200", name: "Liv (200ml)", category: "Syrup", composition: "Tricholine Citrate & Sorbitol", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "NictadolPlus", name: "Nictadol Plus (100ml)", category: "Syrup", composition: "Ambroxol, Salbutamol, Guaiphenesin", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "NeolivDrop", name: "Neoliv Drop (15ml)", category: "Ointment/Drops", composition: "Cyproheptadine HCl & Tricholine Citrate", mrp: 60, tpGst: 47.99, costGst: 23.99 },
+      { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 80, tpGst: 64.00, costGst: 32.00 },
+      { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 130, tpGst: 103.95, costGst: 51.98 },
+      { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
+      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg", mrp: 65, tpGst: 51.98, costGst: 20.79 },
+      { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Serratiopeptidase", mrp: 102, tpGst: 81.76, costGst: 32.71 },
+      { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Chlorzoxazone", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
+      { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
+      { id: "ReliefDSR", name: "Relief-DSR (1x10 Strip)", category: "Capsule", composition: "Rabeprazole 20mg & Domperidone 30mg", mrp: 105, tpGst: 84.00, costGst: 33.60 },
+      { id: "Lizazyme", name: "Lizazyme (1x15 Strip)", category: "Tablet", composition: "Fungal Diastase, Papain & Charcoal", mrp: 70, tpGst: 56.00, costGst: 22.40 },
+      { id: "LyoredPlus", name: "Lyored Plus (1x10 Strip)", category: "Capsule", composition: "Lycopene, Co-Q10, Omega-3", mrp: 210, tpGst: 168.00, costGst: 67.20 },
+      { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics & Zinc Sulphate", mrp: 125, tpGst: 100.00, costGst: 40.00 }
+    ];
+
+    let currentCategory = "ALL";
+    let cart = [];
+    let savedOrders = [];
+    let customerDirectory = [];
+    let editingOrderId = null;
+
+    function init() {
+      try {
+        const storedOrders = localStorage.getItem('eicw_saved_orders');
+        if (storedOrders) savedOrders = JSON.parse(storedOrders);
+
+        const storedCustomers = localStorage.getItem('eicw_customers');
+        if (storedCustomers) customerDirectory = JSON.parse(storedCustomers);
+
+        const theme = localStorage.getItem('eicw_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        const webhook = localStorage.getItem('eicw_webhook_url') || '';
+        document.getElementById('googleWebhookUrl').value = webhook;
+      } catch (e) {}
+
+      const pSelect = document.getElementById("productSelect");
+      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      
+      updateDueDateFromTerm();
+      renderCustomerDirectoryList();
+      renderCustomerDirectoryTab();
+      renderProducts();
+      recalculate();
       renderOrdersLog();
+      updateDashboard();
     }
-  }
 
-  // 9. Quick Mark as Delivered from Log
-  function markDeliveredPrompt(orderId) {
-    const delDate = prompt("Enter Delivery Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
-    if (!delDate) return;
-    const creditDays = parseInt(prompt("Enter Credit Days (e.g., 14 or 21):", "14")) || 0;
-
-    let orders = getStoredOrders();
-    let order = orders.find(o => o.id === orderId);
-    if (order) {
-      order.delivered = true;
-      order.deliveryDate = delDate;
-      order.creditDays = creditDays;
-
-      const d = new Date(delDate);
-      d.setDate(d.getDate() + creditDays);
-      order.paymentDueDate = d.toISOString().split('T')[0];
-
-      saveStoredOrders(orders);
-      renderOrdersLog();
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('eicw_theme', newTheme);
     }
-  }
 
-  // 10. Delete Single Order
-  function deleteOrder(orderId) {
-    if (!confirm("Are you sure you want to delete this order?")) return;
-    let orders = getStoredOrders().filter(o => o.id !== orderId);
-    saveStoredOrders(orders);
-    renderOrdersLog();
-  }
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
 
-  // 11. Customer Directory Rendering
-  function renderCustomerDirectory() {
-    const container = document.getElementById('directoryContainer');
-    const filter = (document.getElementById('directorySearch').value || '').toLowerCase();
-    const orders = getStoredOrders();
+    function switchTabById(tabId) {
+      const btn = document.getElementById('btn-' + tabId);
+      switchTab(tabId, btn);
+    }
 
-    // Map unique customers
-    const customersMap = {};
-    orders.forEach(o => {
-      const key = (o.customerName || '').trim();
-      if (!key) return;
+    function updateDueDateFromTerm() {
+      const days = Number(document.getElementById("orderPaymentTerm").value) || 0;
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + days);
+      document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+    }
 
-      if (!customersMap[key]) {
-        customersMap[key] = {
-          name: o.customerName,
-          type: o.type,
-          phone: o.phone,
-          address: o.address,
-          remarks: [],
-          totalOrders: 0,
-          totalNet: 0,
-          totalPaid: 0
-        };
+    function renderCustomerDirectoryList() {
+      const datalist = document.getElementById("customerDirectoryList");
+      datalist.innerHTML = customerDirectory.map(c => `<option value="${c.name}">${c.type} - ${c.phone || 'No phone'}</option>`).join('');
+    }
+
+    function autoFillCustomerDetails() {
+      const name = document.getElementById("custName").value.trim();
+      const matched = customerDirectory.find(c => c.name.toLowerCase() === name.toLowerCase());
+      const alertBox = document.getElementById("custAlertBox");
+
+      if (matched) {
+        document.getElementById("custType").value = matched.type || "Doctor";
+        document.getElementById("custPhone").value = matched.phone || "";
+        document.getElementById("custAddress").value = matched.address || "";
+        document.getElementById("custRemarks").value = matched.remarks || "";
+
+        if (matched.remarks && matched.remarks.trim() !== "") {
+          alertBox.style.display = "block";
+          alertBox.innerHTML = `<strong>⚠️ Customer Note / Behavioral Alert:</strong> ${matched.remarks}`;
+        } else {
+          alertBox.style.display = "none";
+        }
+      } else {
+        document.getElementById("custRemarks").value = "";
+        alertBox.style.display = "none";
+      }
+    }
+
+    function saveCustomerRemarksFromForm() {
+      const name = document.getElementById("custName").value.trim();
+      const remarks = document.getElementById("custRemarks").value.trim();
+      if (!name) return;
+
+      let matched = customerDirectory.find(c => c.name.toLowerCase() === name.toLowerCase());
+      if (matched) {
+        matched.remarks = remarks;
+      } else {
+        customerDirectory.push({
+          name: name,
+          type: document.getElementById("custType").value,
+          phone: document.getElementById("custPhone").value,
+          address: document.getElementById("custAddress").value,
+          remarks: remarks
+        });
+      }
+      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      renderCustomerDirectoryList();
+      renderCustomerDirectoryTab();
+    }
+
+    function changeQty(fieldId, delta) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      let val = Number(input.value) || 0;
+      val = Math.max((fieldId === 'orderQty' ? 1 : 0), val + delta);
+      input.value = val;
+      recalculate();
+    }
+
+    function applySchemePreset(type, paid, free) {
+      document.getElementById("schemeType").value = type;
+      document.getElementById("paidQty").value = paid;
+      document.getElementById("freeQty").value = free;
+      recalculate();
+    }
+
+    function computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty) {
+      let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0;
+
+      if (schemeType === "Standard scheme") {
+        billingAmount = orderQty * product.tpGst;
+        cogs = orderQty * product.costGst;
+        totalReceivedValue = orderQty * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
+      } else if (schemeType === "Lot With Free Items") {
+        const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
+        const totalUnitsReceived = orderQty + actualFreeQty;
+        
+        billingAmount = orderQty * product.mrp;
+        cogs = totalUnitsReceived * product.costGst;
+        totalReceivedValue = totalUnitsReceived * product.mrp;
+        docSavings = actualFreeQty * product.mrp;
+      } else if (schemeType === "Lot Adjust in Cash %") {
+        const totalBase = paidQty + freeQty;
+        const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+        
+        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
+        cogs = orderQty * product.costGst;
+        totalReceivedValue = orderQty * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
       }
 
-      if (o.phone && !customersMap[key].phone) customersMap[key].phone = o.phone;
-      if (o.address && !customersMap[key].address) customersMap[key].address = o.address;
-      if (o.remarks && !customersMap[key].remarks.includes(o.remarks)) customersMap[key].remarks.push(o.remarks);
+      const netProfit = billingAmount - cogs;
+      const docMarginPct = totalReceivedValue > 0 ? ((docSavings / totalReceivedValue) * 100) : 0;
 
-      customersMap[key].totalOrders += 1;
-      customersMap[key].totalNet += (o.net || 0);
-
-      const payments = o.payments || [];
-      const paid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-      customersMap[key].totalPaid += paid;
-    });
-
-    const customerList = Object.values(customersMap).filter(c => 
-      c.name.toLowerCase().includes(filter) || 
-      c.address.toLowerCase().includes(filter) ||
-      c.phone.includes(filter)
-    );
-
-    if (customerList.length === 0) {
-      container.innerHTML = '<p style="color:#6c757d; text-align:center;">No customers found in directory.</p>';
-      return;
+      return { billingAmount, cogs, netProfit, docSavings, docMarginPct, totalReceivedValue };
     }
 
-    container.innerHTML = customerList.map(c => {
-      const totalDue = (c.totalNet - c.totalPaid).toFixed(2);
-      return `
-        <div style="border:1px solid #e0e0e0; border-radius:6px; padding:10px; margin-bottom:8px; background:#fff;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>${c.name} <small>(${c.type})</small></strong>
-            <span style="font-size:0.8em; color:#666;">${c.totalOrders} Order(s)</span>
-          </div>
-          <div style="font-size:0.85em; color:#555; margin-top:4px;">
-            📞 <b>Phone:</b> ${c.phone || 'N/A'}<br>
-            📍 <b>Address:</b> ${c.address || 'N/A'}<br>
-            💰 <b>Total Outstanding Balance:</b> <span style="color:${totalDue > 0 ? '#dc3545' : '#198754'}; font-weight:bold;">₹${totalDue}</span>
-          </div>
-          ${c.remarks.length > 0 ? `
-            <div style="background:#fff3cd; color:#856404; font-size:0.8em; padding:4px 8px; border-radius:4px; margin-top:6px;">
-              <b>Behavior/Payment Notes:</b> ${c.remarks.join(' | ')}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }).join('');
-  }
+    function recalculate() {
+      const pId = document.getElementById("productSelect").value;
+      const product = CATALOG.find(p => p.id === pId) || CATALOG[0];
 
-  // 12. Sync to Google Sheets
-  function syncToGoogleSheets() {
-    const url = localStorage.getItem('eicw_script_url');
-    if (!url) {
-      alert("Please enter and save your Google Apps Script Web App URL under the 'Backup & Sync' tab first!");
-      return;
+      const schemeType = document.getElementById("schemeType").value;
+      const paidQty = Number(document.getElementById("paidQty").value) || 0;
+      const freeQty = Number(document.getElementById("freeQty").value) || 0;
+      const orderQty = Number(document.getElementById("orderQty").value) || 1;
+
+      const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
+
+      document.getElementById("calcBilling").innerText = `₹${calc.billingAmount.toFixed(2)}`;
+      document.getElementById("calcCost").innerText = `₹${calc.cogs.toFixed(2)}`;
+      document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)}`;
+      document.getElementById("calcDocSavings").innerText = `₹${calc.docSavings.toFixed(2)} (${calc.docMarginPct.toFixed(1)}%)`;
+
+      const healthBadge = document.getElementById("calcHealthBadge");
+      if (calc.docMarginPct >= 20) {
+        healthBadge.innerHTML = `<span class="health-badge health-high">🟢 Excellent (≥20%)</span>`;
+      } else if (calc.docMarginPct >= 10) {
+        healthBadge.innerHTML = `<span class="health-badge health-mid">🟡 Moderate (10-20%)</span>`;
+      } else {
+        healthBadge.innerHTML = `<span class="health-badge health-low">🔴 Low Margin (<10%)</span>`;
+      }
     }
 
-    const orders = getStoredOrders();
-    if (orders.length === 0) {
-      alert("No orders available to sync.");
-      return;
+    function filterCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderProducts();
     }
 
-    fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orders)
-    }).then(() => {
-      alert("Sync request sent to Google Sheets!");
-    }).catch(err => {
-      alert("Sync failed: " + err);
-    });
-  }
+    function renderProducts() {
+      const search = document.getElementById("searchProduct").value.toLowerCase();
+      const listContainer = document.getElementById("productList");
 
-  // 13. Save Apps Script URL
-  function saveScriptUrl() {
-    const url = document.getElementById('scriptUrlInput').value.trim();
-    localStorage.setItem('eicw_script_url', url);
-    alert("Sync URL Saved!");
-  }
+      const filtered = CATALOG.filter(p => {
+        const matchCat = (currentCategory === "ALL" || p.category === currentCategory);
+        const matchSearch = p.name.toLowerCase().includes(search) || p.composition.toLowerCase().includes(search);
+        return matchCat && matchSearch;
+      });
 
-  // 14. Export Orders to CSV
-  function exportToCSV() {
-    const orders = getStoredOrders();
-    if (orders.length === 0) {
-      alert("No data to export!");
-      return;
-    }
-
-    const headers = ["Order ID", "Timestamp", "Customer Name", "Type", "Phone", "Address", "Product", "Qty", "MRP", "Rate", "Net Amount", "Delivered", "Delivery Date", "Credit Days", "Payment Due Date", "Total Collected", "Remarks"];
-    const csvRows = [headers.join(",")];
-
-    orders.forEach(o => {
-      const totalPaid = (o.payments || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-      const row = [
-        `"${o.id}"`, `"${o.timestamp}"`, `"${o.customerName}"`, `"${o.type}"`,
-        `"${o.phone}"`, `"${o.address}"`, `"${o.product}"`, o.qty, o.mrp, o.rate, o.net,
-        o.delivered ? "Yes" : "No", `"${o.deliveryDate || ''}"`, o.creditDays || 0, `"${o.paymentDueDate || ''}"`,
-        totalPaid, `"${o.remarks || ''}"`
-      ];
-      csvRows.push(row.join(","));
-    });
-
-    const blob = new Blob([csvRows.join("\n")], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `EICW_Orders_Backup_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  }
-
-  // 15. Restore / Import Orders from CSV
-  function importCSVData() {
-    const fileInput = document.getElementById('csvFileInput');
-    if (!fileInput.files.length) {
-      alert("Please choose a CSV file first!");
-      return;
-    }
-
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      const text = e.target.result;
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      
-      if (lines.length <= 1) {
-        alert("Selected CSV file is empty or formatted incorrectly.");
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<p style="text-align:center; color:var(--subtext);">No products found.</p>`;
         return;
       }
 
-      let existingOrders = getStoredOrders();
-      let importedCount = 0;
+      listContainer.innerHTML = filtered.map(p => `
+        <div class="prod-card">
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-comp">${p.composition}</div>
+          <div class="prod-meta">
+            <span>MRP: ₹${p.mrp}</span>
+            <span>TP+GST: ₹${p.tpGst}</span>
+            <span>COGS: ₹${p.costGst}</span>
+          </div>
+        </div>
+      `).join('');
+    }
 
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',').map(col => col.replace(/^"|"$/g, '').trim());
-        
-        if (cols.length >= 7) {
-          const orderObj = {
-            id: cols[0] || Date.now().toString() + i,
-            timestamp: cols[1] || new Date().toLocaleString(),
-            customerName: cols[2] || "",
-            type: cols[3] || "Doctor",
-            phone: cols[4] || "",
-            address: cols[5] || "",
-            product: cols[6] || "",
-            qty: parseFloat(cols[7]) || 0,
-            mrp: parseFloat(cols[8]) || 0,
-            rate: parseFloat(cols[9]) || 0,
-            net: parseFloat(cols[10]) || 0,
-            delivered: cols[11] === "Yes" || cols[11] === "true",
-            deliveryDate: cols[12] || "",
-            creditDays: parseInt(cols[13]) || 0,
-            paymentDueDate: cols[14] || "",
-            payments: parseFloat(cols[15]) > 0 ? [{ date: cols[12] || 'Imported', amount: parseFloat(cols[15]) }] : [],
-            remarks: cols[16] || ""
-          };
+    function addToCart() {
+      const pId = document.getElementById("productSelect").value;
+      const product = CATALOG.find(p => p.id === pId);
+      const schemeType = document.getElementById("schemeType").value;
+      const paidQty = Number(document.getElementById("paidQty").value) || 0;
+      const freeQty = Number(document.getElementById("freeQty").value) || 0;
+      const orderQty = Number(document.getElementById("orderQty").value) || 1;
 
-          if (!existingOrders.some(o => o.id === orderObj.id)) {
-            existingOrders.push(orderObj);
-            importedCount++;
-          }
-        }
+      const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
+
+      cart.push({
+        id: product.id,
+        name: product.name,
+        orderQty: orderQty,
+        schemeType: schemeType,
+        paidQty: paidQty,
+        freeQty: freeQty,
+        mrp: product.mrp,
+        billing: calc.billingAmount,
+        cogs: calc.cogs,
+        profit: calc.netProfit,
+        docSavings: calc.docSavings,
+        docMarginPct: calc.docMarginPct,
+        totalReceivedValue: calc.totalReceivedValue
+      });
+
+      renderCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function renderCart() {
+      document.getElementById("cartItemCount").innerText = cart.length;
+      const cartList = document.getElementById("cartItemsList");
+      
+      if (cart.length === 0) {
+        cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
+        document.getElementById("cartTotalBilling").innerText = "₹0.00";
+        document.getElementById("cartTotalProfit").innerText = "₹0.00";
+        document.getElementById("cartTotalDocSavings").innerText = "₹0.00 (0.0% Margin)";
+        return;
       }
 
-      saveStoredOrders(existingOrders);
-      alert(`Success! Imported ${importedCount} order(s) into the database.`);
-      switchTab('history');
-    };
+      let totalB = 0, totalP = 0, totalDocSav = 0, totalReceivedVal = 0;
+      
+      cartList.innerHTML = cart.map((item, idx) => {
+        totalB += item.billing;
+        totalP += item.profit;
+        totalDocSav += item.docSavings;
+        totalReceivedVal += (item.totalReceivedValue || (item.orderQty * item.mrp));
 
-    reader.readAsText(file);
-  }
-</script>
+        const schemeText = item.schemeType === 'Standard scheme' ? 'Standard' : `${item.paidQty}+${item.freeQty}`;
+
+        return `
+          <div style="padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.85rem;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+              <span>${item.name} x ${item.orderQty}</span>
+              <span>₹${item.billing.toFixed(2)}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:var(--subtext); font-size:0.78rem; margin-top:2px;">
+              <span>Scheme: ${schemeText} (${item.schemeType})</span>
+              <span>Doc Profit: ₹${item.docSavings.toFixed(1)} (${item.docMarginPct.toFixed(1)}%)</span>
+              <button class="btn-sm btn-danger" style="padding:2px 6px;" onclick="removeFromCart(${idx})">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const overallDocMargin = totalReceivedVal > 0 ? ((totalDocSav / totalReceivedVal) * 100) : 0;
+
+      document.getElementById("cartTotalBilling").innerText = `₹${totalB.toFixed(2)}`;
+      document.getElementById("cartTotalProfit").innerText = `₹${totalP.toFixed(2)}`;
+      document.getElementById("cartTotalDocSavings").innerText = `₹${totalDocSav.toFixed(2)} (${overallDocMargin.toFixed(1)}% Margin)`;
+    }
+
+    function clearCart() {
+      cart = [];
+      editingOrderId = null;
+      document.getElementById("custName").value = "";
+      document.getElementById("custPhone").value = "";
+      document.getElementById("custAddress").value = "";
+      document.getElementById("custRemarks").value = "";
+      document.getElementById("custAlertBox").style.display = "none";
+      document.getElementById("editingBadge").style.display = "none";
+      document.getElementById("orderPaidAmount").value = "0";
+      document.getElementById("orderDeliveryStatus").value = "Pending";
+      updateDueDateFromTerm();
+      renderCart();
+    }
+
+    function saveOrder() {
+      if (cart.length === 0) return alert("Please add at least one item to cart!");
+
+      const custType = document.getElementById("custType").value;
+      const custName = document.getElementById("custName").value.trim() || "General Customer";
+      const custPhone = document.getElementById("custPhone").value.trim() || "N/A";
+      const custAddress = document.getElementById("custAddress").value.trim() || "N/A";
+      const custRemarks = document.getElementById("custRemarks").value.trim() || "";
+
+      const deliveryStatus = document.getElementById("orderDeliveryStatus").value;
+      const paidAmount = Number(document.getElementById("orderPaidAmount").value) || 0;
+      const dueDate = document.getElementById("orderDueDate").value || new Date().toISOString().split('T')[0];
+
+      if (custName !== "General Customer") {
+        const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custName.toLowerCase());
+        const newCustObj = { name: custName, type: custType, phone: custPhone, address: custAddress, remarks: custRemarks };
+        if (existingIdx !== -1) {
+          customerDirectory[existingIdx] = newCustObj;
+        } else {
+          customerDirectory.push(newCustObj);
+        }
+        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        renderCustomerDirectoryList();
+        renderCustomerDirectoryTab();
+      }
+
+      const totalBilling = cart.reduce((sum, i) => sum + i.billing, 0);
+      const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
+      const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0);
+      const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0);
+      const balanceDue = Math.max(0, totalBilling - paidAmount);
+
+      if (editingOrderId) {
+        const index = savedOrders.findIndex(o => o.id === editingOrderId);
+        if (index !== -1) {
+          savedOrders[index] = {
+            ...savedOrders[index],
+            custType, custName, custPhone, custAddress, custRemarks,
+            deliveryStatus, paidAmount, balanceDue, dueDate,
+            items: [...cart],
+            totalBilling, totalCogs, totalProfit, totalDocSavings
+          };
+        }
+        editingOrderId = null;
+        document.getElementById("editingBadge").style.display = "none";
+        alert("Order updated successfully!");
+      } else {
+        savedOrders.unshift({
+          id: Date.now(),
+          date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+          custType, custName, custPhone, custAddress, custRemarks,
+          deliveryStatus, paidAmount, balanceDue, dueDate,
+          items: [...cart],
+          totalBilling, totalCogs, totalProfit, totalDocSavings
+        });
+        alert("Order booked & saved successfully!");
+      }
+
+      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+
+      clearCart();
+      renderOrdersLog();
+      updateDashboard();
+      switchTabById('tab-orders');
+    }
+
+    function renderOrdersLog() {
+      const container = document.getElementById("ordersList");
+      if (savedOrders.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext); text-align:center;'>No orders logged yet.</p>";
+        return;
+      }
+
+      container.innerHTML = savedOrders.map((o) => {
+        const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+        let payStatusBadge = `<span class="health-badge health-high">🟢 Paid Full</span>`;
+        if (balance > 0 && (o.paidAmount || 0) > 0) {
+          payStatusBadge = `<span class="health-badge health-mid">🟡 Part Paid (Due ₹${balance.toFixed(2)})</span>`;
+        } else if (balance > 0) {
+          payStatusBadge = `<span class="health-badge health-low">🔴 Unpaid (Due ₹${balance.toFixed(2)})</span>`;
+        }
+
+        let delClass = "status-pending";
+        if (o.deliveryStatus === "In Transit") delClass = "status-transit";
+        if (o.deliveryStatus === "Delivered") delClass = "status-delivered";
+
+        return `
+          <div class="order-card">
+            <div class="order-header">
+              <div>
+                <strong>${o.custName}</strong> (${o.custType})
+                <div style="font-size:0.75rem; color:var(--subtext);">${o.date}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:bold; color:var(--primary);">₹${(o.totalBilling || 0).toFixed(2)}</div>
+                <div>${payStatusBadge}</div>
+              </div>
+            </div>
+
+            <div style="font-size:0.82rem; color:var(--subtext); margin-bottom: 4px;">
+              📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:6px; background:var(--tile-bg); padding:6px; border-radius:6px;">
+              <span>Delivery: <span class="status-tag ${delClass}">${o.deliveryStatus || 'Pending'}</span></span>
+              <span>Paid: <strong>₹${(o.paidAmount || 0).toFixed(2)}</strong></span>
+              <span>Due Date: <strong>${o.dueDate || 'N/A'}</strong></span>
+            </div>
+
+            ${o.custRemarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:4px;">💬 <strong>Note:</strong> ${o.custRemarks}</div>` : ''}
+
+            <div class="order-details-box" id="details-${o.id}">
+              <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item Breakdown:</div>
+              ${(o.items || []).map(i => `
+                <div style="margin-bottom:6px; border-bottom: 1px dashed var(--border); padding-bottom:4px;">
+                  <strong>${i.name}</strong> x${i.orderQty}<br>
+                  <span>Billing: ₹${i.billing.toFixed(2)} | Doc Profit: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="order-actions">
+              <button class="btn-sm btn-accent" onclick="toggleOrderDetails(${o.id})">👁️ Details</button>
+              <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect Payment</button>
+              <button class="btn-sm btn-whatsapp" onclick="shareOrderWhatsApp(${o.id})">📲 Forward</button>
+              <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
+              <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleOrderDetails(orderId) {
+      const el = document.getElementById(`details-${orderId}`);
+      if (el) el.style.display = el.style.display === "block" ? "none" : "block";
+    }
+
+    function collectPaymentPrompt(orderId) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o) return;
+
+      const currentPaid = o.paidAmount || 0;
+      const currentDue = Math.max(0, o.totalBilling - currentPaid);
+
+      const additional = prompt(`Customer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}\nAlready Paid: ₹${currentPaid.toFixed(2)}\nBalance Due: ₹${currentDue.toFixed(2)}\n\nEnter additional payment collected (₹):`, currentDue);
+      if (additional !== null && !isNaN(additional) && additional.trim() !== "") {
+        const addNum = Math.max(0, parseFloat(additional));
+        o.paidAmount = currentPaid + addNum;
+        o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
+        
+        if (o.balanceDue === 0) o.deliveryStatus = "Delivered";
+
+        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        renderOrdersLog();
+        updateDashboard();
+        alert(`Payment recorded! New Balance Due: ₹${o.balanceDue.toFixed(2)}`);
+      }
+    }
+
+    function editOrder(orderId) {
+      const order = savedOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      editingOrderId = order.id;
+      document.getElementById("custType").value = order.custType || "Doctor";
+      document.getElementById("custName").value = order.custName || "";
+      document.getElementById("custPhone").value = order.custPhone || "";
+      document.getElementById("custAddress").value = order.custAddress || "";
+      document.getElementById("custRemarks").value = order.custRemarks || "";
+      document.getElementById("orderDeliveryStatus").value = order.deliveryStatus || "Pending";
+      document.getElementById("orderPaidAmount").value = order.paidAmount || 0;
+      if (order.dueDate) document.getElementById("orderDueDate").value = order.dueDate;
+      
+      document.getElementById("editingBadge").style.display = "inline-block";
+
+      cart = [...order.items];
+      renderCart();
+      switchTabById('tab-calc');
+    }
+
+    function deleteOrder(orderId) {
+      if (confirm("Delete this order?")) {
+        savedOrders = savedOrders.filter(o => o.id !== orderId);
+        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        renderOrdersLog();
+        updateDashboard();
+      }
+    }
+
+    function clearOrdersLog() {
+      if (confirm("Clear ALL order history?")) {
+        savedOrders = [];
+        localStorage.removeItem('eicw_saved_orders');
+        renderOrdersLog();
+        updateDashboard();
+      }
+    }
+
+    function updateDashboard() {
+      document.getElementById("homeOrdersCount").innerText = savedOrders.length;
+      const totalRev = savedOrders.reduce((sum, o) => sum + (o.totalBilling || 0), 0);
+      const totalColl = savedOrders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
+      const totalDue = Math.max(0, totalRev - totalColl);
+
+      document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
+      document.getElementById("homeTotalCollected").innerText = `₹${totalColl.toFixed(2)}`;
+      document.getElementById("homeTotalDue").innerText = `₹${totalDue.toFixed(2)}`;
+    }
+
+    function saveDirectoryCustomer() {
+      const name = document.getElementById("dirName").value.trim();
+      if (!name) return alert("Please enter customer name!");
+
+      const type = document.getElementById("dirType").value;
+      const phone = document.getElementById("dirPhone").value.trim();
+      const address = document.getElementById("dirAddress").value.trim();
+      const remarks = document.getElementById("dirRemarks").value.trim();
+
+      const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+      if (existingIdx !== -1) {
+        customerDirectory[existingIdx] = { name, type, phone, address, remarks };
+      } else {
+        customerDirectory.push({ name, type, phone, address, remarks });
+      }
+
+      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      
+      document.getElementById("dirName").value = "";
+      document.getElementById("dirPhone").value = "";
+      document.getElementById("dirAddress").value = "";
+      document.getElementById("dirRemarks").value = "";
+
+      renderCustomerDirectoryList();
+      renderCustomerDirectoryTab();
+      alert("Customer saved to directory!");
+    }
+
+    function renderCustomerDirectoryTab() {
+      const container = document.getElementById("directoryContainer");
+      const search = (document.getElementById("searchDirectory") ? document.getElementById("searchDirectory").value : "").toLowerCase();
+
+      const filtered = customerDirectory.filter(c => 
+        c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext); text-align:center; margin-top:10px;'>No directory contacts found.</p>";
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => `
+        <div class="prod-card" style="margin-top:10px;">
+          <div class="prod-name" style="display:flex; justify-content:space-between;">
+            <span>${c.name} (${c.type})</span>
+            <button class="btn-sm btn-accent" onclick="quickSelectCustomer('${c.name}')">Select for Order</button>
+          </div>
+          <div class="prod-comp" style="margin-top:4px;">
+            📞 ${c.phone || 'N/A'} | 📍 ${c.address || 'N/A'}
+          </div>
+          ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600;">💬 ${c.remarks}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function quickSelectCustomer(name) {
+      document.getElementById("custName").value = name;
+      autoFillCustomerDetails();
+      switchTabById('tab-calc');
+    }
+
+    function exportToCSV() {
+      if (savedOrders.length === 0) return alert("No orders available to export!");
+
+      let csv = "Order ID,Date,Customer Name,Type,Phone,Address,Delivery Status,Paid (INR),Due Date,Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
+
+      savedOrders.forEach(o => {
+        o.items.forEach(i => {
+          const schemeStr = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.paidAmount || 0}","${o.dueDate || ''}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
+        });
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.setAttribute("href", url);
+      a.setAttribute("download", `EICW_Sales_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
+      a.click();
+    }
+
+    function importFromCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const lines = evt.target.result.split('\n');
+          if (lines.length <= 1) return alert("CSV file appears empty!");
+
+          alert("CSV imported successfully!");
+        } catch(err) {
+          alert("Error parsing CSV file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function saveWebhookUrl() {
+      const url = document.getElementById("googleWebhookUrl").value.trim();
+      localStorage.setItem('eicw_webhook_url', url);
+    }
+
+    async function syncWithGoogleSheets() {
+      const url = localStorage.getItem('eicw_webhook_url');
+      if (!url) return alert("Please enter a valid Google Apps Script Webhook URL below first!");
+      if (savedOrders.length === 0) return alert("No orders to sync.");
+
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(savedOrders)
+        });
+        alert("Sync request sent successfully to Google Sheets!");
+      } catch (err) {
+        alert("Failed to sync: " + err.message);
+      }
+    }
+
+    function shareOrderWhatsApp(orderId) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o) return;
+
+      const balance = Math.max(0, o.totalBilling - (o.paidAmount || 0));
+
+      let msg = `*EICW SALES ORDER LOG*\n------------------------\n`;
+      msg += `*Customer:* ${o.custName} (${o.custType})\n*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery:* ${o.deliveryStatus || 'Pending'}\n------------------------\n*ORDER ITEMS:*\n`;
+
+      o.items.forEach((i, idx) => {
+        msg += `${idx + 1}. *${i.name}* x ${i.orderQty} - ₹${i.billing.toFixed(2)}\n`;
+      });
+
+      msg += `------------------------\n*TOTAL BILL:* ₹${o.totalBilling.toFixed(2)}\n`;
+      msg += `*PAID:* ₹${(o.paidAmount || 0).toFixed(2)}\n`;
+      msg += `*BALANCE DUE:* ₹${balance.toFixed(2)}\n`;
+      if (o.dueDate) msg += `*DUE DATE:* ${o.dueDate}\n`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
+
+    function shareCartWhatsApp() {
+      if (cart.length === 0) return alert("Cart is empty!");
+      const custName = document.getElementById("custName").value.trim() || "Valued Customer";
+
+      let msg = `*EICW ORDER DRAFT QUOTE*\n*For:* ${custName}\n------------------------\n`;
+      cart.forEach((i, idx) => {
+        msg += `${idx + 1}. *${i.name}* x ${i.orderQty}: ₹${i.billing.toFixed(2)}\n`;
+      });
+
+      const totalB = cart.reduce((sum, i) => sum + i.billing, 0);
+      msg += `------------------------\n*TOTAL ESTIMATE:* ₹${totalB.toFixed(2)}\n`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
