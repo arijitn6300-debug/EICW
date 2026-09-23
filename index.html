@@ -269,7 +269,7 @@
     }
 
     .prod-name { font-weight: bold; font-size: 1rem; color: var(--primary); }
-    .prod-comp { font-size: 0.8rem; color: var(--subtext); margin: 4px 0 8px 0; }
+    .prod-comp { font-size: 0.81rem; color: var(--subtext); margin: 4px 0 8px 0; }
     .prod-meta { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; }
 
     .kpi-grid {
@@ -328,19 +328,17 @@
       gap: 6px;
       margin-top: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .status-tag {
-      padding: 2px 6px;
+    .status-select {
+      padding: 4px 8px;
+      font-size: 0.8rem;
       border-radius: 4px;
-      font-size: 0.72rem;
+      margin-bottom: 0;
+      width: auto;
       font-weight: bold;
-      display: inline-block;
     }
-
-    .status-pending { background: #fef3c7; color: #b45309; }
-    .status-transit { background: #e0f2fe; color: #0369a1; }
-    .status-delivered { background: var(--badge-paid); color: var(--text-paid); }
 
     .app-footer {
       text-align: center;
@@ -575,12 +573,15 @@
               </select>
             </div>
             <div>
-              <label>Payment Term (Days)</label>
+              <label>Payment Term / Credit Days</label>
               <select id="orderPaymentTerm" onchange="updateDueDateFromTerm()">
                 <option value="0">Cash on Delivery (0 Days)</option>
+                <option value="7">7 Days Credit</option>
                 <option value="15">15 Days Credit</option>
                 <option value="30" selected>30 Days Credit</option>
                 <option value="45">45 Days Credit</option>
+                <option value="60">60 Days Credit</option>
+                <option value="custom">Custom Credit Days...</option>
               </select>
             </div>
           </div>
@@ -590,7 +591,7 @@
               <input type="number" id="orderPaidAmount" value="0" min="0" placeholder="0">
             </div>
             <div>
-              <label>Auto Due Date</label>
+              <label>Calculated Due Date</label>
               <input type="date" id="orderDueDate">
             </div>
           </div>
@@ -622,7 +623,7 @@
     <!-- TAB 4: CUSTOMER DIRECTORY -->
     <div class="tab-view" id="tab-directory">
       <div class="card">
-        <div class="card-title">Add / Edit Customer Record</div>
+        <div class="card-title" id="dirFormTitle">Add / Edit Customer Record</div>
         <div class="form-row">
           <div>
             <label>Name</label>
@@ -649,7 +650,9 @@
         </div>
         <label>Past Behavior / Customer Remarks</label>
         <input type="text" id="dirRemarks" placeholder="e.g. Prefers morning delivery, payment delay 15 days">
-        <button class="btn-action" style="background: var(--primary);" onclick="saveDirectoryCustomer()">💾 Save Customer to Directory</button>
+        
+        <button class="btn-action" style="background: var(--primary);" id="btnSaveDirCustomer" onclick="saveDirectoryCustomer()">💾 Save Customer to Directory</button>
+        <button class="btn-action btn-danger" style="display:none;" id="btnCancelDirEdit" onclick="cancelDirectoryEdit()">Cancel Edit</button>
       </div>
 
       <div class="card">
@@ -675,7 +678,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Saved Orders Log & Payment Collection</div>
+        <div class="card-title">Saved Orders Log & Delivery Tracking</div>
         <div id="ordersList">No orders logged yet.</div>
         <button class="btn-action btn-danger" style="margin-top: 16px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
       </div>
@@ -732,6 +735,7 @@
     let savedOrders = [];
     let customerDirectory = [];
     let editingOrderId = null;
+    let editingCustomerIdx = null;
 
     function init() {
       try {
@@ -780,10 +784,21 @@
     }
 
     function updateDueDateFromTerm() {
-      const days = Number(document.getElementById("orderPaymentTerm").value) || 0;
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + days);
-      document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+      const val = document.getElementById("orderPaymentTerm").value;
+      if (val === "custom") {
+        const customDays = prompt("Enter Custom Credit Days for this customer:", "20");
+        if (customDays !== null && !isNaN(customDays) && customDays.trim() !== "") {
+          const days = Math.max(0, parseInt(customDays));
+          const targetDate = new Date();
+          targetDate.setDate(targetDate.getDate() + days);
+          document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+        }
+      } else {
+        const days = Number(val) || 0;
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + days);
+        document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+      }
     }
 
     function renderCustomerDirectoryList() {
@@ -1120,10 +1135,6 @@
           payStatusBadge = `<span class="health-badge health-low">🔴 Unpaid (Due ₹${balance.toFixed(2)})</span>`;
         }
 
-        let delClass = "status-pending";
-        if (o.deliveryStatus === "In Transit") delClass = "status-transit";
-        if (o.deliveryStatus === "Delivered") delClass = "status-delivered";
-
         return `
           <div class="order-card">
             <div class="order-header">
@@ -1141,10 +1152,17 @@
               📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:6px; background:var(--tile-bg); padding:6px; border-radius:6px;">
-              <span>Delivery: <span class="status-tag ${delClass}">${o.deliveryStatus || 'Pending'}</span></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:6px; background:var(--tile-bg); padding:6px; border-radius:6px; flex-wrap:wrap; gap:4px;">
+              <div>
+                <strong>Status:</strong>
+                <select class="status-select" onchange="changeOrderStatus(${o.id}, this.value)">
+                  <option value="Pending" ${o.deliveryStatus === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                  <option value="In Transit" ${o.deliveryStatus === 'In Transit' ? 'selected' : ''}>🚚 In Transit</option>
+                  <option value="Delivered" ${o.deliveryStatus === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+                </select>
+              </div>
               <span>Paid: <strong>₹${(o.paidAmount || 0).toFixed(2)}</strong></span>
-              <span>Due Date: <strong>${o.dueDate || 'N/A'}</strong></span>
+              <span>Due: <strong>${o.dueDate || 'N/A'}</strong></span>
             </div>
 
             ${o.custRemarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:4px;">💬 <strong>Note:</strong> ${o.custRemarks}</div>` : ''}
@@ -1171,6 +1189,15 @@
       }).join('');
     }
 
+    function changeOrderStatus(orderId, newStatus) {
+      const order = savedOrders.find(o => o.id === orderId);
+      if (order) {
+        order.deliveryStatus = newStatus;
+        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        renderOrdersLog();
+      }
+    }
+
     function toggleOrderDetails(orderId) {
       const el = document.getElementById(`details-${orderId}`);
       if (el) el.style.display = el.style.display === "block" ? "none" : "block";
@@ -1189,7 +1216,11 @@
         o.paidAmount = currentPaid + addNum;
         o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
         
-        if (o.balanceDue === 0) o.deliveryStatus = "Delivered";
+        if (o.balanceDue === 0 && o.deliveryStatus !== "Delivered") {
+          if (confirm("Balance is fully cleared. Mark order as Delivered?")) {
+            o.deliveryStatus = "Delivered";
+          }
+        }
 
         localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
         renderOrdersLog();
@@ -1257,11 +1288,20 @@
       const address = document.getElementById("dirAddress").value.trim();
       const remarks = document.getElementById("dirRemarks").value.trim();
 
-      const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
-      if (existingIdx !== -1) {
-        customerDirectory[existingIdx] = { name, type, phone, address, remarks };
+      const newCust = { name, type, phone, address, remarks };
+
+      if (editingCustomerIdx !== null) {
+        customerDirectory[editingCustomerIdx] = newCust;
+        alert("Customer details updated successfully!");
+        cancelDirectoryEdit();
       } else {
-        customerDirectory.push({ name, type, phone, address, remarks });
+        const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+        if (existingIdx !== -1) {
+          customerDirectory[existingIdx] = newCust;
+        } else {
+          customerDirectory.push(newCust);
+        }
+        alert("Customer saved to directory!");
       }
 
       localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
@@ -1273,16 +1313,58 @@
 
       renderCustomerDirectoryList();
       renderCustomerDirectoryTab();
-      alert("Customer saved to directory!");
+    }
+
+    function editDirectoryCustomer(index) {
+      const c = customerDirectory[index];
+      if (!c) return;
+
+      editingCustomerIdx = index;
+      document.getElementById("dirName").value = c.name || "";
+      document.getElementById("dirType").value = c.type || "Doctor";
+      document.getElementById("dirPhone").value = c.phone || "";
+      document.getElementById("dirAddress").value = c.address || "";
+      document.getElementById("dirRemarks").value = c.remarks || "";
+
+      document.getElementById("dirFormTitle").innerText = "Edit Customer Record";
+      document.getElementById("btnSaveDirCustomer").innerText = "💾 Update Customer Details";
+      document.getElementById("btnCancelDirEdit").style.display = "block";
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelDirectoryEdit() {
+      editingCustomerIdx = null;
+      document.getElementById("dirName").value = "";
+      document.getElementById("dirPhone").value = "";
+      document.getElementById("dirAddress").value = "";
+      document.getElementById("dirRemarks").value = "";
+
+      document.getElementById("dirFormTitle").innerText = "Add / Edit Customer Record";
+      document.getElementById("btnSaveDirCustomer").innerText = "💾 Save Customer to Directory";
+      document.getElementById("btnCancelDirEdit").style.display = "none";
+    }
+
+    function deleteDirectoryCustomer(index) {
+      const c = customerDirectory[index];
+      if (!c) return;
+
+      if (confirm(`Are you sure you want to delete ${c.name} from directory?`)) {
+        customerDirectory.splice(index, 1);
+        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        if (editingCustomerIdx === index) cancelDirectoryEdit();
+        renderCustomerDirectoryList();
+        renderCustomerDirectoryTab();
+      }
     }
 
     function renderCustomerDirectoryTab() {
       const container = document.getElementById("directoryContainer");
       const search = (document.getElementById("searchDirectory") ? document.getElementById("searchDirectory").value : "").toLowerCase();
 
-      const filtered = customerDirectory.filter(c => 
-        c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search))
-      );
+      const filtered = customerDirectory
+        .map((c, originalIndex) => ({ ...c, originalIndex }))
+        .filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
 
       if (filtered.length === 0) {
         container.innerHTML = "<p style='color:var(--subtext); text-align:center; margin-top:10px;'>No directory contacts found.</p>";
@@ -1291,14 +1373,18 @@
 
       container.innerHTML = filtered.map(c => `
         <div class="prod-card" style="margin-top:10px;">
-          <div class="prod-name" style="display:flex; justify-content:space-between;">
+          <div class="prod-name" style="display:flex; justify-content:space-between; align-items:center;">
             <span>${c.name} (${c.type})</span>
             <button class="btn-sm btn-accent" onclick="quickSelectCustomer('${c.name}')">Select for Order</button>
           </div>
           <div class="prod-comp" style="margin-top:4px;">
             📞 ${c.phone || 'N/A'} | 📍 ${c.address || 'N/A'}
           </div>
-          ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600;">💬 ${c.remarks}</div>` : ''}
+          ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600; margin-bottom:8px;">💬 ${c.remarks}</div>` : ''}
+          <div style="display:flex; gap:6px; margin-top:6px; border-top:1px dashed var(--border); padding-top:6px;">
+            <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit Contact</button>
+            <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
+          </div>
         </div>
       `).join('');
     }
