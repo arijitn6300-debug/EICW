@@ -774,7 +774,7 @@
     </div>
 
     <footer class="app-footer">
-      For EICW | Made With ❤️ By Arijit[cite: 5]
+      For EICW | Made With ❤️ By Arijit
     </footer>
 
   </div>
@@ -1009,23 +1009,26 @@
       let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0;
 
       if (schemeType === "Standard scheme") {
+        const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
+        const totalUnitsReceived = orderQty + actualFreeQty;
+
         billingAmount = orderQty * product.tpGst;
-        cogs = orderQty * product.costGst;
-        totalReceivedValue = orderQty * product.mrp;
+        cogs = totalUnitsReceived * product.costGst;
+        totalReceivedValue = totalUnitsReceived * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
       } else if (schemeType === "Lot With Free Items") {
         const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
         const totalUnitsReceived = orderQty + actualFreeQty;
         
-        billingAmount = orderQty * product.mrp;
+        billingAmount = orderQty * product.tpGst;
         cogs = totalUnitsReceived * product.costGst;
         totalReceivedValue = totalUnitsReceived * product.mrp;
-        docSavings = actualFreeQty * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
       } else if (schemeType === "Lot Adjust in Cash %") {
         const totalBase = paidQty + freeQty;
         const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
         
-        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
+        billingAmount = (orderQty * product.tpGst) * (1 - discountRatio);
         cogs = orderQty * product.costGst;
         totalReceivedValue = orderQty * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
@@ -1903,7 +1906,7 @@
               if (existingIdx !== -1) {
                 customerDirectory[existingIdx] = { ...customerDirectory[existingIdx], ...cust };
               } else {
-                customerDirectory.push(cust);
+                customerDirectory.push(customerDirectory[existingIdx]);
               }
             });
           }
