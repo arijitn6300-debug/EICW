@@ -402,7 +402,6 @@
   <header>
     <div class="header-title">
       <div class="brand-logo-container">
-        <!-- Pharma & Medical Sales SVG Logo -->
         <svg class="brand-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect width="32" height="32" rx="6" fill="#047857"/>
           <path d="M16 6V26M6 16H26" stroke="white" stroke-width="4" stroke-linecap="round"/>
@@ -547,7 +546,7 @@
             <label>Paid Qty Ratio Base</label>
             <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty('paidQty', -1)">-</button>
-              <input type="number" id="paidQty" value="5" min="0" oninput="recalculate()">
+              <input type="number" id="paidQty" value="10" min="0" oninput="recalculate()">
               <button class="btn-qty" onclick="changeQty('paidQty', 1)">+</button>
             </div>
           </div>
@@ -555,17 +554,17 @@
             <label>Free Qty Ratio Base</label>
             <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
-              <input type="number" id="freeQty" value="2" min="0" oninput="recalculate()">
+              <input type="number" id="freeQty" value="4" min="0" oninput="recalculate()">
               <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
             </div>
           </div>
         </div>
 
         <div>
-          <label style="color: var(--accent);">Doctor Requested Qty (Order Qty)</label>
+          <label style="color: var(--accent);">Doctor Requested Qty (Total Btls Billed/Delivered)</label>
           <div class="qty-controls">
             <button class="btn-qty" onclick="changeQty('orderQty', -1)">-</button>
-            <input type="number" id="orderQty" value="5" min="1" oninput="recalculate()" style="border-color: var(--accent);">
+            <input type="number" id="orderQty" value="10" min="1" oninput="recalculate()" style="border-color: var(--accent);">
             <button class="btn-qty" onclick="changeQty('orderQty', 1)">+</button>
           </div>
         </div>
@@ -699,7 +698,6 @@
           </div>
         </div>
 
-        <!-- Dynamic Statutory Fields for Customer Directory -->
         <div id="dirDoctorFields" class="form-row">
           <div>
             <label>Qualification</label>
@@ -1028,9 +1026,10 @@
       } else if (schemeType === "Lot Adjust in Cash %") {
         const totalBase = paidQty + freeQty;
         const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
-        totalUnitsReceived = orderQty;
+        totalUnitsReceived = orderQty; // Exact total units delivered to doctor as requested
         
-        billingAmount = (orderQty * product.tpGst) * (1 - discountRatio);
+        // Exact 1000 billing for 10 units at 100 MRP (MRP * orderQty * (1 - discountRatio))
+        billingAmount = (orderQty * product.mrp) * (1 - discountRatio);
         cogs = orderQty * product.costGst;
         totalReceivedValue = orderQty * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
