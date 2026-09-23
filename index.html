@@ -1188,6 +1188,8 @@
     function clearCart() {
       cart = [];
       editingOrderId = null;
+      selectedCreditDays = 30;
+      document.getElementById("orderPaymentTerm").value = "30";
       document.getElementById("custName").value = "";
       document.getElementById("custPhone").value = "";
       document.getElementById("custAddress").value = "";
@@ -1747,59 +1749,52 @@
             return alert("Invalid CSV format! The header row must start with 'Order ID'.");
           }
 
-          const hasStatutoryCols = headers.length >= 21;
+          // Dynamic header mapping to prevent offset vulnerabilities
+          const headerMap = {};
+          headers.forEach((h, idx) => {
+            headerMap[h.trim().toLowerCase()] = idx;
+          });
+
+          function getColVal(cols, names) {
+            for (let name of names) {
+              const idx = headerMap[name.toLowerCase()];
+              if (idx !== undefined && cols[idx] !== undefined) {
+                return cols[idx];
+              }
+            }
+            return '';
+          }
 
           const ordersMap = new Map();
           const importedCustomersMap = new Map();
 
           for (let i = 1; i < lines.length; i++) {
             const cols = parseCSVLine(lines[i]);
-            if (cols.length < 12) continue;
+            if (cols.length < 5) continue;
 
-            const orderId = Number(cols[0]) || cols[0];
-            const date = cols[1];
-            const custName = cols[2];
-            const custType = cols[3] || "Doctor";
+            const orderId = Number(getColVal(cols, ["order id"])) || getColVal(cols, ["order id"]) || i;
+            const date = getColVal(cols, ["date"]);
+            const custName = getColVal(cols, ["customer name"]);
+            const custType = getColVal(cols, ["customer type"]) || "Doctor";
 
-            let qualification = "", regNo = "", dlNo = "", gstin = "";
-            let custPhone = "", custAddress = "", deliveryStatus = "Pending", deliveryDate = "", creditDays = 0, dueDate = "", paidAmount = 0;
-            let prodName = "", qty = 1, schemeStr = "Standard", billing = 0, profit = 0, docSavings = 0;
+            const qualification = getColVal(cols, ["qualification"]);
+            const regNo = getColVal(cols, ["medical reg no", "reg no"]);
+            const dlNo = getColVal(cols, ["drug license no", "dl no"]);
+            const gstin = getColVal(cols, ["gstin", "gstin number"]);
+            const custPhone = getColVal(cols, ["phone", "phone number"]);
+            const custAddress = getColVal(cols, ["address"]);
+            const deliveryStatus = getColVal(cols, ["delivery status"]) || "Pending";
+            const deliveryDate = getColVal(cols, ["delivery date"]);
+            const creditDays = Number(getColVal(cols, ["credit days"])) || 0;
+            const dueDate = getColVal(cols, ["due date"]);
+            const paidAmount = Number(getColVal(cols, ["paid amount"])) || 0;
 
-            if (hasStatutoryCols) {
-              qualification = cols[4] || "";
-              regNo = cols[5] || "";
-              dlNo = cols[6] || "";
-              gstin = cols[7] || "";
-              custPhone = cols[8] || "";
-              custAddress = cols[9] || "";
-              deliveryStatus = cols[10] || "Pending";
-              deliveryDate = cols[11] || "";
-              creditDays = Number(cols[12]) || 0;
-              dueDate = cols[13] || "";
-              paidAmount = Number(cols[14]) || 0;
-
-              prodName = cols[15];
-              qty = Number(cols[16]) || 1;
-              schemeStr = cols[17] || "Standard";
-              billing = Number(cols[18]) || 0;
-              profit = Number(cols[19]) || 0;
-              docSavings = Number(cols[20]) || 0;
-            } else {
-              custPhone = cols[4] || "";
-              custAddress = cols[5] || "";
-              deliveryStatus = cols[6] || "Pending";
-              deliveryDate = cols[7] || "";
-              creditDays = Number(cols[8]) || 0;
-              dueDate = cols[9] || "";
-              paidAmount = Number(cols[10]) || 0;
-
-              prodName = cols[11];
-              qty = Number(cols[12]) || 1;
-              schemeStr = cols[13] || "Standard";
-              billing = Number(cols[14]) || 0;
-              profit = Number(cols[15]) || 0;
-              docSavings = Number(cols[16]) || 0;
-            }
+            const prodName = getColVal(cols, ["product name"]);
+            const qty = Number(getColVal(cols, ["quantity"])) || 1;
+            const schemeStr = getColVal(cols, ["scheme"]) || "Standard";
+            const billing = Number(getColVal(cols, ["billing amount"])) || 0;
+            const profit = Number(getColVal(cols, ["rep profit"])) || 0;
+            const docSavings = Number(getColVal(cols, ["doctor savings"])) || 0;
 
             if (custName && custName !== "General Customer") {
               importedCustomersMap.set(custName.toLowerCase(), {
@@ -1966,7 +1961,8 @@
       text += `\n\n_Thank you for your business with EICW!_`;
 
       const phone = document.getElementById("custPhone").value.trim();
-      const url = phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      const cleanPhone = phone.replace(/\D/g, '');
+      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
 
@@ -1987,7 +1983,8 @@
       text += `\n\n_Thank you for partnering with EICW!_`;
 
       const phone = o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '';
-      const url = phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      const cleanPhone = phone.replace(/\D/g, '');
+      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
 
