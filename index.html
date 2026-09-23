@@ -373,7 +373,7 @@
       background: var(--card-bg);
       border-top: 1px solid var(--border);
       display: flex;
-      justify-around: space-around;
+      justify-content: space-around;
       padding: 8px 0;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
       z-index: 1000;
@@ -467,7 +467,7 @@
         <div class="form-row">
           <div>
             <label>Customer Type</label>
-            <select id="custType">
+            <select id="custType" onchange="toggleFormStatutoryFields('form')">
               <option value="Doctor">Doctor</option>
               <option value="Chemist">Chemist / Retailer</option>
               <option value="Wholesaler">Stockist / Wholesaler</option>
@@ -479,6 +479,30 @@
             <datalist id="customerDirectoryList"></datalist>
           </div>
         </div>
+
+        <!-- Dynamic Statutory Fields for Order Builder -->
+        <div id="formDoctorFields" class="form-row">
+          <div>
+            <label>Qualification</label>
+            <input type="text" id="custQualification" placeholder="e.g. MBBS, MD">
+          </div>
+          <div>
+            <label>Medical Reg No.</label>
+            <input type="text" id="custRegNo" placeholder="e.g. WBMC/2015/84920">
+          </div>
+        </div>
+
+        <div id="formChemistFields" class="form-row" style="display:none;">
+          <div>
+            <label>Drug License No. (DL 20/21)</label>
+            <input type="text" id="custDlNo" placeholder="e.g. DL-20/WB/10293">
+          </div>
+          <div>
+            <label>GSTIN Number</label>
+            <input type="text" id="custGstin" placeholder="e.g. 19ABCDE1234F1Z5">
+          </div>
+        </div>
+
         <div class="form-row">
           <div>
             <label>Contact Number</label>
@@ -666,13 +690,37 @@
           </div>
           <div>
             <label>Type</label>
-            <select id="dirType">
+            <select id="dirType" onchange="toggleFormStatutoryFields('dir')">
               <option value="Doctor">Doctor</option>
               <option value="Chemist">Chemist / Retailer</option>
               <option value="Wholesaler">Stockist / Wholesaler</option>
             </select>
           </div>
         </div>
+
+        <!-- Dynamic Statutory Fields for Customer Directory -->
+        <div id="dirDoctorFields" class="form-row">
+          <div>
+            <label>Qualification</label>
+            <input type="text" id="dirQualification" placeholder="e.g. MBBS, MD">
+          </div>
+          <div>
+            <label>Medical Reg No.</label>
+            <input type="text" id="dirRegNo" placeholder="e.g. WBMC/2015/84920">
+          </div>
+        </div>
+
+        <div id="dirChemistFields" class="form-row" style="display:none;">
+          <div>
+            <label>Drug License No. (DL 20/21)</label>
+            <input type="text" id="dirDlNo" placeholder="e.g. DL-20/WB/10293">
+          </div>
+          <div>
+            <label>GSTIN Number</label>
+            <input type="text" id="dirGstin" placeholder="e.g. 19ABCDE1234F1Z5">
+          </div>
+        </div>
+
         <div class="form-row">
           <div>
             <label>Phone Number</label>
@@ -797,6 +845,9 @@
       const pSelect = document.getElementById("productSelect");
       pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
       
+      toggleFormStatutoryFields('form');
+      toggleFormStatutoryFields('dir');
+
       updateDueDateFromTerm();
       renderCustomerDirectoryList();
       renderCustomerDirectoryTab();
@@ -804,6 +855,20 @@
       recalculate();
       renderOrdersLog();
       updateDashboard();
+    }
+
+    function toggleFormStatutoryFields(prefix) {
+      const type = document.getElementById(prefix === 'form' ? 'custType' : 'dirType').value;
+      const docBox = document.getElementById(prefix === 'form' ? 'formDoctorFields' : 'dirDoctorFields');
+      const chemistBox = document.getElementById(prefix === 'form' ? 'formChemistFields' : 'dirChemistFields');
+
+      if (type === 'Doctor') {
+        docBox.style.display = 'grid';
+        chemistBox.style.display = 'none';
+      } else {
+        docBox.style.display = 'none';
+        chemistBox.style.display = 'grid';
+      }
     }
 
     function toggleTheme() {
@@ -871,9 +936,16 @@
 
       if (matched) {
         document.getElementById("custType").value = matched.type || "Doctor";
+        toggleFormStatutoryFields('form');
+
         document.getElementById("custPhone").value = matched.phone || "";
         document.getElementById("custAddress").value = matched.address || "";
         document.getElementById("custRemarks").value = matched.remarks || "";
+
+        document.getElementById("custQualification").value = matched.qualification || "";
+        document.getElementById("custRegNo").value = matched.regNo || "";
+        document.getElementById("custDlNo").value = matched.dlNo || "";
+        document.getElementById("custGstin").value = matched.gstin || "";
 
         if (matched.remarks && matched.remarks.trim() !== "") {
           alertBox.style.display = "block";
@@ -883,6 +955,10 @@
         }
       } else {
         document.getElementById("custRemarks").value = "";
+        document.getElementById("custQualification").value = "";
+        document.getElementById("custRegNo").value = "";
+        document.getElementById("custDlNo").value = "";
+        document.getElementById("custGstin").value = "";
         alertBox.style.display = "none";
       }
     }
@@ -899,6 +975,10 @@
         customerDirectory.push({
           name: name,
           type: document.getElementById("custType").value,
+          qualification: document.getElementById("custQualification").value.trim(),
+          regNo: document.getElementById("custRegNo").value.trim(),
+          dlNo: document.getElementById("custDlNo").value.trim(),
+          gstin: document.getElementById("custGstin").value.trim(),
           phone: document.getElementById("custPhone").value,
           address: document.getElementById("custAddress").value,
           remarks: remarks
@@ -1103,6 +1183,10 @@
       document.getElementById("custPhone").value = "";
       document.getElementById("custAddress").value = "";
       document.getElementById("custRemarks").value = "";
+      document.getElementById("custQualification").value = "";
+      document.getElementById("custRegNo").value = "";
+      document.getElementById("custDlNo").value = "";
+      document.getElementById("custGstin").value = "";
       document.getElementById("custAlertBox").style.display = "none";
       document.getElementById("editingBadge").style.display = "none";
       document.getElementById("orderPaidAmount").value = "0";
@@ -1121,6 +1205,11 @@
       const custAddress = document.getElementById("custAddress").value.trim() || "N/A";
       const custRemarks = document.getElementById("custRemarks").value.trim() || "";
 
+      const custQualification = document.getElementById("custQualification").value.trim();
+      const custRegNo = document.getElementById("custRegNo").value.trim();
+      const custDlNo = document.getElementById("custDlNo").value.trim();
+      const custGstin = document.getElementById("custGstin").value.trim();
+
       const deliveryStatus = document.getElementById("orderDeliveryStatus").value;
       const deliveryDate = document.getElementById("orderDeliveryDate").value || (deliveryStatus === 'Delivered' ? new Date().toISOString().split('T')[0] : '');
       const creditDays = selectedCreditDays;
@@ -1130,7 +1219,17 @@
 
       if (custName !== "General Customer") {
         const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custName.toLowerCase());
-        const newCustObj = { name: custName, type: custType, phone: custPhone, address: custAddress, remarks: custRemarks };
+        const newCustObj = { 
+          name: custName, 
+          type: custType, 
+          phone: custPhone, 
+          address: custAddress, 
+          remarks: custRemarks,
+          qualification: custQualification,
+          regNo: custRegNo,
+          dlNo: custDlNo,
+          gstin: custGstin
+        };
         if (existingIdx !== -1) {
           customerDirectory[existingIdx] = newCustObj;
         } else {
@@ -1162,6 +1261,7 @@
           savedOrders[index] = {
             ...savedOrders[index],
             custType, custName, custPhone, custAddress, custRemarks,
+            qualification: custQualification, regNo: custRegNo, dlNo: custDlNo, gstin: custGstin,
             deliveryStatus, deliveryDate, creditDays, dueDate,
             paidAmount: paidAmountInput,
             balanceDue: Math.max(0, totalBilling - paidAmountInput),
@@ -1178,6 +1278,7 @@
           id: Date.now(),
           date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           custType, custName, custPhone, custAddress, custRemarks,
+          qualification: custQualification, regNo: custRegNo, dlNo: custDlNo, gstin: custGstin,
           deliveryStatus, deliveryDate, creditDays, dueDate,
           paidAmount: paidAmountInput,
           balanceDue: Math.max(0, totalBilling - paidAmountInput),
@@ -1221,6 +1322,13 @@
             `).join('')
           : '<div style="font-size:0.8rem; color:var(--subtext);">No payments collected yet.</div>';
 
+        let statutoryText = '';
+        if (o.custType === 'Doctor') {
+          if (o.qualification || o.regNo) statutoryText = `🎓 <strong>Qual:</strong> ${o.qualification || 'N/A'} | 📜 <strong>Reg No:</strong> ${o.regNo || 'N/A'}`;
+        } else {
+          if (o.dlNo || o.gstin) statutoryText = `💊 <strong>DL No:</strong> ${o.dlNo || 'N/A'} | 📄 <strong>GSTIN:</strong> ${o.gstin || 'N/A'}`;
+        }
+
         return `
           <div class="order-card">
             <div class="order-header">
@@ -1237,6 +1345,8 @@
             <div style="font-size:0.82rem; color:var(--subtext); margin-bottom: 4px;">
               📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
             </div>
+
+            ${statutoryText ? `<div style="font-size:0.78rem; color:var(--subtext); margin-bottom: 6px;">${statutoryText}</div>` : ''}
 
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:6px; background:var(--tile-bg); padding:6px; border-radius:6px; flex-wrap:wrap; gap:4px;">
               <div>
@@ -1355,10 +1465,18 @@
 
       editingOrderId = order.id;
       document.getElementById("custType").value = order.custType || "Doctor";
+      toggleFormStatutoryFields('form');
+
       document.getElementById("custName").value = order.custName || "";
       document.getElementById("custPhone").value = order.custPhone || "";
       document.getElementById("custAddress").value = order.custAddress || "";
       document.getElementById("custRemarks").value = order.custRemarks || "";
+
+      document.getElementById("custQualification").value = order.qualification || "";
+      document.getElementById("custRegNo").value = order.regNo || "";
+      document.getElementById("custDlNo").value = order.dlNo || "";
+      document.getElementById("custGstin").value = order.gstin || "";
+
       document.getElementById("orderDeliveryStatus").value = order.deliveryStatus || "Pending";
       document.getElementById("orderDeliveryDate").value = order.deliveryDate || "";
       
@@ -1408,11 +1526,15 @@
       if (!name) return alert("Please enter customer name!");
 
       const type = document.getElementById("dirType").value;
+      const qualification = document.getElementById("dirQualification").value.trim();
+      const regNo = document.getElementById("dirRegNo").value.trim();
+      const dlNo = document.getElementById("dirDlNo").value.trim();
+      const gstin = document.getElementById("dirGstin").value.trim();
       const phone = document.getElementById("dirPhone").value.trim();
       const address = document.getElementById("dirAddress").value.trim();
       const remarks = document.getElementById("dirRemarks").value.trim();
 
-      const newCust = { name, type, phone, address, remarks };
+      const newCust = { name, type, qualification, regNo, dlNo, gstin, phone, address, remarks };
 
       if (editingCustomerIdx !== null) {
         customerDirectory[editingCustomerIdx] = newCust;
@@ -1431,6 +1553,10 @@
       localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
       
       document.getElementById("dirName").value = "";
+      document.getElementById("dirQualification").value = "";
+      document.getElementById("dirRegNo").value = "";
+      document.getElementById("dirDlNo").value = "";
+      document.getElementById("dirGstin").value = "";
       document.getElementById("dirPhone").value = "";
       document.getElementById("dirAddress").value = "";
       document.getElementById("dirRemarks").value = "";
@@ -1446,6 +1572,13 @@
       editingCustomerIdx = index;
       document.getElementById("dirName").value = c.name || "";
       document.getElementById("dirType").value = c.type || "Doctor";
+      toggleFormStatutoryFields('dir');
+
+      document.getElementById("dirQualification").value = c.qualification || "";
+      document.getElementById("dirRegNo").value = c.regNo || "";
+      document.getElementById("dirDlNo").value = c.dlNo || "";
+      document.getElementById("dirGstin").value = c.gstin || "";
+
       document.getElementById("dirPhone").value = c.phone || "";
       document.getElementById("dirAddress").value = c.address || "";
       document.getElementById("dirRemarks").value = c.remarks || "";
@@ -1460,6 +1593,10 @@
     function cancelDirectoryEdit() {
       editingCustomerIdx = null;
       document.getElementById("dirName").value = "";
+      document.getElementById("dirQualification").value = "";
+      document.getElementById("dirRegNo").value = "";
+      document.getElementById("dirDlNo").value = "";
+      document.getElementById("dirGstin").value = "";
       document.getElementById("dirPhone").value = "";
       document.getElementById("dirAddress").value = "";
       document.getElementById("dirRemarks").value = "";
@@ -1495,22 +1632,32 @@
         return;
       }
 
-      container.innerHTML = filtered.map(c => `
-        <div class="prod-card" style="margin-top:10px;">
-          <div class="prod-name" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>${c.name} (${c.type})</span>
-            <button class="btn-sm btn-accent" onclick="quickSelectCustomer('${c.name}')">Select for Order</button>
+      container.innerHTML = filtered.map(c => {
+        let statutoryStr = '';
+        if (c.type === 'Doctor') {
+          if (c.qualification || c.regNo) statutoryStr = `🎓 ${c.qualification || 'N/A'} | 📜 Reg: ${c.regNo || 'N/A'}`;
+        } else {
+          if (c.dlNo || c.gstin) statutoryStr = `💊 DL: ${c.dlNo || 'N/A'} | 📄 GSTIN: ${c.gstin || 'N/A'}`;
+        }
+
+        return `
+          <div class="prod-card" style="margin-top:10px;">
+            <div class="prod-name" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${c.name} (${c.type})</span>
+              <button class="btn-sm btn-accent" onclick="quickSelectCustomer('${c.name}')">Select for Order</button>
+            </div>
+            <div class="prod-comp" style="margin-top:4px;">
+              📞 ${c.phone || 'N/A'} | 📍 ${c.address || 'N/A'}
+            </div>
+            ${statutoryStr ? `<div style="font-size:0.8rem; color:var(--subtext); margin-bottom:4px;">${statutoryStr}</div>` : ''}
+            ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600; margin-bottom:8px;">💬 ${c.remarks}</div>` : ''}
+            <div style="display:flex; gap:6px; margin-top:6px; border-top:1px dashed var(--border); padding-top:6px;">
+              <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit Contact</button>
+              <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
+            </div>
           </div>
-          <div class="prod-comp" style="margin-top:4px;">
-            📞 ${c.phone || 'N/A'} | 📍 ${c.address || 'N/A'}
-          </div>
-          ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600; margin-bottom:8px;">💬 ${c.remarks}</div>` : ''}
-          <div style="display:flex; gap:6px; margin-top:6px; border-top:1px dashed var(--border); padding-top:6px;">
-            <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit Contact</button>
-            <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function quickSelectCustomer(name) {
@@ -1522,12 +1669,12 @@
     function exportToCSV() {
       if (savedOrders.length === 0) return alert("No orders available to export!");
 
-      let csv = "Order ID,Date,Customer Name,Type,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid (INR),Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
+      let csv = "Order ID,Date,Customer Name,Type,Qualification,Reg No,DL No,GSTIN,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid (INR),Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
 
       savedOrders.forEach(o => {
         o.items.forEach(i => {
           const schemeStr = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
-          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.deliveryDate || ''}","${o.creditDays || 0}","${o.dueDate || ''}","${o.paidAmount || 0}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
+          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.qualification || ''}","${o.regNo || ''}","${o.dlNo || ''}","${o.gstin || ''}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.deliveryDate || ''}","${o.creditDays || 0}","${o.dueDate || ''}","${o.paidAmount || 0}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
         });
       });
 
@@ -1579,6 +1726,8 @@
             return alert("Invalid CSV format! The header row must start with 'Order ID'.");
           }
 
+          const hasStatutoryCols = headers.length >= 21;
+
           const ordersMap = new Map();
           const importedCustomersMap = new Map();
 
@@ -1590,25 +1739,55 @@
             const date = cols[1];
             const custName = cols[2];
             const custType = cols[3] || "Doctor";
-            const custPhone = cols[4] || "";
-            const custAddress = cols[5] || "";
-            const deliveryStatus = cols[6] || "Pending";
-            const deliveryDate = cols[7] || "";
-            const creditDays = Number(cols[8]) || 0;
-            const dueDate = cols[9] || "";
-            const paidAmount = Number(cols[10]) || 0;
 
-            const prodName = cols[11];
-            const qty = Number(cols[12]) || 1;
-            const schemeStr = cols[13] || "Standard";
-            const billing = Number(cols[14]) || 0;
-            const profit = Number(cols[15]) || 0;
-            const docSavings = Number(cols[16]) || 0;
+            let qualification = "", regNo = "", dlNo = "", gstin = "";
+            let custPhone = "", custAddress = "", deliveryStatus = "Pending", deliveryDate = "", creditDays = 0, dueDate = "", paidAmount = 0;
+            let prodName = "", qty = 1, schemeStr = "Standard", billing = 0, profit = 0, docSavings = 0;
+
+            if (hasStatutoryCols) {
+              qualification = cols[4] || "";
+              regNo = cols[5] || "";
+              dlNo = cols[6] || "";
+              gstin = cols[7] || "";
+              custPhone = cols[8] || "";
+              custAddress = cols[9] || "";
+              deliveryStatus = cols[10] || "Pending";
+              deliveryDate = cols[11] || "";
+              creditDays = Number(cols[12]) || 0;
+              dueDate = cols[13] || "";
+              paidAmount = Number(cols[14]) || 0;
+
+              prodName = cols[15];
+              qty = Number(cols[16]) || 1;
+              schemeStr = cols[17] || "Standard";
+              billing = Number(cols[18]) || 0;
+              profit = Number(cols[19]) || 0;
+              docSavings = Number(cols[20]) || 0;
+            } else {
+              custPhone = cols[4] || "";
+              custAddress = cols[5] || "";
+              deliveryStatus = cols[6] || "Pending";
+              deliveryDate = cols[7] || "";
+              creditDays = Number(cols[8]) || 0;
+              dueDate = cols[9] || "";
+              paidAmount = Number(cols[10]) || 0;
+
+              prodName = cols[11];
+              qty = Number(cols[12]) || 1;
+              schemeStr = cols[13] || "Standard";
+              billing = Number(cols[14]) || 0;
+              profit = Number(cols[15]) || 0;
+              docSavings = Number(cols[16]) || 0;
+            }
 
             if (custName && custName !== "General Customer") {
               importedCustomersMap.set(custName.toLowerCase(), {
                 name: custName,
                 type: custType,
+                qualification: qualification,
+                regNo: regNo,
+                dlNo: dlNo,
+                gstin: gstin,
                 phone: custPhone,
                 address: custAddress,
                 remarks: ""
@@ -1660,6 +1839,10 @@
                 date: date,
                 custType: custType,
                 custName: custName,
+                qualification: qualification,
+                regNo: regNo,
+                dlNo: dlNo,
+                gstin: gstin,
                 custPhone: custPhone,
                 custAddress: custAddress,
                 custRemarks: "",
@@ -1772,8 +1955,15 @@
 
       const balance = Math.max(0, o.totalBilling - (o.paidAmount || 0));
 
+      let statutoryInfo = '';
+      if (o.custType === 'Doctor' && (o.qualification || o.regNo)) {
+        statutoryInfo = `*Qual:* ${o.qualification || 'N/A'}\n*Reg No:* ${o.regNo || 'N/A'}\n`;
+      } else if (o.custType !== 'Doctor' && (o.dlNo || o.gstin)) {
+        statutoryInfo = `*DL No:* ${o.dlNo || 'N/A'}\n*GSTIN:* ${o.gstin || 'N/A'}\n`;
+      }
+
       let msg = `*EICW SALES ORDER LOG*\n------------------------\n`;
-      msg += `*Customer:* ${o.custName} (${o.custType})\n*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery Status:* ${o.deliveryStatus || 'Pending'}\n*Delivery Date:* ${o.deliveryDate || 'N/A'}\n*Credit Period:* ${o.creditDays || 0} Days\n*Payment Due:* ${o.dueDate || 'Pending Delivery'}\n------------------------\n*ORDER ITEMS:*\n`;
+      msg += `*Customer:* ${o.custName} (${o.custType})\n${statutoryInfo}*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery Status:* ${o.deliveryStatus || 'Pending'}\n*Delivery Date:* ${o.deliveryDate || 'N/A'}\n*Credit Period:* ${o.creditDays || 0} Days\n*Payment Due:* ${o.dueDate || 'Pending Delivery'}\n------------------------\n*ORDER ITEMS:*\n`;
 
       o.items.forEach((i, idx) => {
         msg += `${idx + 1}. *${i.name}* x ${i.orderQty} - ₹${i.billing.toFixed(2)}\n`;
@@ -1789,8 +1979,20 @@
     function shareCartWhatsApp() {
       if (cart.length === 0) return alert("Cart is empty!");
       const custName = document.getElementById("custName").value.trim() || "Valued Customer";
+      const custType = document.getElementById("custType").value;
 
-      let msg = `*EICW ORDER DRAFT QUOTE*\n*For:* ${custName}\n------------------------\n`;
+      let statutoryInfo = '';
+      if (custType === 'Doctor') {
+        const q = document.getElementById("custQualification").value.trim();
+        const r = document.getElementById("custRegNo").value.trim();
+        if (q || r) statutoryInfo = `*Qual:* ${q || 'N/A'} | *Reg No:* ${r || 'N/A'}\n`;
+      } else {
+        const dl = document.getElementById("custDlNo").value.trim();
+        const gst = document.getElementById("custGstin").value.trim();
+        if (dl || gst) statutoryInfo = `*DL No:* ${dl || 'N/A'} | *GSTIN:* ${gst || 'N/A'}\n`;
+      }
+
+      let msg = `*EICW ORDER DRAFT QUOTE*\n*For:* ${custName} (${custType})\n${statutoryInfo}------------------------\n`;
       cart.forEach((i, idx) => {
         msg += `${idx + 1}. *${i.name}* x ${i.orderQty}: ₹${i.billing.toFixed(2)}\n`;
       });
