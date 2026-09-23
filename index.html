@@ -581,11 +581,12 @@
           </div>
           <div class="kpi-tile">
             <div class="kpi-label">Rep Net Profit</div>
-            <div class="kpi-value" id="calcProfit">₹0.00</div>
+            <div class="kpi-value" id="calcProfit">₹0.00 (0.0%)</div>
           </div>
           <div class="kpi-tile" style="background: var(--info-bg);">
-            <div class="kpi-label" style="color:var(--info-text);">Doctor Profit & Health</div>
+            <div class="kpi-label" style="color:var(--info-text);">Doctor Profit & Per Btl Cost</div>
             <div class="kpi-value" id="calcDocSavings" style="color:var(--info-text);">₹0.00 (0%)</div>
+            <div class="kpi-label" id="calcDocPerBtl" style="color:var(--info-text); font-weight:bold; margin-top:2px;">Per Btl Cost: ₹0.00</div>
             <div id="calcHealthBadge"></div>
           </div>
         </div>
@@ -605,7 +606,7 @@
           </div>
           <div class="kpi-tile">
             <div class="kpi-label">Total Rep Profit</div>
-            <div class="kpi-value" id="cartTotalProfit">₹0.00</div>
+            <div class="kpi-value" id="cartTotalProfit">₹0.00 (0.0%)</div>
           </div>
           <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
             <div class="kpi-label" style="color:var(--info-text);">Total Doctor Savings & Overall Margin</div>
@@ -1006,11 +1007,11 @@
     }
 
     function computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty) {
-      let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0;
+      let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0, totalUnitsReceived = 0;
 
       if (schemeType === "Standard scheme") {
         const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
-        const totalUnitsReceived = orderQty + actualFreeQty;
+        totalUnitsReceived = orderQty + actualFreeQty;
 
         billingAmount = orderQty * product.tpGst;
         cogs = totalUnitsReceived * product.costGst;
@@ -1018,7 +1019,7 @@
         docSavings = totalReceivedValue - billingAmount;
       } else if (schemeType === "Lot With Free Items") {
         const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
-        const totalUnitsReceived = orderQty + actualFreeQty;
+        totalUnitsReceived = orderQty + actualFreeQty;
         
         billingAmount = orderQty * product.tpGst;
         cogs = totalUnitsReceived * product.costGst;
@@ -1027,6 +1028,7 @@
       } else if (schemeType === "Lot Adjust in Cash %") {
         const totalBase = paidQty + freeQty;
         const discountRatio = totalBase > 0 ? (freeQty / totalBase) : 0;
+        totalUnitsReceived = orderQty;
         
         billingAmount = (orderQty * product.tpGst) * (1 - discountRatio);
         cogs = orderQty * product.costGst;
@@ -1035,9 +1037,11 @@
       }
 
       const netProfit = billingAmount - cogs;
+      const repProfitPct = billingAmount > 0 ? ((netProfit / billingAmount) * 100) : 0;
       const docMarginPct = totalReceivedValue > 0 ? ((docSavings / totalReceivedValue) * 100) : 0;
+      const docPerBtlCost = totalUnitsReceived > 0 ? (billingAmount / totalUnitsReceived) : 0;
 
-      return { billingAmount, cogs, netProfit, docSavings, docMarginPct, totalReceivedValue };
+      return { billingAmount, cogs, netProfit, repProfitPct, docSavings, docMarginPct, docPerBtlCost, totalReceivedValue };
     }
 
     function recalculate() {
@@ -1053,8 +1057,9 @@
 
       document.getElementById("calcBilling").innerText = `₹${calc.billingAmount.toFixed(2)}`;
       document.getElementById("calcCost").innerText = `₹${calc.cogs.toFixed(2)}`;
-      document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)}`;
+      document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)} (${calc.repProfitPct.toFixed(1)}%)`;
       document.getElementById("calcDocSavings").innerText = `₹${calc.docSavings.toFixed(2)} (${calc.docMarginPct.toFixed(1)}%)`;
+      document.getElementById("calcDocPerBtl").innerText = `Per Btl Cost: ₹${calc.docPerBtlCost.toFixed(2)}`;
 
       const healthBadge = document.getElementById("calcHealthBadge");
       if (calc.docMarginPct >= 20) {
@@ -1122,8 +1127,10 @@
         billing: calc.billingAmount,
         cogs: calc.cogs,
         profit: calc.netProfit,
+        repProfitPct: calc.repProfitPct,
         docSavings: calc.docSavings,
         docMarginPct: calc.docMarginPct,
+        docPerBtlCost: calc.docPerBtlCost,
         totalReceivedValue: calc.totalReceivedValue
       });
 
@@ -1142,7 +1149,7 @@
       if (cart.length === 0) {
         cartList.innerHTML = `<p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>`;
         document.getElementById("cartTotalBilling").innerText = "₹0.00";
-        document.getElementById("cartTotalProfit").innerText = "₹0.00";
+        document.getElementById("cartTotalProfit").innerText = "₹0.00 (0.0%)";
         document.getElementById("cartTotalDocSavings").innerText = "₹0.00 (0.0% Margin)";
         return;
       }
@@ -1173,9 +1180,10 @@
       }).join('');
 
       const overallDocMargin = totalReceivedVal > 0 ? ((totalDocSav / totalReceivedVal) * 100) : 0;
+      const overallRepProfitPct = totalB > 0 ? ((totalP / totalB) * 100) : 0;
 
       document.getElementById("cartTotalBilling").innerText = `₹${totalB.toFixed(2)}`;
-      document.getElementById("cartTotalProfit").innerText = `₹${totalP.toFixed(2)}`;
+      document.getElementById("cartTotalProfit").innerText = `₹${totalP.toFixed(2)} (${overallRepProfitPct.toFixed(1)}%)`;
       document.getElementById("cartTotalDocSavings").innerText = `₹${totalDocSav.toFixed(2)} (${overallDocMargin.toFixed(1)}% Margin)`;
     }
 
@@ -1817,8 +1825,10 @@
             }
 
             const cogs = Math.max(0, billing - profit);
+            const repProfitPct = billing > 0 ? ((profit / billing) * 100) : 0;
             const totalReceivedVal = qty * matchedProd.mrp;
             const docMarginPct = totalReceivedVal > 0 ? ((docSavings / totalReceivedVal) * 100) : 0;
+            const docPerBtlCost = qty > 0 ? (billing / qty) : 0;
 
             const itemObj = {
               id: matchedProd.id,
@@ -1831,8 +1841,10 @@
               billing: billing,
               cogs: cogs,
               profit: profit,
+              repProfitPct: repProfitPct,
               docSavings: docSavings,
               docMarginPct: docMarginPct,
+              docPerBtlCost: docPerBtlCost,
               totalReceivedValue: totalReceivedVal
             };
 
