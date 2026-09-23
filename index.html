@@ -566,12 +566,19 @@
           <div class="form-row">
             <div>
               <label>Delivery Status</label>
-              <select id="orderDeliveryStatus">
+              <select id="orderDeliveryStatus" onchange="handleDeliveryStatusChangeInForm()">
                 <option value="Pending">Pending</option>
                 <option value="In Transit">In Transit</option>
                 <option value="Delivered">Delivered</option>
               </select>
             </div>
+            <div>
+              <label>Delivery Date</label>
+              <input type="date" id="orderDeliveryDate" onchange="updateDueDateFromTerm()">
+            </div>
+          </div>
+
+          <div class="form-row">
             <div>
               <label>Payment Term / Credit Days</label>
               <select id="orderPaymentTerm" onchange="updateDueDateFromTerm()">
@@ -584,15 +591,16 @@
                 <option value="custom">Custom Credit Days...</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div>
+              <label>Due Date (From Delivery)</label>
+              <input type="text" id="orderDueDate" readonly style="background:var(--tile-bg); font-weight:bold;">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div style="grid-column: span 2;">
               <label>Advance / Initial Payment (₹)</label>
               <input type="number" id="orderPaidAmount" value="0" min="0" placeholder="0">
-            </div>
-            <div>
-              <label>Calculated Due Date</label>
-              <input type="date" id="orderDueDate">
             </div>
           </div>
         </div>
@@ -736,6 +744,7 @@
     let customerDirectory = [];
     let editingOrderId = null;
     let editingCustomerIdx = null;
+    let selectedCreditDays = 30;
 
     function init() {
       try {
@@ -783,22 +792,38 @@
       switchTab(tabId, btn);
     }
 
+    function handleDeliveryStatusChangeInForm() {
+      const status = document.getElementById("orderDeliveryStatus").value;
+      const deliveryDateInput = document.getElementById("orderDeliveryDate");
+
+      if (status === "Delivered" && !deliveryDateInput.value) {
+        deliveryDateInput.value = new Date().toISOString().split('T')[0];
+      }
+      updateDueDateFromTerm();
+    }
+
+    function calculateDueDateFromDelivery(deliveryDateStr, creditDays) {
+      if (!deliveryDateStr) return 'Pending Delivery';
+      const d = new Date(deliveryDateStr);
+      if (isNaN(d.getTime())) return 'Pending Delivery';
+      d.setDate(d.getDate() + Number(creditDays || 0));
+      return d.toISOString().split('T')[0];
+    }
+
     function updateDueDateFromTerm() {
       const val = document.getElementById("orderPaymentTerm").value;
       if (val === "custom") {
         const customDays = prompt("Enter Custom Credit Days for this customer:", "20");
         if (customDays !== null && !isNaN(customDays) && customDays.trim() !== "") {
-          const days = Math.max(0, parseInt(customDays));
-          const targetDate = new Date();
-          targetDate.setDate(targetDate.getDate() + days);
-          document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+          selectedCreditDays = Math.max(0, parseInt(customDays));
         }
       } else {
-        const days = Number(val) || 0;
-        const targetDate = new Date();
-        targetDate.setDate(targetDate.getDate() + days);
-        document.getElementById("orderDueDate").value = targetDate.toISOString().split('T')[0];
+        selectedCreditDays = Number(val) || 0;
       }
+
+      const deliveryDateStr = document.getElementById("orderDeliveryDate").value;
+      const computed = calculateDueDateFromDelivery(deliveryDateStr, selectedCreditDays);
+      document.getElementById("orderDueDate").value = computed;
     }
 
     function renderCustomerDirectoryList() {
@@ -1049,6 +1074,7 @@
       document.getElementById("editingBadge").style.display = "none";
       document.getElementById("orderPaidAmount").value = "0";
       document.getElementById("orderDeliveryStatus").value = "Pending";
+      document.getElementById("orderDeliveryDate").value = "";
       updateDueDateFromTerm();
       renderCart();
     }
@@ -1063,8 +1089,11 @@
       const custRemarks = document.getElementById("custRemarks").value.trim() || "";
 
       const deliveryStatus = document.getElementById("orderDeliveryStatus").value;
-      const paidAmount = Number(document.getElementById("orderPaidAmount").value) || 0;
-      const dueDate = document.getElementById("orderDueDate").value || new Date().toISOString().split('T')[0];
+      const deliveryDate = document.getElementById("orderDeliveryDate").value || (deliveryStatus === 'Delivered' ? new Date().toISOString().split('T')[0] : '');
+      const creditDays = selectedCreditDays;
+      const dueDate = calculateDueDateFromDelivery(deliveryDate, creditDays);
+
+      const paidAmountInput = Number(document.getElementById("orderPaidAmount").value) || 0;
 
       if (custName !== "General Customer") {
         const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custName.toLowerCase());
@@ -1083,15 +1112,27 @@
       const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
       const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0);
       const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0);
-      const balanceDue = Math.max(0, totalBilling - paidAmount);
+
+      let paymentsHistory = [];
+      if (paidAmountInput > 0) {
+        paymentsHistory.push({
+          date: deliveryDate || new Date().toISOString().split('T')[0],
+          amount: paidAmountInput,
+          note: "Initial Advance"
+        });
+      }
 
       if (editingOrderId) {
         const index = savedOrders.findIndex(o => o.id === editingOrderId);
         if (index !== -1) {
+          const existingPayments = savedOrders[index].payments || [];
           savedOrders[index] = {
             ...savedOrders[index],
             custType, custName, custPhone, custAddress, custRemarks,
-            deliveryStatus, paidAmount, balanceDue, dueDate,
+            deliveryStatus, deliveryDate, creditDays, dueDate,
+            paidAmount: paidAmountInput,
+            balanceDue: Math.max(0, totalBilling - paidAmountInput),
+            payments: existingPayments.length > 0 ? existingPayments : paymentsHistory,
             items: [...cart],
             totalBilling, totalCogs, totalProfit, totalDocSavings
           };
@@ -1104,7 +1145,10 @@
           id: Date.now(),
           date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           custType, custName, custPhone, custAddress, custRemarks,
-          deliveryStatus, paidAmount, balanceDue, dueDate,
+          deliveryStatus, deliveryDate, creditDays, dueDate,
+          paidAmount: paidAmountInput,
+          balanceDue: Math.max(0, totalBilling - paidAmountInput),
+          payments: paymentsHistory,
           items: [...cart],
           totalBilling, totalCogs, totalProfit, totalDocSavings
         });
@@ -1135,6 +1179,15 @@
           payStatusBadge = `<span class="health-badge health-low">🔴 Unpaid (Due ₹${balance.toFixed(2)})</span>`;
         }
 
+        const paymentsList = o.payments && o.payments.length > 0
+          ? o.payments.map(p => `
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; border-bottom:1px dashed var(--border);">
+                <span>📅 <strong>${p.date}</strong> ${p.note ? `(${p.note})` : ''}</span>
+                <span style="color:var(--text-paid); font-weight:bold;">+ ₹${Number(p.amount).toFixed(2)}</span>
+              </div>
+            `).join('')
+          : '<div style="font-size:0.8rem; color:var(--subtext);">No payments collected yet.</div>';
+
         return `
           <div class="order-card">
             <div class="order-header">
@@ -1162,19 +1215,27 @@
                 </select>
               </div>
               <span>Paid: <strong>₹${(o.paidAmount || 0).toFixed(2)}</strong></span>
-              <span>Due: <strong>${o.dueDate || 'N/A'}</strong></span>
+              <span>Due Date: <strong>${o.dueDate || 'Pending Delivery'}</strong></span>
             </div>
 
             ${o.custRemarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:4px;">💬 <strong>Note:</strong> ${o.custRemarks}</div>` : ''}
 
             <div class="order-details-box" id="details-${o.id}">
-              <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">Item Breakdown:</div>
+              <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Terms & Delivery Info:</div>
+              <div><strong>Credit Terms:</strong> ${o.creditDays || 0} Days Credit</div>
+              <div><strong>Delivery Date:</strong> ${o.deliveryDate || 'Not Delivered Yet'}</div>
+              <div><strong>Calculated Payment Due:</strong> ${o.dueDate || 'Pending Delivery'}</div>
+
+              <div style="font-weight:bold; margin:10px 0 4px 0; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Ordered Items Breakdown:</div>
               ${(o.items || []).map(i => `
                 <div style="margin-bottom:6px; border-bottom: 1px dashed var(--border); padding-bottom:4px;">
                   <strong>${i.name}</strong> x${i.orderQty}<br>
                   <span>Billing: ₹${i.billing.toFixed(2)} | Doc Profit: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
                 </div>
               `).join('')}
+
+              <div style="font-weight:bold; margin:10px 0 4px 0; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Payment Collection Ledger (History):</div>
+              ${paymentsList}
             </div>
 
             <div class="order-actions">
@@ -1191,11 +1252,24 @@
 
     function changeOrderStatus(orderId, newStatus) {
       const order = savedOrders.find(o => o.id === orderId);
-      if (order) {
-        order.deliveryStatus = newStatus;
-        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
-        renderOrdersLog();
+      if (!order) return;
+
+      order.deliveryStatus = newStatus;
+      
+      if (newStatus === "Delivered") {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dateInput = prompt("Enter Delivery Date (YYYY-MM-DD):", order.deliveryDate || todayStr);
+        if (dateInput) {
+          order.deliveryDate = dateInput;
+        } else if (!order.deliveryDate) {
+          order.deliveryDate = todayStr;
+        }
+        order.dueDate = calculateDueDateFromDelivery(order.deliveryDate, order.creditDays || 0);
       }
+
+      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      renderOrdersLog();
+      updateDashboard();
     }
 
     function toggleOrderDetails(orderId) {
@@ -1210,22 +1284,35 @@
       const currentPaid = o.paidAmount || 0;
       const currentDue = Math.max(0, o.totalBilling - currentPaid);
 
-      const additional = prompt(`Customer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}\nAlready Paid: ₹${currentPaid.toFixed(2)}\nBalance Due: ₹${currentDue.toFixed(2)}\n\nEnter additional payment collected (₹):`, currentDue);
+      const additional = prompt(`Customer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}\nAlready Paid: ₹${currentPaid.toFixed(2)}\nBalance Due: ₹${currentDue.toFixed(2)}\n\nEnter payment amount collected (₹):`, currentDue);
+      
       if (additional !== null && !isNaN(additional) && additional.trim() !== "") {
         const addNum = Math.max(0, parseFloat(additional));
-        o.paidAmount = currentPaid + addNum;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const payDate = prompt("Enter Payment Received Date (YYYY-MM-DD):", todayStr) || todayStr;
+
+        if (!o.payments) o.payments = [];
+        o.payments.push({
+          date: payDate,
+          amount: addNum,
+          note: "Collected Payment"
+        });
+
+        o.paidAmount = o.payments.reduce((sum, p) => sum + Number(p.amount), 0);
         o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
         
         if (o.balanceDue === 0 && o.deliveryStatus !== "Delivered") {
-          if (confirm("Balance is fully cleared. Mark order as Delivered?")) {
+          if (confirm("Balance is fully cleared! Would you like to mark this order as Delivered now?")) {
             o.deliveryStatus = "Delivered";
+            if (!o.deliveryDate) o.deliveryDate = payDate;
+            o.dueDate = calculateDueDateFromDelivery(o.deliveryDate, o.creditDays || 0);
           }
         }
 
         localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
         renderOrdersLog();
         updateDashboard();
-        alert(`Payment recorded! New Balance Due: ₹${o.balanceDue.toFixed(2)}`);
+        alert(`Payment of ₹${addNum.toFixed(2)} recorded on ${payDate}! Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
       }
     }
 
@@ -1240,9 +1327,13 @@
       document.getElementById("custAddress").value = order.custAddress || "";
       document.getElementById("custRemarks").value = order.custRemarks || "";
       document.getElementById("orderDeliveryStatus").value = order.deliveryStatus || "Pending";
-      document.getElementById("orderPaidAmount").value = order.paidAmount || 0;
-      if (order.dueDate) document.getElementById("orderDueDate").value = order.dueDate;
+      document.getElementById("orderDeliveryDate").value = order.deliveryDate || "";
       
+      selectedCreditDays = order.creditDays || 0;
+      document.getElementById("orderPaymentTerm").value = [0, 7, 15, 30, 45, 60].includes(selectedCreditDays) ? selectedCreditDays.toString() : 'custom';
+      updateDueDateFromTerm();
+
+      document.getElementById("orderPaidAmount").value = order.paidAmount || 0;
       document.getElementById("editingBadge").style.display = "inline-block";
 
       cart = [...order.items];
@@ -1398,12 +1489,12 @@
     function exportToCSV() {
       if (savedOrders.length === 0) return alert("No orders available to export!");
 
-      let csv = "Order ID,Date,Customer Name,Type,Phone,Address,Delivery Status,Paid (INR),Due Date,Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
+      let csv = "Order ID,Date,Customer Name,Type,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid (INR),Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
 
       savedOrders.forEach(o => {
         o.items.forEach(i => {
           const schemeStr = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
-          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.paidAmount || 0}","${o.dueDate || ''}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
+          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.deliveryDate || ''}","${o.creditDays || 0}","${o.dueDate || ''}","${o.paidAmount || 0}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
         });
       });
 
@@ -1463,16 +1554,15 @@
       const balance = Math.max(0, o.totalBilling - (o.paidAmount || 0));
 
       let msg = `*EICW SALES ORDER LOG*\n------------------------\n`;
-      msg += `*Customer:* ${o.custName} (${o.custType})\n*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery:* ${o.deliveryStatus || 'Pending'}\n------------------------\n*ORDER ITEMS:*\n`;
+      msg += `*Customer:* ${o.custName} (${o.custType})\n*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery Status:* ${o.deliveryStatus || 'Pending'}\n*Delivery Date:* ${o.deliveryDate || 'N/A'}\n*Credit Period:* ${o.creditDays || 0} Days\n*Payment Due:* ${o.dueDate || 'Pending Delivery'}\n------------------------\n*ORDER ITEMS:*\n`;
 
       o.items.forEach((i, idx) => {
         msg += `${idx + 1}. *${i.name}* x ${i.orderQty} - ₹${i.billing.toFixed(2)}\n`;
       });
 
       msg += `------------------------\n*TOTAL BILL:* ₹${o.totalBilling.toFixed(2)}\n`;
-      msg += `*PAID:* ₹${(o.paidAmount || 0).toFixed(2)}\n`;
+      msg += `*TOTAL PAID:* ₹${(o.paidAmount || 0).toFixed(2)}\n`;
       msg += `*BALANCE DUE:* ₹${balance.toFixed(2)}\n`;
-      if (o.dueDate) msg += `*DUE DATE:* ${o.dueDate}\n`;
 
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
     }
