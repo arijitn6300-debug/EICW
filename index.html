@@ -704,7 +704,13 @@
         <button class="btn-action" style="background: #0284c7;" onclick="exportToCSV()">📊 Export Full CSV / Excel Sales Ledger</button>
         
         <label style="margin-top: 8px;">Restore / Import Backup from CSV File:</label>
-        <input type="file" id="csvFileInput" accept=".csv" onchange="importFromCSV(event)" style="font-size: 0.8rem;">
+        <input 
+          type="file" 
+          id="csvFileInput" 
+          accept=".csv, text/csv, text/plain, application/csv, text/comma-separated-values, application/excel, application/vnd.ms-excel" 
+          onchange="importFromCSV(event)" 
+          style="font-size: 0.8rem;"
+        >
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 12px 0;">
 
