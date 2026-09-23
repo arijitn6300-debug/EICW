@@ -1650,18 +1650,16 @@
         }
 
         return `
-          <div class="prod-card" style="margin-top:10px;">
-            <div class="prod-name" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="border-bottom:1px solid var(--border); padding:10px 0;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
               <span>${c.name} (${c.type})</span>
-              <button class="btn-sm btn-accent" onclick="quickSelectCustomer('${c.name}')">Select for Order</button>
+              <span style="color:var(--primary); font-size:0.85rem;">📞 ${c.phone || 'No phone'}</span>
             </div>
-            <div class="prod-comp" style="margin-top:4px;">
-              📞 ${c.phone || 'N/A'} | 📍 ${c.address || 'N/A'}
-            </div>
-            ${statutoryStr ? `<div style="font-size:0.8rem; color:var(--subtext); margin-bottom:4px;">${statutoryStr}</div>` : ''}
-            ${c.remarks ? `<div style="font-size:0.8rem; color:var(--warning); font-weight:600; margin-bottom:8px;">💬 ${c.remarks}</div>` : ''}
-            <div style="display:flex; gap:6px; margin-top:6px; border-top:1px dashed var(--border); padding-top:6px;">
-              <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit Contact</button>
+            <div style="font-size:0.82rem; color:var(--subtext); margin-top:2px;">📍 ${c.address || 'No address'}</div>
+            ${statutoryStr ? `<div style="font-size:0.78rem; color:var(--subtext); margin-top:2px;">${statutoryStr}</div>` : ''}
+            ${c.remarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:3px;">💬 Notes: ${c.remarks}</div>` : ''}
+            <div style="margin-top:6px; display:flex; gap:6px;">
+              <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit</button>
               <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
             </div>
           </div>
@@ -1669,53 +1667,67 @@
       }).join('');
     }
 
-    function quickSelectCustomer(name) {
-      document.getElementById("custName").value = name;
-      autoFillCustomerDetails();
-      switchTabById('tab-calc');
-    }
-
     function exportToCSV() {
       if (savedOrders.length === 0) return alert("No orders available to export!");
 
-      let csv = "Order ID,Date,Customer Name,Type,Qualification,Reg No,DL No,GSTIN,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid (INR),Product,Qty,Scheme,Billing (INR),Rep Profit (INR),Doctor Savings (INR)\n";
+      let csv = "Order ID,Date,Customer Name,Customer Type,Qualification,Medical Reg No,Drug License No,GSTIN,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid Amount,Product Name,Quantity,Scheme,Billing Amount,Rep Profit,Doctor Savings\r\n";
 
       savedOrders.forEach(o => {
-        o.items.forEach(i => {
-          const schemeStr = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
-          csv += `"${o.id}","${o.date}","${o.custName}","${o.custType}","${o.qualification || ''}","${o.regNo || ''}","${o.dlNo || ''}","${o.gstin || ''}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus || 'Pending'}","${o.deliveryDate || ''}","${o.creditDays || 0}","${o.dueDate || ''}","${o.paidAmount || 0}","${i.name}","${i.orderQty}","${schemeStr}","${i.billing.toFixed(2)}","${i.profit.toFixed(2)}","${i.docSavings.toFixed(2)}"\n`;
+        (o.items || []).forEach(i => {
+          const row = [
+            `"${o.id}"`,
+            `"${o.date || ''}"`,
+            `"${o.custName || ''}"`,
+            `"${o.custType || ''}"`,
+            `"${o.qualification || ''}"`,
+            `"${o.regNo || ''}"`,
+            `"${o.dlNo || ''}"`,
+            `"${o.gstin || ''}"`,
+            `"${o.custPhone || ''}"`,
+            `"${o.custAddress || ''}"`,
+            `"${o.deliveryStatus || ''}"`,
+            `"${o.deliveryDate || ''}"`,
+            o.creditDays || 0,
+            `"${o.dueDate || ''}"`,
+            o.paidAmount || 0,
+            `"${i.name || ''}"`,
+            i.orderQty || 0,
+            `"${i.schemeType === 'Standard scheme' ? 'Standard' : (i.paidQty + '+' + i.freeQty)}"`,
+            (i.billing || 0).toFixed(2),
+            (i.profit || 0).toFixed(2),
+            (i.docSavings || 0).toFixed(2)
+          ];
+          csv += row.join(",") + "\r\n";
         });
       });
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.setAttribute("href", url);
-      a.setAttribute("download", `EICW_Sales_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
-      a.click();
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `EICW_Sales_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
-    function parseCSVLine(line) {
-      const result = [];
+    function parseCSVLine(text) {
+      let result = [];
       let current = '';
       let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
+      for (let i = 0; i < text.length; i++) {
+        let char = text[i];
         if (char === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
+          inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-          result.push(current.trim());
+          result.push(current.trim().replace(/^"|"$/g, ''));
           current = '';
         } else {
           current += char;
         }
       }
-      result.push(current.trim());
+      result.push(current.trim().replace(/^"|"$/g, ''));
       return result;
     }
 
@@ -1852,87 +1864,62 @@
                 date: date,
                 custType: custType,
                 custName: custName,
+                custPhone: custPhone,
+                custAddress: custAddress,
+                custRemarks: "",
                 qualification: qualification,
                 regNo: regNo,
                 dlNo: dlNo,
                 gstin: gstin,
-                custPhone: custPhone,
-                custAddress: custAddress,
-                custRemarks: "",
                 deliveryStatus: deliveryStatus,
                 deliveryDate: deliveryDate,
                 creditDays: creditDays,
                 dueDate: dueDate,
                 paidAmount: paidAmount,
                 balanceDue: 0,
-                payments: paidAmount > 0 ? [{ date: deliveryDate || date, amount: paidAmount, note: "Initial Advance" }] : [],
+                payments: paidAmount > 0 ? [{ date: deliveryDate || new Date().toISOString().split('T')[0], amount: paidAmount, note: "Restored from CSV" }] : [],
                 items: [itemObj],
-                totalBilling: billing,
-                totalCogs: cogs,
-                totalProfit: profit,
-                totalDocSavings: docSavings
+                totalBilling: 0,
+                totalCogs: 0,
+                totalProfit: 0,
+                totalDocSavings: 0
               });
             } else {
-              const existing = ordersMap.get(orderId);
-              existing.items.push(itemObj);
-              existing.totalBilling += billing;
-              existing.totalCogs += cogs;
-              existing.totalProfit += profit;
-              existing.totalDocSavings += docSavings;
+              ordersMap.get(orderId).items.push(itemObj);
             }
           }
 
-          const parsedOrders = Array.from(ordersMap.values()).map(o => {
-            o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
-            return o;
+          savedOrders = [];
+          ordersMap.forEach((order) => {
+            order.totalBilling = order.items.reduce((sum, i) => sum + i.billing, 0);
+            order.totalCogs = order.items.reduce((sum, i) => sum + i.cogs, 0);
+            order.totalProfit = order.items.reduce((sum, i) => sum + i.profit, 0);
+            order.totalDocSavings = order.items.reduce((sum, i) => sum + i.docSavings, 0);
+            order.balanceDue = Math.max(0, order.totalBilling - (order.paidAmount || 0));
+            savedOrders.push(order);
           });
 
-          if (parsedOrders.length === 0) {
-            return alert("No valid order records found in this CSV.");
-          }
-
-          const shouldReplace = confirm(`Found ${parsedOrders.length} order(s) and ${importedCustomersMap.size} customer contact(s) in CSV.\n\nClick 'OK' to REPLACE current device data.\nClick 'Cancel' to MERGE with existing device data.`);
-
-          if (shouldReplace) {
-            savedOrders = parsedOrders;
-            importedCustomersMap.forEach((cust) => {
-              const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === cust.name.toLowerCase());
-              if (existingIdx === -1) {
-                customerDirectory.push(cust);
-              }
-            });
-          } else {
-            parsedOrders.forEach(importedOrder => {
-              const existingIdx = savedOrders.findIndex(o => String(o.id) === String(importedOrder.id));
-              if (existingIdx !== -1) {
-                savedOrders[existingIdx] = importedOrder;
-              } else {
-                savedOrders.push(importedOrder);
-              }
-            });
-
-            importedCustomersMap.forEach((cust) => {
-              const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === cust.name.toLowerCase());
-              if (existingIdx !== -1) {
-                customerDirectory[existingIdx] = { ...customerDirectory[existingIdx], ...cust };
-              } else {
-                customerDirectory.push(customerDirectory[existingIdx]);
-              }
-            });
-          }
-
           localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+
+          importedCustomersMap.forEach((custObj) => {
+            const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custObj.name.toLowerCase());
+            if (existingIdx !== -1) {
+              customerDirectory[existingIdx] = { ...customerDirectory[existingIdx], ...custObj };
+            } else {
+              customerDirectory.push(custObj);
+            }
+          });
           localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
 
-          renderOrdersLog();
           renderCustomerDirectoryList();
           renderCustomerDirectoryTab();
+          renderOrdersLog();
           updateDashboard();
 
+          alert(`Successfully imported ${savedOrders.length} orders and updated customer directory from CSV!`);
           e.target.value = '';
-
-          alert(`Import successful! Successfully restored ${parsedOrders.length} order(s) and updated directory contacts.`);
-        } catch(err) {
+        } catch (err) {
+          console.error(err);
           alert("Error parsing CSV file: " + err.message);
         }
       };
@@ -1940,82 +1927,71 @@
     }
 
     function saveWebhookUrl() {
-      const url = document.getElementById("googleWebhookUrl").value.trim();
+      const url = document.getElementById('googleWebhookUrl').value.trim();
       localStorage.setItem('eicw_webhook_url', url);
+      alert("Google Sheets Webhook URL saved successfully!");
     }
 
-    async function syncWithGoogleSheets() {
-      const url = localStorage.getItem('eicw_webhook_url');
-      if (!url) return alert("Please enter a valid Google Apps Script Webhook URL below first!");
-      if (savedOrders.length === 0) return alert("No orders to sync.");
+    function syncWithGoogleSheets() {
+      const webhookUrl = document.getElementById('googleWebhookUrl').value.trim();
+      if (!webhookUrl) return alert("Please enter your Google Apps Script Webhook URL first!");
+      if (savedOrders.length === 0) return alert("No orders to sync!");
 
-      try {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(savedOrders)
-        });
-        alert("Sync request sent successfully to Google Sheets!");
-      } catch (err) {
-        alert("Failed to sync: " + err.message);
-      }
+      alert("Syncing orders with Google Sheets...");
+      fetch(webhookUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(savedOrders)
+      }).then(() => {
+        alert("Sync request sent to Google Sheets successfully!");
+      }).catch(err => {
+        alert("Sync failed: " + err.message);
+      });
+    }
+
+    function shareCartWhatsApp() {
+      if (cart.length === 0) return alert("Cart is empty!");
+      const custName = document.getElementById("custName").value.trim() || "Doctor / Chemist";
+      let text = `*EICW Sales Quote* 📋\n*Customer:* ${custName}\n\n*Ordered Items:*_`;
+      
+      let totalB = 0;
+      cart.forEach(i => {
+        totalB += i.billing;
+        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+        text += `\n• *${i.name}* x${i.orderQty} (${schemeText}) - ₹${i.billing.toFixed(2)}`;
+      });
+
+      text += `\n\n*Total Billing Amount:* ₹${totalB.toFixed(2)}`;
+      text += `\n\n_Thank you for your business with EICW!_`;
+
+      const phone = document.getElementById("custPhone").value.trim();
+      const url = phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
     }
 
     function shareOrderWhatsApp(orderId) {
       const o = savedOrders.find(item => item.id === orderId);
       if (!o) return;
 
-      const balance = Math.max(0, o.totalBilling - (o.paidAmount || 0));
-
-      let statutoryInfo = '';
-      if (o.custType === 'Doctor' && (o.qualification || o.regNo)) {
-        statutoryInfo = `*Qual:* ${o.qualification || 'N/A'}\n*Reg No:* ${o.regNo || 'N/A'}\n`;
-      } else if (o.custType !== 'Doctor' && (o.dlNo || o.gstin)) {
-        statutoryInfo = `*DL No:* ${o.dlNo || 'N/A'}\n*GSTIN:* ${o.gstin || 'N/A'}\n`;
-      }
-
-      let msg = `*EICW SALES ORDER LOG*\n------------------------\n`;
-      msg += `*Customer:* ${o.custName} (${o.custType})\n${statutoryInfo}*Contact:* ${o.custPhone}\n*Address:* ${o.custAddress}\n*Date:* ${o.date}\n*Delivery Status:* ${o.deliveryStatus || 'Pending'}\n*Delivery Date:* ${o.deliveryDate || 'N/A'}\n*Credit Period:* ${o.creditDays || 0} Days\n*Payment Due:* ${o.dueDate || 'Pending Delivery'}\n------------------------\n*ORDER ITEMS:*\n`;
-
-      o.items.forEach((i, idx) => {
-        msg += `${idx + 1}. *${i.name}* x ${i.orderQty} - ₹${i.billing.toFixed(2)}\n`;
+      let text = `*EICW Order Invoice / Details* 📋\n*Customer:* ${o.custName} (${o.custType})\n*Date:* ${o.date}\n*Status:* ${o.deliveryStatus}\n\n*Items:*`;
+      
+      (o.items || []).forEach(i => {
+        text += `\n• ${i.name} x${i.orderQty} - ₹${i.billing.toFixed(2)}`;
       });
 
-      msg += `------------------------\n*TOTAL BILL:* ₹${o.totalBilling.toFixed(2)}\n`;
-      msg += `*TOTAL PAID:* ₹${(o.paidAmount || 0).toFixed(2)}\n`;
-      msg += `*BALANCE DUE:* ₹${balance.toFixed(2)}\n`;
+      text += `\n\n*Total Bill:* ₹${(o.totalBilling || 0).toFixed(2)}`;
+      text += `\n*Paid:* ₹${(o.paidAmount || 0).toFixed(2)}`;
+      text += `\n*Balance Due:* ₹${(o.balanceDue || 0).toFixed(2)}`;
+      text += `\n*Payment Due Date:* ${o.dueDate || 'N/A'}`;
+      text += `\n\n_Thank you for partnering with EICW!_`;
 
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
+      const phone = o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '';
+      const url = phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
     }
 
-    function shareCartWhatsApp() {
-      if (cart.length === 0) return alert("Cart is empty!");
-      const custName = document.getElementById("custName").value.trim() || "Valued Customer";
-      const custType = document.getElementById("custType").value;
-
-      let statutoryInfo = '';
-      if (custType === 'Doctor') {
-        const q = document.getElementById("custQualification").value.trim();
-        const r = document.getElementById("custRegNo").value.trim();
-        if (q || r) statutoryInfo = `*Qual:* ${q || 'N/A'} | *Reg No:* ${r || 'N/A'}\n`;
-      } else {
-        const dl = document.getElementById("custDlNo").value.trim();
-        const gst = document.getElementById("custGstin").value.trim();
-        if (dl || gst) statutoryInfo = `*DL No:* ${dl || 'N/A'} | *GSTIN:* ${gst || 'N/A'}\n`;
-      }
-
-      let msg = `*EICW ORDER DRAFT QUOTE*\n*For:* ${custName} (${custType})\n${statutoryInfo}------------------------\n`;
-      cart.forEach((i, idx) => {
-        msg += `${idx + 1}. *${i.name}* x ${i.orderQty}: ₹${i.billing.toFixed(2)}\n`;
-      });
-
-      const totalB = cart.reduce((sum, i) => sum + i.billing, 0);
-      msg += `------------------------\n*TOTAL ESTIMATE:* ₹${totalB.toFixed(2)}\n`;
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`);
-    }
-
-    document.addEventListener("DOMContentLoaded", init);
+    window.onload = init;
   </script>
 </body>
 </html>
