@@ -676,13 +676,11 @@
             <div>
               <label>Payment Term / Credit Days</label>
               <select id="orderPaymentTerm" onchange="updateDueDateFromTerm()">
-                <option value="0">Cash on Delivery (0 Days)</option>
-                <option value="7">7 Days Credit</option>
-                <option value="15">15 Days Credit</option>
-                <option value="30" selected>30 Days Credit</option>
-                <option value="45">45 Days Credit</option>
-                <option value="60">60 Days Credit</option>
-                <option value="custom">Custom Credit Days...</option>
+                <option value="0" selected>Cash on delivery(0 Days)</option>
+                <option value="7">7 Days</option>
+                <option value="14">14 Days</option>
+                <option value="21">21 Days</option>
+                <option value="custom">Custom Credit Days</option>
               </select>
             </div>
             <div>
@@ -867,7 +865,7 @@
     let customerDirectory = [];
     let editingOrderId = null;
     let editingCustomerIdx = null;
-    let selectedCreditDays = 30;
+    let selectedCreditDays = 0;
 
     function init() {
       try {
@@ -1231,8 +1229,8 @@
     function clearCart() {
       cart = [];
       editingOrderId = null;
-      selectedCreditDays = 30;
-      document.getElementById("orderPaymentTerm").value = "30";
+      selectedCreditDays = 0;
+      document.getElementById("orderPaymentTerm").value = "0";
       document.getElementById("custName").value = "";
       document.getElementById("custPhone").value = "";
       document.getElementById("custAddress").value = "";
@@ -1539,7 +1537,7 @@
       document.getElementById("orderDeliveryDate").value = order.deliveryDate || "";
       
       selectedCreditDays = order.creditDays || 0;
-      document.getElementById("orderPaymentTerm").value = [0, 7, 15, 30, 45, 60].includes(selectedCreditDays) ? selectedCreditDays.toString() : 'custom';
+      document.getElementById("orderPaymentTerm").value = [0, 7, 14, 21].includes(selectedCreditDays) ? selectedCreditDays.toString() : 'custom';
       updateDueDateFromTerm();
 
       document.getElementById("orderPaidAmount").value = order.paidAmount || 0;
