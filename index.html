@@ -1308,7 +1308,8 @@
         });
       }
 
-      const rawDateStr = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const rawDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
       if (editingOrderId) {
         const index = savedOrders.findIndex(o => o.id === editingOrderId);
@@ -1584,6 +1585,25 @@
       updateCustomDateRange();
     }
 
+    function getOrderDateString(o) {
+      if (o.rawDate && typeof o.rawDate === 'string' && o.rawDate.includes('-') && o.rawDate.length === 10) {
+        return o.rawDate;
+      }
+      if (o.date) {
+        const datePart = o.date.split(',')[0].split(' ')[0];
+        if (datePart.includes('-') && datePart.length === 10) {
+          return datePart;
+        }
+        if (datePart.includes('/')) {
+          const parts = datePart.split('/');
+          if (parts.length === 3 && parts[2].length === 4) {
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+      }
+      return o.rawDate || '';
+    }
+
     function updateCustomDateRange() {
       const startDate = document.getElementById("filterStartDate").value;
       const endDate = document.getElementById("filterEndDate").value;
@@ -1591,10 +1611,10 @@
       let filtered = savedOrders;
       if (startDate || endDate) {
         filtered = savedOrders.filter(o => {
-          const oDate = o.rawDate || (o.date ? o.date.split(' ')[0] : '');
-          if (!oDate) return false;
-          if (startDate && oDate < startDate) return false;
-          if (endDate && oDate > endDate) return false;
+          const oDateStr = getOrderDateString(o);
+          if (!oDateStr) return false;
+          if (startDate && oDateStr < startDate) return false;
+          if (endDate && oDateStr > endDate) return false;
           return true;
         });
       }
@@ -1859,7 +1879,20 @@
 
             const orderId = Number(getColVal(cols, ["order id"])) || getColVal(cols, ["order id"]) || i;
             const date = getColVal(cols, ["date"]);
-            const rawDateStr = date ? date.split(' ')[0] : new Date().toISOString().split('T')[0];
+            
+            let rawDateStr = new Date().toISOString().split('T')[0];
+            if (date) {
+              const datePart = date.split(',')[0].split(' ')[0];
+              if (datePart.includes('-') && datePart.length === 10) {
+                rawDateStr = datePart;
+              } else if (datePart.includes('/')) {
+                const parts = datePart.split('/');
+                if (parts.length === 3 && parts[2].length === 4) {
+                  rawDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+              }
+            }
+
             const custName = getColVal(cols, ["customer name"]);
             const custType = getColVal(cols, ["customer type"]) || "Doctor";
 
