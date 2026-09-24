@@ -423,7 +423,7 @@
     <!-- TAB 1: HOME DASHBOARD -->
     <div class="tab-view active" id="tab-home">
       <div class="card" style="text-align: center;">
-        <div class="card-title" style="justify-content: center;">Dashboard Summary</div>
+        <div class="card-title" style="justify-content: center;">Dashboard Summary (Overall)</div>
         <div class="kpi-grid" style="margin-top: 12px;">
           <div class="kpi-tile">
             <div class="kpi-label">TOTAL ORDERS SAVED</div>
@@ -440,6 +440,49 @@
           <div class="kpi-tile">
             <div class="kpi-label">PENDING BALANCES</div>
             <div class="kpi-value" id="homeTotalDue" style="color:var(--text-due);">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
+            <div class="kpi-value" id="homeTotalProfit" style="color:var(--info-text);">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUSTOM DATE RANGE FILTER CARD -->
+      <div class="card">
+        <div class="card-title">Custom Date Range Analytics</div>
+        <div class="form-row">
+          <div>
+            <label>Start Date</label>
+            <input type="date" id="filterStartDate" onchange="updateCustomDateRange()">
+          </div>
+          <div>
+            <label>End Date</label>
+            <input type="date" id="filterEndDate" onchange="updateCustomDateRange()">
+          </div>
+        </div>
+        <button class="btn-sm btn-warning" style="margin-bottom: 12px;" onclick="clearDateFilter()">Reset Date Filter</button>
+
+        <div class="kpi-grid">
+          <div class="kpi-tile">
+            <div class="kpi-label">ORDERS SAVED</div>
+            <div class="kpi-value" id="customOrdersCount">0</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL BOOKED SALES</div>
+            <div class="kpi-value" id="customTotalSales">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL COLLECTED</div>
+            <div class="kpi-value" id="customTotalCollected" style="color:var(--text-paid);">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">PENDING BALANCES</div>
+            <div class="kpi-value" id="customTotalDue" style="color:var(--text-due);">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
+            <div class="kpi-value" id="customTotalProfit" style="color:var(--info-text);">₹0.00</div>
           </div>
         </div>
       </div>
@@ -1265,6 +1308,8 @@
         });
       }
 
+      const rawDateStr = new Date().toISOString().split('T')[0];
+
       if (editingOrderId) {
         const index = savedOrders.findIndex(o => o.id === editingOrderId);
         if (index !== -1) {
@@ -1287,6 +1332,7 @@
       } else {
         savedOrders.unshift({
           id: Date.now(),
+          rawDate: rawDateStr,
           date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           custType, custName, custPhone, custAddress, custRemarks,
           qualification: custQualification, regNo: custRegNo, dlNo: custDlNo, gstin: custGstin,
@@ -1522,14 +1568,54 @@
     }
 
     function updateDashboard() {
+      // Overall Summary
       document.getElementById("homeOrdersCount").innerText = savedOrders.length;
       const totalRev = savedOrders.reduce((sum, o) => sum + (o.totalBilling || 0), 0);
       const totalColl = savedOrders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
       const totalDue = Math.max(0, totalRev - totalColl);
+      const totalProf = savedOrders.reduce((sum, o) => sum + (o.totalProfit || 0), 0);
 
       document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
       document.getElementById("homeTotalCollected").innerText = `₹${totalColl.toFixed(2)}`;
       document.getElementById("homeTotalDue").innerText = `₹${totalDue.toFixed(2)}`;
+      document.getElementById("homeTotalProfit").innerText = `₹${totalProf.toFixed(2)}`;
+
+      // Update Custom Date Range Analytics as well
+      updateCustomDateRange();
+    }
+
+    function updateCustomDateRange() {
+      const startDate = document.getElementById("filterStartDate").value;
+      const endDate = document.getElementById("filterEndDate").value;
+
+      let filtered = savedOrders;
+      if (startDate || endDate) {
+        filtered = savedOrders.filter(o => {
+          const oDate = o.rawDate || (o.date ? o.date.split(' ')[0] : '');
+          if (!oDate) return false;
+          if (startDate && oDate < startDate) return false;
+          if (endDate && oDate > endDate) return false;
+          return true;
+        });
+      }
+
+      const count = filtered.length;
+      const sales = filtered.reduce((sum, o) => sum + (o.totalBilling || 0), 0);
+      const collected = filtered.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
+      const due = Math.max(0, sales - collected);
+      const profit = filtered.reduce((sum, o) => sum + (o.totalProfit || 0), 0);
+
+      document.getElementById("customOrdersCount").innerText = count;
+      document.getElementById("customTotalSales").innerText = `₹${sales.toFixed(2)}`;
+      document.getElementById("customTotalCollected").innerText = `₹${collected.toFixed(2)}`;
+      document.getElementById("customTotalDue").innerText = `₹${due.toFixed(2)}`;
+      document.getElementById("customTotalProfit").innerText = `₹${profit.toFixed(2)}`;
+    }
+
+    function clearDateFilter() {
+      document.getElementById("filterStartDate").value = "";
+      document.getElementById("filterEndDate").value = "";
+      updateCustomDateRange();
     }
 
     function saveDirectoryCustomer() {
@@ -1749,7 +1835,6 @@
             return alert("Invalid CSV format! The header row must start with 'Order ID'.");
           }
 
-          // Dynamic header mapping to prevent offset vulnerabilities
           const headerMap = {};
           headers.forEach((h, idx) => {
             headerMap[h.trim().toLowerCase()] = idx;
@@ -1774,6 +1859,7 @@
 
             const orderId = Number(getColVal(cols, ["order id"])) || getColVal(cols, ["order id"]) || i;
             const date = getColVal(cols, ["date"]);
+            const rawDateStr = date ? date.split(' ')[0] : new Date().toISOString().split('T')[0];
             const custName = getColVal(cols, ["customer name"]);
             const custType = getColVal(cols, ["customer type"]) || "Doctor";
 
@@ -1856,6 +1942,7 @@
             if (!ordersMap.has(orderId)) {
               ordersMap.set(orderId, {
                 id: orderId,
+                rawDate: rawDateStr,
                 date: date,
                 custType: custType,
                 custName: custName,
