@@ -2123,7 +2123,7 @@
       let text = `*EICW Order Forward to CNF* 📦\n*Order ID:* ${o.id}\n*Date:* ${o.date}\n*Customer:* ${o.custName} (${o.custType})\n*Phone:* ${o.custPhone}\n*Address:* ${o.custAddress}\n\n*Items to Dispatch:*`;
       
       (o.items || []).forEach(i => {
-        const schemeLot = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+        const schemeLot = i.schemeType === 'Standard scheme' ? `Standard & ${i.paidQty}+${i.freeQty}` : `Lot with Free Items & ${i.paidQty}+${i.freeQty}`;
         const freeCalculated = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
         const totalDelivered = i.totalUnitsReceived || (i.orderQty + freeCalculated);
         
