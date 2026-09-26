@@ -787,6 +787,28 @@
 
     <!-- TAB 5: SAVED ORDERS & INTEGRATIONS -->
     <div class="tab-view" id="tab-orders">
+      <!-- WEEKLY CNF REPORTING CARD -->
+      <div class="card" style="border: 2px solid var(--primary);">
+        <div class="card-title" style="color: var(--primary);">📦 Weekly CNF Consolidated Report</div>
+        <p style="font-size: 0.85rem; color: var(--subtext); margin-top:0;">Aggregate and dispatch all orders for a selected week or date window to your C&F partner.</p>
+        
+        <div class="form-row">
+          <div>
+            <label>Report Start Date</label>
+            <input type="date" id="cnfStartDate">
+          </div>
+          <div>
+            <label>Report End Date</label>
+            <input type="date" id="cnfEndDate">
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom: 8px;">
+          <button class="btn-sm btn-warning" style="flex:1;" onclick="setThisWeekCnfRange()">📅 This Week</button>
+          <button class="btn-sm btn-accent" style="flex:1;" onclick="setLastWeekCnfRange()">📅 Last Week</button>
+        </div>
+        <button class="btn-action btn-whatsapp" onclick="shareWeeklyCnfReportWhatsApp()">📲 Send Weekly Consolidated Report to CNF</button>
+      </div>
+
       <div class="card">
         <div class="card-title">Cloud & CSV Backup / Sync Tools</div>
         <button class="btn-action" style="background: #0284c7;" onclick="exportToCSV()">📊 Export Full CSV / Excel Sales Ledger</button>
@@ -895,6 +917,7 @@
       recalculate();
       renderOrdersLog();
       updateDashboard();
+      setThisWeekCnfRange();
     }
 
     function toggleFormStatutoryFields(prefix) {
@@ -1635,6 +1658,88 @@
       document.getElementById("filterStartDate").value = "";
       document.getElementById("filterEndDate").value = "";
       updateCustomDateRange();
+    }
+
+    // Weekly CNF Report Date Preset Helpers
+    function setThisWeekCnfRange() {
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(now.setDate(diffToMonday));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      document.getElementById("cnfStartDate").value = monday.toISOString().split('T')[0];
+      document.getElementById("cnfEndDate").value = sunday.toISOString().split('T')[0];
+    }
+
+    function setLastWeekCnfRange() {
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1) - 7;
+      const monday = new Date(now.setDate(diffToMonday));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      document.getElementById("cnfStartDate").value = monday.toISOString().split('T')[0];
+      document.getElementById("cnfEndDate").value = sunday.toISOString().split('T')[0];
+    }
+
+    function shareWeeklyCnfReportWhatsApp() {
+      const startDate = document.getElementById("cnfStartDate").value;
+      const endDate = document.getElementById("cnfEndDate").value;
+
+      if (!startDate || !endDate) {
+        return alert("Please select both Start Date and End Date for the weekly report!");
+      }
+
+      const filteredOrders = savedOrders.filter(o => {
+        const oDateStr = getOrderDateString(o);
+        if (!oDateStr) return false;
+        return oDateStr >= startDate && oDateStr <= endDate;
+      });
+
+      if (filteredOrders.length === 0) {
+        return alert(`No orders found between ${startDate} and ${endDate}!`);
+      }
+
+      // Aggregate product quantities and customer breakdowns across all filtered orders
+      let productTotals = {};
+      let totalBillingSum = 0;
+
+      filteredOrders.forEach(o => {
+        totalBillingSum += (o.totalBilling || 0);
+        (o.items || []).forEach(i => {
+          if (!productTotals[i.name]) {
+            productTotals[i.name] = { orderedQty: 0, totalDeliver: 0, billing: 0 };
+          }
+          productTotals[i.name].orderedQty += Number(i.orderQty) || 0;
+          
+          const freeCalc = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
+          const totalDeliv = i.totalUnitsReceived || ((Number(i.orderQty) || 0) + freeCalc);
+          productTotals[i.name].totalDeliver += totalDeliv;
+          productTotals[i.name].billing += Number(i.billing) || 0;
+        });
+      });
+
+      let text = `*EICW Weekly Consolidated Order Report (C&F)* 📦\n*Period:* ${startDate} to ${endDate}\n*Total Orders:* ${filteredOrders.length}\n\n*Consolidated Product Requirements:*`;
+
+      Object.keys(productTotals).forEach(prodName => {
+        const p = productTotals[prodName];
+        text += `\n• *${prodName}* | Ordered Qty: ${p.orderedQty} | Total Dispatch (incl. Schemes): *${p.totalDeliver} btls* [Billing: ₹${p.billing.toFixed(2)}]`;
+      });
+
+      text += `\n\n*Total Consolidated Billing:* ₹${totalBillingSum.toFixed(2)}`;
+      
+      text += `\n\n*Summary of Orders Included:*`;
+      filteredOrders.forEach(o => {
+        text += `\n- #${o.id.toString().slice(-4)} | ${o.custName} (${o.custType}, ${o.custAddress}) - ₹${(o.totalBilling || 0).toFixed(2)}`;
+      });
+
+      text += `\n\n_Please process and arrange dispatch for the above weekly consolidated requirement._`;
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
     }
 
     function saveDirectoryCustomer() {
