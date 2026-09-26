@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eicw-sales-v55';
+const CACHE_NAME = 'eicw-sales-v56';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
