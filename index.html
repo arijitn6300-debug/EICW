@@ -1080,7 +1080,7 @@
       const docMarginPct = totalReceivedValue > 0 ? ((docSavings / totalReceivedValue) * 100) : 0;
       const docPerBtlCost = totalUnitsReceived > 0 ? (billingAmount / totalUnitsReceived) : 0;
 
-      return { billingAmount, cogs, netProfit, repProfitPct, docSavings, docMarginPct, docPerBtlCost, totalReceivedValue };
+      return { billingAmount, cogs, netProfit, repProfitPct, docSavings, docMarginPct, docPerBtlCost, totalReceivedValue, totalUnitsReceived };
     }
 
     function recalculate() {
@@ -1170,7 +1170,8 @@
         docSavings: calc.docSavings,
         docMarginPct: calc.docMarginPct,
         docPerBtlCost: calc.docPerBtlCost,
-        totalReceivedValue: calc.totalReceivedValue
+        totalReceivedValue: calc.totalReceivedValue,
+        totalUnitsReceived: Math.round(calc.totalUnitsReceived)
       });
 
       renderCart();
@@ -1951,6 +1952,8 @@
             const totalReceivedVal = qty * matchedProd.mrp;
             const docMarginPct = totalReceivedVal > 0 ? ((docSavings / totalReceivedVal) * 100) : 0;
             const docPerBtlCost = qty > 0 ? (billing / qty) : 0;
+            const actualFreeQty = paidQty > 0 ? Math.round((qty / paidQty) * freeQty) : 0;
+            const totalUnitsReceived = qty + actualFreeQty;
 
             const itemObj = {
               id: matchedProd.id,
@@ -1967,7 +1970,8 @@
               docSavings: docSavings,
               docMarginPct: docMarginPct,
               docPerBtlCost: docPerBtlCost,
-              totalReceivedValue: totalReceivedVal
+              totalReceivedValue: totalReceivedVal,
+              totalUnitsReceived: totalUnitsReceived
             };
 
             if (!ordersMap.has(orderId)) {
@@ -2006,7 +2010,7 @@
           ordersMap.forEach((order) => {
             order.totalBilling = order.items.reduce((sum, i) => sum + i.billing, 0);
             order.totalCogs = order.items.reduce((sum, i) => sum + i.cogs, 0);
-            order.totalProfit = order.items.reduce((sum, i) => sum + i.profit, 0);
+            order.totalProfit = order.items.reduce((sum, i) => sum + i.totalProfit, 0);
             order.totalDocSavings = order.items.reduce((sum, i) => sum + i.docSavings, 0);
             order.balanceDue = Math.max(0, order.totalBilling - (order.paidAmount || 0));
             savedOrders.push(order);
@@ -2119,8 +2123,11 @@
       let text = `*EICW Order Forward to CNF* 📦\n*Order ID:* ${o.id}\n*Date:* ${o.date}\n*Customer:* ${o.custName} (${o.custType})\n*Phone:* ${o.custPhone}\n*Address:* ${o.custAddress}\n\n*Items to Dispatch:*`;
       
       (o.items || []).forEach(i => {
-        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty} Free`;
-        text += `\n• ${i.name} x${i.orderQty} (${schemeText}) [Billing: ₹${i.billing.toFixed(2)}]`;
+        const schemeLot = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+        const freeCalculated = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
+        const totalDelivered = i.totalUnitsReceived || (i.orderQty + freeCalculated);
+        
+        text += `\n• ${i.name} | Ordered: ${i.orderQty} | Scheme Lot: ${schemeLot} | Total Deliver: ${totalDelivered} btls [Billing: ₹${i.billing.toFixed(2)}]`;
       });
 
       text += `\n\n*Total Billing:* ₹${(o.totalBilling || 0).toFixed(2)}`;
