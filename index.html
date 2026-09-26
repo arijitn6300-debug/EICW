@@ -1440,7 +1440,7 @@
             <div class="order-actions">
               <button class="btn-sm btn-accent" onclick="toggleOrderDetails(${o.id})">👁️ Details</button>
               <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect Payment</button>
-              <button class="btn-sm btn-whatsapp" onclick="shareOrderWhatsApp(${o.id})">📲 Forward</button>
+              <button class="btn-sm btn-whatsapp" onclick="forwardOrderPrompt(${o.id})">📲 Forward</button>
               <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
               <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
             </div>
@@ -2084,10 +2084,19 @@
       window.open(url, '_blank');
     }
 
-    function shareOrderWhatsApp(orderId) {
+    function forwardOrderPrompt(orderId) {
       const o = savedOrders.find(item => item.id === orderId);
       if (!o) return;
 
+      const choice = prompt("Forward order to:\n1. Customer\n2. CNF\n\nEnter 1 for Customer or 2 for CNF:", "1");
+      if (choice === "1") {
+        shareOrderWhatsApp(o);
+      } else if (choice === "2") {
+        shareOrderCNFWhatsApp(o);
+      }
+    }
+
+    function shareOrderWhatsApp(o) {
       let text = `*EICW Order Invoice / Details* 📋\n*Customer:* ${o.custName} (${o.custType})\n*Date:* ${o.date}\n*Status:* ${o.deliveryStatus}\n\n*Items:*`;
       
       (o.items || []).forEach(i => {
@@ -2103,6 +2112,23 @@
       const phone = o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '';
       const cleanPhone = phone.replace(/\D/g, '');
       const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    function shareOrderCNFWhatsApp(o) {
+      let text = `*EICW Order Forward to CNF* 📦\n*Order ID:* ${o.id}\n*Date:* ${o.date}\n*Customer:* ${o.custName} (${o.custType})\n*Phone:* ${o.custPhone}\n*Address:* ${o.custAddress}\n\n*Items to Dispatch:*`;
+      
+      (o.items || []).forEach(i => {
+        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty} Free`;
+        text += `\n• ${i.name} x${i.orderQty} (${schemeText}) [Billing: ₹${i.billing.toFixed(2)}]`;
+      });
+
+      text += `\n\n*Total Billing:* ₹${(o.totalBilling || 0).toFixed(2)}`;
+      text += `\n*Delivery Status:* ${o.deliveryStatus}`;
+      if (o.custRemarks) text += `\n*Remarks:* ${o.custRemarks}`;
+      text += `\n\n_Please process and dispatch accordingly._`;
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
 
