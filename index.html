@@ -395,9 +395,59 @@
     }
 
     .nav-btn span { display: block; font-size: 1.15rem; }
+
+    body.locked > header,
+    body.locked > .container,
+    body.locked > nav.bottom-nav {
+      display: none !important;
+    }
+
+    #lockScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 5000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #lockScreen input {
+      text-align: center;
+    }
+
+    #lockPinInput {
+      font-size: 1.4rem;
+      letter-spacing: 6px;
+    }
   </style>
 </head>
 <body>
+
+  <div id="lockScreen">
+    <div style="width:100%; max-width:320px; text-align:center;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">🔒</div>
+      <div style="font-weight:bold; font-size:1.1rem; margin-bottom:16px; color:var(--text);">EICW Sales Desk Locked</div>
+
+      <div id="lockPinView">
+        <input type="password" inputmode="numeric" pattern="[0-9]*" id="lockPinInput" placeholder="Enter PIN" maxlength="8">
+        <button class="btn-action" style="background:var(--primary);" onclick="attemptUnlock()">Unlock</button>
+        <button class="btn-action" id="lockFingerprintBtn" style="background:var(--accent); display:none;" onclick="attemptFingerprintUnlock()">👆 Unlock with Fingerprint</button>
+        <button class="btn-sm btn-warning" style="width:100%; margin-top:6px;" onclick="showForgotPin()">Forgot PIN?</button>
+        <div id="lockError" style="color:var(--danger); font-size:0.85rem; margin-top:8px; display:none;"></div>
+      </div>
+
+      <div id="lockRecoveryView" style="display:none;">
+        <div id="lockRecoveryQuestion" style="font-size:0.9rem; color:var(--subtext); margin-bottom:8px;"></div>
+        <input type="text" id="lockRecoveryAnswer" placeholder="Your answer">
+        <button class="btn-action" style="background:var(--warning); color:white;" onclick="attemptRecovery()">Verify &amp; Reset PIN</button>
+        <button class="btn-sm" style="width:100%; margin-top:6px; background:var(--tile-bg); color:var(--text);" onclick="cancelRecovery()">Back</button>
+        <div id="lockRecoveryError" style="color:var(--danger); font-size:0.85rem; margin-top:8px; display:none;"></div>
+      </div>
+    </div>
+  </div>
 
   <header>
     <div class="header-title">
@@ -422,6 +472,18 @@
 
     <!-- TAB 1: HOME DASHBOARD -->
     <div class="tab-view active" id="tab-home">
+
+      <!-- PAYMENT DUE TRACKER -->
+      <div class="card" id="dueTrackerCard" style="border: 2px solid var(--danger);">
+        <div class="card-title" style="color: var(--danger);">🔔 Payment Due Tracker</div>
+        <div class="category-pills">
+          <button class="pill active" onclick="setDueFilter('OVERDUE', this)">Overdue</button>
+          <button class="pill" onclick="setDueFilter('THIS_WEEK', this)">Due This Week</button>
+          <button class="pill" onclick="setDueFilter('THIS_MONTH', this)">Due This Month</button>
+        </div>
+        <div id="dueTrackerList"></div>
+      </div>
+
       <div class="card" style="text-align: center;">
         <div class="card-title" style="justify-content: center;">Dashboard Summary (Overall)</div>
         <div class="kpi-grid" style="margin-top: 12px;">
@@ -485,6 +547,17 @@
             <div class="kpi-value" id="customTotalProfit" style="color:var(--info-text);">₹0.00</div>
           </div>
         </div>
+      </div>
+
+      <!-- TOP PERFORMERS (uses the date range above) -->
+      <div class="card">
+        <div class="card-title">🏆 Top Performers <span style="font-size:0.7rem; font-weight:normal; color:var(--subtext);">(uses date range above)</span></div>
+        <div class="category-pills" id="topPerformersPills">
+          <button class="pill active" onclick="setTopView('PRODUCTS', this)">Top Products</button>
+          <button class="pill" onclick="setTopView('CUSTOMERS', this)">Top Customers</button>
+          <button class="pill" onclick="setTopView('SCHEMES', this)">Top Scheme Combos</button>
+        </div>
+        <div id="topPerformersList"></div>
       </div>
 
       <div class="card">
@@ -787,6 +860,12 @@
 
     <!-- TAB 5: SAVED ORDERS & INTEGRATIONS -->
     <div class="tab-view" id="tab-orders">
+      <!-- SECURITY / PIN LOCK CARD -->
+      <div class="card">
+        <div class="card-title">🔒 Security & PIN Lock</div>
+        <div id="securitySettingsBox"></div>
+      </div>
+
       <!-- WEEKLY CNF REPORTING CARD -->
       <div class="card" style="border: 2px solid var(--primary);">
         <div class="card-title" style="color: var(--primary);">📦 Weekly CNF Consolidated Report</div>
@@ -825,11 +904,44 @@
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 12px 0;">
 
         <button class="btn-action" style="background: #16a34a;" onclick="syncWithGoogleSheets()">☁️ Sync All Orders to Google Sheets</button>
+        <button class="btn-action" style="background: #7c3aed;" onclick="restoreFromSheets()">⬇️ Restore Latest Backup from Google Sheets</button>
         <input type="url" id="googleWebhookUrl" placeholder="Enter Google Apps Script Webhook URL" style="font-size:0.8rem; margin-top:4px;" onchange="saveWebhookUrl()">
+        <div style="font-size:0.75rem; color:var(--subtext); margin-top:4px;">Once a webhook URL is saved, every save/payment/status change auto-syncs here in the background — no need to tap the sync button manually.</div>
       </div>
 
       <div class="card">
         <div class="card-title">Saved Orders Log & Delivery Tracking</div>
+
+        <input type="text" id="searchOrders" placeholder="Search by customer name or phone..." oninput="renderOrdersLog()">
+
+        <div class="form-row">
+          <div>
+            <label>From Date</label>
+            <input type="date" id="ordersFilterStart" onchange="renderOrdersLog()">
+          </div>
+          <div>
+            <label>To Date</label>
+            <input type="date" id="ordersFilterEnd" onchange="renderOrdersLog()">
+          </div>
+        </div>
+
+        <label>Delivery Status</label>
+        <div class="category-pills" id="orderStatusPills">
+          <button class="pill active" onclick="setOrderStatusFilter('ALL', this)">All</button>
+          <button class="pill" onclick="setOrderStatusFilter('Pending', this)">Pending</button>
+          <button class="pill" onclick="setOrderStatusFilter('In Transit', this)">In Transit</button>
+          <button class="pill" onclick="setOrderStatusFilter('Delivered', this)">Delivered</button>
+        </div>
+
+        <label>Payment Status</label>
+        <div class="category-pills" id="orderPaymentPills">
+          <button class="pill active" onclick="setOrderPaymentFilter('ALL', this)">All</button>
+          <button class="pill" onclick="setOrderPaymentFilter('DUE', this)">Due / Unpaid</button>
+          <button class="pill" onclick="setOrderPaymentFilter('PAID', this)">Fully Paid</button>
+        </div>
+
+        <button class="btn-sm btn-warning" style="margin-bottom: 10px;" onclick="clearOrdersFilters()">Reset Filters</button>
+
         <div id="ordersList">No orders logged yet.</div>
         <button class="btn-action btn-danger" style="margin-top: 16px;" onclick="clearOrdersLog()">Clear Entire Order History</button>
       </div>
@@ -888,6 +1000,10 @@
     let editingOrderId = null;
     let editingCustomerIdx = null;
     let selectedCreditDays = 0;
+    let orderStatusFilter = 'ALL';
+    let orderPaymentFilter = 'ALL';
+    let dueFilterMode = 'OVERDUE';
+    let topView = 'PRODUCTS';
 
     function init() {
       try {
@@ -1052,6 +1168,25 @@
       renderCustomerDirectoryTab();
     }
 
+    function sanitizeQtyFields() {
+      const fields = [
+        { id: 'orderQty', min: 1 },
+        { id: 'paidQty', min: 0 },
+        { id: 'freeQty', min: 0 }
+      ];
+      let corrected = false;
+      fields.forEach(f => {
+        const input = document.getElementById(f.id);
+        if (!input) return;
+        const val = Number(input.value);
+        if (isNaN(val) || val < f.min) {
+          input.value = f.min;
+          corrected = true;
+        }
+      });
+      return corrected;
+    }
+
     function changeQty(fieldId, delta) {
       const input = document.getElementById(fieldId);
       if (!input) return;
@@ -1107,6 +1242,7 @@
     }
 
     function recalculate() {
+      sanitizeQtyFields();
       const pId = document.getElementById("productSelect").value;
       const product = CATALOG.find(p => p.id === pId) || CATALOG[0];
 
@@ -1169,6 +1305,11 @@
     }
 
     function addToCart() {
+      if (sanitizeQtyFields()) {
+        recalculate();
+        alert("Quantity can't be negative or zero — it's been corrected to the minimum allowed value. Please review and tap 'Add Item To Order Cart' again.");
+        return;
+      }
       const pId = document.getElementById("productSelect").value;
       const product = CATALOG.find(p => p.id === pId);
       const schemeType = document.getElementById("schemeType").value;
@@ -1291,7 +1432,24 @@
       const creditDays = selectedCreditDays;
       const dueDate = calculateDueDateFromDelivery(deliveryDate, creditDays);
 
-      const paidAmountInput = Number(document.getElementById("orderPaidAmount").value) || 0;
+      const paidAmountInput = Math.max(0, Number(document.getElementById("orderPaidAmount").value) || 0);
+
+      const now = new Date();
+      const rawDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      if (!editingOrderId) {
+        const cartSignature = cart.map(i => `${i.id}:${i.orderQty}:${i.schemeType}:${i.paidQty}:${i.freeQty}`).sort().join('|');
+        const isDup = savedOrders.some(o =>
+          o.rawDate === rawDateStr &&
+          o.custName.toLowerCase() === custName.toLowerCase() &&
+          (o.items || []).map(i => `${i.id}:${i.orderQty}:${i.schemeType}:${i.paidQty}:${i.freeQty}`).sort().join('|') === cartSignature
+        );
+        if (isDup) {
+          if (!confirm(`⚠️ You already saved an identical order for ${custName} today (same items & quantities). Save it again as a separate order anyway?`)) {
+            return;
+          }
+        }
+      }
 
       if (custName !== "General Customer") {
         const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custName.toLowerCase());
@@ -1330,9 +1488,6 @@
         });
       }
 
-      const now = new Date();
-      const rawDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
       if (editingOrderId) {
         const index = savedOrders.findIndex(o => o.id === editingOrderId);
         if (index !== -1) {
@@ -1370,11 +1525,34 @@
       }
 
       localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      autoSyncToSheets();
 
       clearCart();
       renderOrdersLog();
       updateDashboard();
       switchTabById('tab-orders');
+    }
+
+    function setOrderStatusFilter(status, btn) {
+      orderStatusFilter = status;
+      document.querySelectorAll('#orderStatusPills .pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderOrdersLog();
+    }
+
+    function setOrderPaymentFilter(status, btn) {
+      orderPaymentFilter = status;
+      document.querySelectorAll('#orderPaymentPills .pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderOrdersLog();
+    }
+
+    function clearOrdersFilters() {
+      document.getElementById('searchOrders').value = '';
+      document.getElementById('ordersFilterStart').value = '';
+      document.getElementById('ordersFilterEnd').value = '';
+      setOrderStatusFilter('ALL', document.querySelector('#orderStatusPills .pill'));
+      setOrderPaymentFilter('ALL', document.querySelector('#orderPaymentPills .pill'));
     }
 
     function renderOrdersLog() {
@@ -1384,7 +1562,36 @@
         return;
       }
 
-      container.innerHTML = savedOrders.map((o) => {
+      const search = (document.getElementById('searchOrders').value || '').toLowerCase().trim();
+      const startDate = document.getElementById('ordersFilterStart').value;
+      const endDate = document.getElementById('ordersFilterEnd').value;
+
+      const filteredOrders = savedOrders.filter(o => {
+        if (search) {
+          const matchesSearch = (o.custName || '').toLowerCase().includes(search) || (o.custPhone || '').toLowerCase().includes(search);
+          if (!matchesSearch) return false;
+        }
+        if (startDate || endDate) {
+          const d = getOrderDateString(o);
+          if (!d) return false;
+          if (startDate && d < startDate) return false;
+          if (endDate && d > endDate) return false;
+        }
+        if (orderStatusFilter !== 'ALL' && o.deliveryStatus !== orderStatusFilter) return false;
+        if (orderPaymentFilter !== 'ALL') {
+          const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+          if (orderPaymentFilter === 'DUE' && balance <= 0) return false;
+          if (orderPaymentFilter === 'PAID' && balance > 0) return false;
+        }
+        return true;
+      });
+
+      if (filteredOrders.length === 0) {
+        container.innerHTML = "<p style='color:var(--subtext); text-align:center;'>No orders match these filters.</p>";
+        return;
+      }
+
+      container.innerHTML = filteredOrders.map((o) => {
         const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
         let payStatusBadge = `<span class="health-badge health-high">🟢 Paid Full</span>`;
         if (balance > 0 && (o.paidAmount || 0) > 0) {
@@ -1491,6 +1698,7 @@
       }
 
       localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      autoSyncToSheets();
       renderOrdersLog();
       updateDashboard();
     }
@@ -1533,6 +1741,7 @@
         }
 
         localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        autoSyncToSheets();
         renderOrdersLog();
         updateDashboard();
         alert(`Payment of ₹${addNum.toFixed(2)} recorded on ${payDate}! Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
@@ -1576,6 +1785,7 @@
       if (confirm("Delete this order?")) {
         savedOrders = savedOrders.filter(o => o.id !== orderId);
         localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        autoSyncToSheets();
         renderOrdersLog();
         updateDashboard();
       }
@@ -1602,6 +1812,8 @@
       document.getElementById("homeTotalCollected").innerText = `₹${totalColl.toFixed(2)}`;
       document.getElementById("homeTotalDue").innerText = `₹${totalDue.toFixed(2)}`;
       document.getElementById("homeTotalProfit").innerText = `₹${totalProf.toFixed(2)}`;
+
+      renderDueTracker();
 
       // Update Custom Date Range Analytics as well
       updateCustomDateRange();
@@ -1652,12 +1864,148 @@
       document.getElementById("customTotalCollected").innerText = `₹${collected.toFixed(2)}`;
       document.getElementById("customTotalDue").innerText = `₹${due.toFixed(2)}`;
       document.getElementById("customTotalProfit").innerText = `₹${profit.toFixed(2)}`;
+
+      renderTopPerformers();
     }
 
     function clearDateFilter() {
       document.getElementById("filterStartDate").value = "";
       document.getElementById("filterEndDate").value = "";
       updateCustomDateRange();
+    }
+
+    // ---- Payment Due Tracker (Overdue / Due This Week / Due This Month) ----
+    function setDueFilter(mode, btn) {
+      dueFilterMode = mode;
+      document.querySelectorAll('#dueTrackerCard .pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderDueTracker();
+    }
+
+    function renderDueTracker() {
+      const container = document.getElementById('dueTrackerList');
+      if (!container) return;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const weekEnd = new Date(now);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const monthEndStr = monthEnd.toISOString().split('T')[0];
+
+      const dueOrders = savedOrders.filter(o => {
+        const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+        if (balance <= 0) return false;
+        const due = o.dueDate;
+        if (!due || due === 'Pending Delivery') return false;
+        if (dueFilterMode === 'OVERDUE') return due < todayStr;
+        if (dueFilterMode === 'THIS_WEEK') return due >= todayStr && due <= weekEndStr;
+        if (dueFilterMode === 'THIS_MONTH') return due >= todayStr && due <= monthEndStr;
+        return false;
+      }).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+
+      if (dueOrders.length === 0) {
+        container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; margin:8px 0;">Nothing here. 🎉</p>`;
+        return;
+      }
+
+      const totalDue = dueOrders.reduce((sum, o) => sum + Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0)), 0);
+
+      container.innerHTML = `<div style="font-size:0.82rem; font-weight:bold; margin-bottom:8px;">${dueOrders.length} order(s) • ₹${totalDue.toFixed(2)} total</div>` +
+        dueOrders.map(o => {
+          const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+          const isOverdue = o.dueDate < todayStr;
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
+              <div>
+                <strong>${o.custName}</strong><br>
+                <span style="color:${isOverdue ? 'var(--text-due)' : 'var(--subtext)'};">Due: ${o.dueDate}${isOverdue ? ' (OVERDUE)' : ''}</span>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:bold; color:var(--text-due);">₹${balance.toFixed(2)}</div>
+                <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    // ---- Top Performers (Products / Customers / Scheme Combos) ----
+    function setTopView(view, btn) {
+      topView = view;
+      document.querySelectorAll('#topPerformersPills .pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderTopPerformers();
+    }
+
+    function getFilteredOrdersForRange() {
+      const startDate = document.getElementById("filterStartDate").value;
+      const endDate = document.getElementById("filterEndDate").value;
+      if (!startDate && !endDate) return savedOrders;
+      return savedOrders.filter(o => {
+        const d = getOrderDateString(o);
+        if (!d) return false;
+        if (startDate && d < startDate) return false;
+        if (endDate && d > endDate) return false;
+        return true;
+      });
+    }
+
+    function renderTopPerformers() {
+      const container = document.getElementById('topPerformersList');
+      if (!container) return;
+
+      const filtered = getFilteredOrdersForRange();
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; margin:8px 0;">No orders in this range yet.</p>`;
+        return;
+      }
+
+      const map = new Map();
+
+      if (topView === 'PRODUCTS') {
+        filtered.forEach(o => (o.items || []).forEach(i => {
+          const entry = map.get(i.name) || { label: i.name, billing: 0, profit: 0, qty: 0 };
+          entry.billing += i.billing || 0;
+          entry.profit += i.profit || 0;
+          entry.qty += i.orderQty || 0;
+          map.set(i.name, entry);
+        }));
+      } else if (topView === 'CUSTOMERS') {
+        filtered.forEach(o => {
+          const entry = map.get(o.custName) || { label: o.custName, billing: 0, profit: 0, qty: 0 };
+          entry.billing += o.totalBilling || 0;
+          entry.profit += o.totalProfit || 0;
+          entry.qty += 1;
+          map.set(o.custName, entry);
+        });
+      } else {
+        filtered.forEach(o => (o.items || []).forEach(i => {
+          const schemeLabel = i.schemeType === 'Standard scheme'
+            ? `${i.name} — Standard`
+            : `${i.name} — ${i.paidQty}+${i.freeQty} (${i.schemeType})`;
+          const entry = map.get(schemeLabel) || { label: schemeLabel, billing: 0, profit: 0, qty: 0 };
+          entry.billing += i.billing || 0;
+          entry.profit += i.profit || 0;
+          entry.qty += i.orderQty || 0;
+          map.set(schemeLabel, entry);
+        }));
+      }
+
+      const rows = [...map.values()].sort((a, b) => b.profit - a.profit).slice(0, 5);
+      const unitLabel = topView === 'CUSTOMERS' ? 'order(s)' : 'units';
+
+      container.innerHTML = rows.map((r, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
+          <div>
+            <strong>${idx + 1}. ${r.label}</strong><br>
+            <span style="color:var(--subtext); font-size:0.78rem;">${r.qty} ${unitLabel} • Billing ₹${r.billing.toFixed(2)}</span>
+          </div>
+          <div style="font-weight:bold; color:var(--info-text);">₹${r.profit.toFixed(2)}</div>
+        </div>
+      `).join('');
     }
 
     // Weekly CNF Report Date Preset Helpers
@@ -1772,6 +2120,7 @@
       }
 
       localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      autoSyncToSheets();
       
       document.getElementById("dirName").value = "";
       document.getElementById("dirQualification").value = "";
@@ -1834,6 +2183,7 @@
       if (confirm(`Are you sure you want to delete ${c.name} from directory?`)) {
         customerDirectory.splice(index, 1);
         localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        autoSyncToSheets();
         if (editingCustomerIdx === index) cancelDirectoryEdit();
         renderCustomerDirectoryList();
         renderCustomerDirectoryTab();
@@ -2172,6 +2522,60 @@
       });
     }
 
+    // Fires automatically after every save/payment/status change/delete —
+    // silent, no alerts, so it never interrupts field work. If no webhook
+    // is configured yet, or the device is offline, it just quietly skips;
+    // the next successful sync will still carry the latest full state.
+    function autoSyncToSheets() {
+      const webhookUrl = localStorage.getItem('eicw_webhook_url');
+      if (!webhookUrl) return;
+      fetch(webhookUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, syncedAt: new Date().toISOString() })
+      }).catch(() => { /* offline or unreachable right now - will sync on the next change */ });
+    }
+
+    // Pulls the latest backup back down from Google Sheets and overwrites
+    // what's on this device. IMPORTANT: this needs your Google Apps Script
+    // to support a GET request (e.g. ?action=restore) that returns JSON
+    // shaped like {"orders": [...], "customers": [...]} - the default
+    // script from the earlier CSV/webhook setup only accepts POST and
+    // won't answer this without adding that part. Google Apps Script
+    // web-app responses also don't always send CORS headers, so this
+    // may fail with a network/CORS error even with a correctly written
+    // script - if so, use "Restore / Import Backup from CSV File" instead.
+    async function restoreFromSheets() {
+      const webhookUrl = document.getElementById('googleWebhookUrl').value.trim();
+      if (!webhookUrl) return alert("Please enter your Google Apps Script Webhook URL first!");
+      if (!confirm("This will replace the orders and customer directory on THIS device with the latest backup from Google Sheets. Continue?")) return;
+
+      try {
+        const sep = webhookUrl.includes('?') ? '&' : '?';
+        const res = await fetch(webhookUrl + sep + 'action=restore');
+        if (!res.ok) throw new Error('Server returned status ' + res.status);
+        const data = await res.json();
+
+        if (Array.isArray(data.orders)) {
+          savedOrders = data.orders;
+          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        }
+        if (Array.isArray(data.customers)) {
+          customerDirectory = data.customers;
+          localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        }
+
+        renderOrdersLog();
+        renderCustomerDirectoryList();
+        renderCustomerDirectoryTab();
+        updateDashboard();
+        alert(`Restored ${savedOrders.length} orders and ${customerDirectory.length} customers from Google Sheets.`);
+      } catch (err) {
+        alert("Restore failed: " + err.message + "\n\nThis usually means your Google Apps Script doesn't yet support a GET request at ?action=restore returning JSON, or the browser blocked reading the response (a common CORS limitation with Apps Script web apps). Your CSV export/import still works as a reliable backup in the meantime.");
+      }
+    }
+
     function shareCartWhatsApp() {
       if (cart.length === 0) return alert("Cart is empty!");
       const custName = document.getElementById("custName").value.trim() || "Doctor / Chemist";
@@ -2244,7 +2648,247 @@
       window.open(url, '_blank');
     }
 
-    window.onload = init;
+    // =========================================================
+    // SECURITY: PIN LOCK, SECURITY-QUESTION RECOVERY, FINGERPRINT
+    // =========================================================
+    // Uses the browser's built-in Web Crypto API (crypto.subtle) to hash
+    // the PIN and recovery answer - no external library needed, so this
+    // still works offline. Note: crypto.subtle and fingerprint (WebAuthn)
+    // both require a "secure context" - i.e. the app must be served over
+    // HTTPS (or localhost) or they simply won't be available.
+    // This PIN is a screen lock, not encryption: it hides the UI from
+    // someone picking up the phone, but the data in localStorage itself
+    // isn't encrypted by it.
+
+    async function sha256Hex(text) {
+      const enc = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function isPinSet() {
+      return !!localStorage.getItem('eicw_pin_hash');
+    }
+
+    async function checkLockOnLoad() {
+      renderSecuritySettings();
+
+      if (!isPinSet()) {
+        init();
+        return;
+      }
+
+      document.body.classList.add('locked');
+      document.getElementById('lockScreen').style.display = 'flex';
+
+      if (localStorage.getItem('eicw_webauthn_credential_id') && window.PublicKeyCredential) {
+        document.getElementById('lockFingerprintBtn').style.display = 'block';
+      }
+    }
+
+    async function attemptUnlock() {
+      const entered = document.getElementById('lockPinInput').value.trim();
+      const errorBox = document.getElementById('lockError');
+      if (!entered) return;
+
+      const storedHash = localStorage.getItem('eicw_pin_hash');
+      const enteredHash = await sha256Hex(entered);
+
+      if (enteredHash === storedHash) {
+        unlockApp();
+      } else {
+        errorBox.style.display = 'block';
+        errorBox.innerText = 'Incorrect PIN. Try again.';
+        document.getElementById('lockPinInput').value = '';
+      }
+    }
+
+    function unlockApp() {
+      document.body.classList.remove('locked');
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('lockPinInput').value = '';
+      document.getElementById('lockError').style.display = 'none';
+      init();
+    }
+
+    function showForgotPin() {
+      const question = localStorage.getItem('eicw_security_question');
+      if (!question) {
+        alert("No security question was set up, so PIN recovery isn't available. The only way back in is clearing this app's storage in your browser settings - which will also erase your saved orders and customers unless you've backed them up via CSV or Google Sheets.");
+        return;
+      }
+      document.getElementById('lockPinView').style.display = 'none';
+      document.getElementById('lockRecoveryView').style.display = 'block';
+      document.getElementById('lockRecoveryQuestion').innerText = question;
+    }
+
+    function cancelRecovery() {
+      document.getElementById('lockRecoveryView').style.display = 'none';
+      document.getElementById('lockPinView').style.display = 'block';
+      document.getElementById('lockRecoveryAnswer').value = '';
+      document.getElementById('lockRecoveryError').style.display = 'none';
+    }
+
+    async function attemptRecovery() {
+      const answer = document.getElementById('lockRecoveryAnswer').value.trim().toLowerCase();
+      if (!answer) return;
+
+      const storedAnswerHash = localStorage.getItem('eicw_security_answer_hash');
+      const errorBox = document.getElementById('lockRecoveryError');
+      const answerHash = await sha256Hex(answer);
+
+      if (answerHash === storedAnswerHash) {
+        const newPin = prompt("Correct! Enter a new PIN (4-8 digits):");
+        if (newPin && newPin.trim().length >= 4) {
+          localStorage.setItem('eicw_pin_hash', await sha256Hex(newPin.trim()));
+          alert("PIN reset successfully. Please unlock with your new PIN.");
+          cancelRecovery();
+        } else if (newPin !== null) {
+          alert("PIN must be at least 4 digits.");
+        }
+      } else {
+        errorBox.style.display = 'block';
+        errorBox.innerText = 'Answer did not match.';
+      }
+    }
+
+    async function registerFingerprint() {
+      if (!window.PublicKeyCredential) {
+        alert("Fingerprint unlock isn't supported on this browser/device.");
+        return;
+      }
+      try {
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const userId = crypto.getRandomValues(new Uint8Array(16));
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: { name: "EICW Sales Desk" },
+            user: { id: userId, name: "eicw-user", displayName: "EICW User" },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+            timeout: 60000
+          }
+        });
+        if (cred) {
+          const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+          localStorage.setItem('eicw_webauthn_credential_id', credIdB64);
+          alert("Fingerprint unlock is set up on this device!");
+          renderSecuritySettings();
+        }
+      } catch (err) {
+        alert("Fingerprint setup failed or was cancelled: " + err.message);
+      }
+    }
+
+    async function attemptFingerprintUnlock() {
+      const credIdB64 = localStorage.getItem('eicw_webauthn_credential_id');
+      if (!credIdB64) return;
+      try {
+        const rawId = Uint8Array.from(atob(credIdB64), c => c.charCodeAt(0));
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge,
+            allowCredentials: [{ id: rawId, type: 'public-key' }],
+            userVerification: "required",
+            timeout: 60000
+          }
+        });
+        if (assertion) unlockApp();
+      } catch (err) {
+        const errorBox = document.getElementById('lockError');
+        errorBox.style.display = 'block';
+        errorBox.innerText = 'Fingerprint unlock failed — use your PIN instead.';
+      }
+    }
+
+    function disableFingerprint() {
+      localStorage.removeItem('eicw_webauthn_credential_id');
+      renderSecuritySettings();
+      alert("Fingerprint unlock disabled on this device.");
+    }
+
+    async function setupPin() {
+      const pin1 = document.getElementById('setupPin1').value.trim();
+      const pin2 = document.getElementById('setupPin2').value.trim();
+      const question = document.getElementById('setupSecurityQuestion').value.trim();
+      const answer = document.getElementById('setupSecurityAnswer').value.trim();
+
+      if (pin1.length < 4) return alert("PIN must be at least 4 digits.");
+      if (pin1 !== pin2) return alert("PINs do not match.");
+      if (!question || !answer) return alert("Please set a security question and answer — this is how you'll recover your PIN if you forget it.");
+
+      localStorage.setItem('eicw_pin_hash', await sha256Hex(pin1));
+      localStorage.setItem('eicw_security_question', question);
+      localStorage.setItem('eicw_security_answer_hash', await sha256Hex(answer.toLowerCase()));
+      alert("PIN lock enabled!");
+      renderSecuritySettings();
+    }
+
+    async function changePin() {
+      const current = prompt("Enter your current PIN:");
+      if (current === null) return;
+      if (await sha256Hex(current.trim()) !== localStorage.getItem('eicw_pin_hash')) {
+        return alert("Current PIN is incorrect.");
+      }
+      const newPin = prompt("Enter your new PIN (4-8 digits):");
+      if (newPin === null) return;
+      if (newPin.trim().length < 4) return alert("PIN must be at least 4 digits.");
+      localStorage.setItem('eicw_pin_hash', await sha256Hex(newPin.trim()));
+      alert("PIN changed successfully.");
+    }
+
+    async function disablePinLock() {
+      const current = prompt("Enter your current PIN to disable the lock:");
+      if (current === null) return;
+      if (await sha256Hex(current.trim()) !== localStorage.getItem('eicw_pin_hash')) {
+        return alert("Current PIN is incorrect.");
+      }
+      localStorage.removeItem('eicw_pin_hash');
+      localStorage.removeItem('eicw_security_question');
+      localStorage.removeItem('eicw_security_answer_hash');
+      localStorage.removeItem('eicw_webauthn_credential_id');
+      alert("PIN lock disabled.");
+      renderSecuritySettings();
+    }
+
+    function renderSecuritySettings() {
+      const box = document.getElementById('securitySettingsBox');
+      if (!box) return;
+
+      const pinSet = isPinSet();
+      const fingerprintSet = !!localStorage.getItem('eicw_webauthn_credential_id');
+      const webauthnSupported = !!window.PublicKeyCredential;
+
+      if (!pinSet) {
+        box.innerHTML = `
+          <p style="font-size:0.82rem; color:var(--subtext); margin-top:0;">No PIN set — anyone who opens this app on your phone can see customer contacts and your product margins. Set a PIN to lock it.</p>
+          <label>New PIN (4-8 digits)</label>
+          <input type="password" inputmode="numeric" id="setupPin1" placeholder="Enter PIN">
+          <label>Confirm PIN</label>
+          <input type="password" inputmode="numeric" id="setupPin2" placeholder="Re-enter PIN">
+          <label>Security Question (used if you forget your PIN)</label>
+          <input type="text" id="setupSecurityQuestion" placeholder="e.g. Your first stockist's name?">
+          <label>Security Answer</label>
+          <input type="text" id="setupSecurityAnswer" placeholder="Answer">
+          <button class="btn-action" style="background:var(--primary);" onclick="setupPin()">🔒 Enable PIN Lock</button>
+        `;
+      } else {
+        box.innerHTML = `
+          <p style="font-size:0.82rem; color:var(--text-paid); margin-top:0;">🔒 PIN lock is enabled.</p>
+          <button class="btn-action" style="background:var(--accent);" onclick="changePin()">Change PIN</button>
+          ${webauthnSupported
+            ? (fingerprintSet
+                ? `<button class="btn-action btn-danger" onclick="disableFingerprint()">Disable Fingerprint Unlock</button>`
+                : `<button class="btn-action" style="background:#0284c7;" onclick="registerFingerprint()">👆 Set Up Fingerprint Unlock</button>`)
+            : `<p style="font-size:0.78rem; color:var(--subtext);">Fingerprint unlock isn't supported on this browser/device.</p>`}
+          <button class="btn-action btn-danger" onclick="disablePinLock()">Disable PIN Lock</button>
+        `;
+      }
+    }
+
+    window.onload = checkLockOnLoad;
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
