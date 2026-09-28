@@ -2514,7 +2514,7 @@
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(savedOrders)
+        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, syncedAt: new Date().toISOString() })
       }).then(() => {
         alert("Sync request sent to Google Sheets successfully!");
       }).catch(err => {
@@ -2556,6 +2556,7 @@
         const res = await fetch(webhookUrl + sep + 'action=restore');
         if (!res.ok) throw new Error('Server returned status ' + res.status);
         const data = await res.json();
+        if (data.error) throw new Error(data.error);
 
         if (Array.isArray(data.orders)) {
           savedOrders = data.orders;
