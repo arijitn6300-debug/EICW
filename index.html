@@ -507,6 +507,10 @@
             <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
             <div class="kpi-value" id="homeTotalProfit" style="color:var(--info-text);">₹0.00</div>
           </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--danger-bg, #fee2e2);">
+            <div class="kpi-label" style="color:var(--danger);">TOTAL PAYABLE TO COMPANY</div>
+            <div class="kpi-value" id="homeTotalCompanyDue" style="color:var(--danger);">₹0.00</div>
+          </div>
         </div>
       </div>
 
@@ -545,6 +549,10 @@
           <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
             <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
             <div class="kpi-value" id="customTotalProfit" style="color:var(--info-text);">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--danger-bg, #fee2e2);">
+            <div class="kpi-label" style="color:var(--danger);">TOTAL PAYABLE TO COMPANY</div>
+            <div class="kpi-value" id="customTotalCompanyDue" style="color:var(--danger);">₹0.00</div>
           </div>
         </div>
       </div>
@@ -778,7 +786,46 @@
 
     <!-- TAB 3: PRODUCTS CATALOG -->
     <div class="tab-view" id="tab-products">
-      <div style="margin-bottom: 10px;">
+
+      <!-- ADD / EDIT PRODUCT FORM -->
+      <div class="card" id="productFormCard" style="display:none; border: 2px solid var(--primary);">
+        <div class="card-title" id="productFormTitle">Add New Product</div>
+
+        <label>Product Name</label>
+        <input type="text" id="prodName" placeholder="e.g. Neoliv (200ml)">
+
+        <label>Category</label>
+        <select id="prodCategory">
+          <option value="Syrup">Syrup</option>
+          <option value="Tablet">Tablet</option>
+          <option value="Capsule">Capsule</option>
+          <option value="Ointment/Drops">Ointment/Drops</option>
+        </select>
+
+        <label>Salt Composition</label>
+        <input type="text" id="prodComposition" placeholder="e.g. Cyproheptadine HCl & Tricholine Citrate">
+
+        <div class="form-row">
+          <div>
+            <label>MRP (₹)</label>
+            <input type="number" id="prodMrp" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <label>TP + GST (₹)</label>
+            <input type="number" id="prodTpGst" min="0" step="0.01" placeholder="0.00">
+          </div>
+        </div>
+        <label>Your Cost (COGS) incl. GST (₹)</label>
+        <input type="number" id="prodCostGst" min="0" step="0.01" placeholder="0.00">
+        <div style="font-size:0.75rem; color:var(--subtext); margin-top:2px;">This is what you actually pay the company per unit — used to calculate your profit and your Total Payable to Company.</div>
+
+        <button class="btn-action" style="background: var(--primary); margin-top: 10px;" onclick="saveProductForm()">💾 Save Product</button>
+        <button class="btn-action btn-danger" onclick="cancelProductForm()">Cancel</button>
+      </div>
+
+      <button class="btn-action" style="background: var(--primary);" onclick="openAddProductForm()">➕ Add New Product</button>
+
+      <div style="margin-bottom: 10px; margin-top: 10px;">
         <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
       </div>
 
@@ -972,7 +1019,7 @@
   </nav>
 
   <script>
-    const CATALOG = [
+    const DEFAULT_CATALOG = [
       { id: "Neoliv", name: "Neoliv (200ml)", category: "Syrup", composition: "Cyproheptadine HCl & Tricholine Citrate", mrp: 130, tpGst: 103.95, costGst: 51.98 },
       { id: "Alvisol", name: "Alvisol (100ml)", category: "Syrup", composition: "Disodium Hydrogen Citrate Liquid", mrp: 100, tpGst: 80.00, costGst: 40.00 },
       { id: "Estozyme100", name: "Estozyme (100ml)", category: "Syrup", composition: "Fungal Diastase & Papain Liquid", mrp: 85, tpGst: 67.99, costGst: 33.99 },
@@ -993,12 +1040,34 @@
       { id: "P2Z", name: "P2-Z (1x10 Strip)", category: "Capsule", composition: "Pre-Probiotics & Zinc Sulphate", mrp: 125, tpGst: 100.00, costGst: 40.00 }
     ];
 
+    let CATALOG = (() => {
+      try {
+        const stored = localStorage.getItem('eicw_catalog');
+        if (stored) return JSON.parse(stored);
+      } catch (e) {}
+      return DEFAULT_CATALOG.map(p => ({ ...p }));
+    })();
+
+    function saveCatalog() {
+      localStorage.setItem('eicw_catalog', JSON.stringify(CATALOG));
+    }
+
+    function refreshProductSelect() {
+      const pSelect = document.getElementById("productSelect");
+      if (!pSelect) return;
+      const prevValue = pSelect.value;
+      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      if (CATALOG.some(p => p.id === prevValue)) pSelect.value = prevValue;
+      recalculate();
+    }
+
     let currentCategory = "ALL";
     let cart = [];
     let savedOrders = [];
     let customerDirectory = [];
     let editingOrderId = null;
     let editingCustomerIdx = null;
+    let editingProductId = null;
     let selectedCreditDays = 0;
     let orderStatusFilter = 'ALL';
     let orderPaymentFilter = 'ALL';
@@ -1020,8 +1089,7 @@
         document.getElementById('googleWebhookUrl').value = webhook;
       } catch (e) {}
 
-      const pSelect = document.getElementById("productSelect");
-      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      refreshProductSelect();
       
       toggleFormStatutoryFields('form');
       toggleFormStatutoryFields('dir');
@@ -1300,8 +1368,101 @@
             <span>TP+GST: ₹${p.tpGst}</span>
             <span>COGS: ₹${p.costGst}</span>
           </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn-sm" style="background:var(--accent); color:white; flex:1;" onclick="openEditProductForm('${p.id}')">✏️ Edit</button>
+            <button class="btn-sm btn-danger" style="flex:1;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+          </div>
         </div>
       `).join('');
+    }
+
+    function slugifyProductName(name) {
+      let base = name.trim().replace(/[^a-zA-Z0-9]+/g, '') || 'Product';
+      let id = base;
+      let counter = 2;
+      while (CATALOG.some(p => p.id === id)) {
+        id = base + counter;
+        counter++;
+      }
+      return id;
+    }
+
+    function openAddProductForm() {
+      editingProductId = null;
+      document.getElementById('productFormTitle').innerText = 'Add New Product';
+      document.getElementById('prodName').value = '';
+      document.getElementById('prodCategory').value = 'Syrup';
+      document.getElementById('prodComposition').value = '';
+      document.getElementById('prodMrp').value = '';
+      document.getElementById('prodTpGst').value = '';
+      document.getElementById('prodCostGst').value = '';
+      document.getElementById('productFormCard').style.display = 'block';
+      document.getElementById('productFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openEditProductForm(productId) {
+      const p = CATALOG.find(x => x.id === productId);
+      if (!p) return;
+      editingProductId = productId;
+      document.getElementById('productFormTitle').innerText = 'Edit Product';
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodCategory').value = p.category;
+      document.getElementById('prodComposition').value = p.composition;
+      document.getElementById('prodMrp').value = p.mrp;
+      document.getElementById('prodTpGst').value = p.tpGst;
+      document.getElementById('prodCostGst').value = p.costGst;
+      document.getElementById('productFormCard').style.display = 'block';
+      document.getElementById('productFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelProductForm() {
+      editingProductId = null;
+      document.getElementById('productFormCard').style.display = 'none';
+    }
+
+    function saveProductForm() {
+      const name = document.getElementById('prodName').value.trim();
+      const category = document.getElementById('prodCategory').value;
+      const composition = document.getElementById('prodComposition').value.trim();
+      const mrp = Math.max(0, Number(document.getElementById('prodMrp').value) || 0);
+      const tpGst = Math.max(0, Number(document.getElementById('prodTpGst').value) || 0);
+      const costGst = Math.max(0, Number(document.getElementById('prodCostGst').value) || 0);
+
+      if (!name) return alert("Product name is required.");
+      if (mrp <= 0) return alert("MRP must be greater than 0.");
+
+      if (editingProductId) {
+        const p = CATALOG.find(x => x.id === editingProductId);
+        if (p) {
+          p.name = name;
+          p.category = category;
+          p.composition = composition;
+          p.mrp = mrp;
+          p.tpGst = tpGst;
+          p.costGst = costGst;
+        }
+      } else {
+        CATALOG.push({ id: slugifyProductName(name), name, category, composition, mrp, tpGst, costGst });
+      }
+
+      saveCatalog();
+      autoSyncToSheets();
+      cancelProductForm();
+      renderProducts();
+      refreshProductSelect();
+    }
+
+    function deleteProduct(productId) {
+      const p = CATALOG.find(x => x.id === productId);
+      if (!p) return;
+      if (!confirm(`Delete "${p.name}" from your catalog? This won't affect orders you've already saved — only future orders won't be able to select it.`)) return;
+
+      CATALOG = CATALOG.filter(x => x.id !== productId);
+      saveCatalog();
+      autoSyncToSheets();
+      if (editingProductId === productId) cancelProductForm();
+      renderProducts();
+      refreshProductSelect();
     }
 
     function addToCart() {
@@ -1807,11 +1968,13 @@
       const totalColl = savedOrders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
       const totalDue = Math.max(0, totalRev - totalColl);
       const totalProf = savedOrders.reduce((sum, o) => sum + (o.totalProfit || 0), 0);
+      const totalCompanyDue = savedOrders.reduce((sum, o) => sum + (o.totalCogs || 0), 0);
 
       document.getElementById("homeTotalSales").innerText = `₹${totalRev.toFixed(2)}`;
       document.getElementById("homeTotalCollected").innerText = `₹${totalColl.toFixed(2)}`;
       document.getElementById("homeTotalDue").innerText = `₹${totalDue.toFixed(2)}`;
       document.getElementById("homeTotalProfit").innerText = `₹${totalProf.toFixed(2)}`;
+      document.getElementById("homeTotalCompanyDue").innerText = `₹${totalCompanyDue.toFixed(2)}`;
 
       renderDueTracker();
 
@@ -1858,12 +2021,14 @@
       const collected = filtered.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
       const due = Math.max(0, sales - collected);
       const profit = filtered.reduce((sum, o) => sum + (o.totalProfit || 0), 0);
+      const companyDue = filtered.reduce((sum, o) => sum + (o.totalCogs || 0), 0);
 
       document.getElementById("customOrdersCount").innerText = count;
       document.getElementById("customTotalSales").innerText = `₹${sales.toFixed(2)}`;
       document.getElementById("customTotalCollected").innerText = `₹${collected.toFixed(2)}`;
       document.getElementById("customTotalDue").innerText = `₹${due.toFixed(2)}`;
       document.getElementById("customTotalProfit").innerText = `₹${profit.toFixed(2)}`;
+      document.getElementById("customTotalCompanyDue").innerText = `₹${companyDue.toFixed(2)}`;
 
       renderTopPerformers();
     }
@@ -2514,7 +2679,7 @@
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, syncedAt: new Date().toISOString() })
+        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, catalog: CATALOG, syncedAt: new Date().toISOString() })
       }).then(() => {
         alert("Sync request sent to Google Sheets successfully!");
       }).catch(err => {
@@ -2533,7 +2698,7 @@
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, syncedAt: new Date().toISOString() })
+        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, catalog: CATALOG, syncedAt: new Date().toISOString() })
       }).catch(() => { /* offline or unreachable right now - will sync on the next change */ });
     }
 
@@ -2566,12 +2731,18 @@
           customerDirectory = data.customers;
           localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
         }
+        if (Array.isArray(data.catalog)) {
+          CATALOG = data.catalog;
+          saveCatalog();
+        }
 
         renderOrdersLog();
         renderCustomerDirectoryList();
         renderCustomerDirectoryTab();
+        renderProducts();
+        refreshProductSelect();
         updateDashboard();
-        alert(`Restored ${savedOrders.length} orders and ${customerDirectory.length} customers from Google Sheets.`);
+        alert(`Restored ${savedOrders.length} orders, ${customerDirectory.length} customers, and ${CATALOG.length} catalog products from Google Sheets.`);
       } catch (err) {
         alert("Restore failed: " + err.message + "\n\nThis usually means your Google Apps Script doesn't yet support a GET request at ?action=restore returning JSON, or the browser blocked reading the response (a common CORS limitation with Apps Script web apps). Your CSV export/import still works as a reliable backup in the meantime.");
       }
