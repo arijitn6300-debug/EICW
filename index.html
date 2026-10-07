@@ -514,4 +514,60 @@
         </div>
       </div>
 
-      <!-- CUSTOM DATE
+      <!-- CUSTOM DATE RANGE FILTER CARD -->
+      <div class="card">
+        <div class="card-title">Custom Date Range Analytics</div>
+        <div class="form-row">
+          <div>
+            <label>Start Date</label>
+            <input type="date" id="filterStartDate" onchange="updateCustomDateRange()">
+          </div>
+          <div>
+            <label>End Date</label>
+            <input type="date" id="filterEndDate" onchange="updateCustomDateRange()">
+          </div>
+        </div>
+        <button class="btn-sm btn-warning" style="margin-bottom: 12px;" onclick="clearDateFilter()">Reset Date Filter</button>
+
+        <div class="kpi-grid">
+          <div class="kpi-tile">
+            <div class="kpi-label">ORDERS SAVED</div>
+            <div class="kpi-value" id="customOrdersCount">0</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL BOOKED SALES</div>
+            <div class="kpi-value" id="customTotalSales">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">TOTAL COLLECTED</div>
+            <div class="kpi-value" id="customTotalCollected" style="color:var(--text-paid);">₹0.00</div>
+          </div>
+          <div class="kpi-tile">
+            <div class="kpi-label">PENDING BALANCES</div>
+            <div class="kpi-value" id="customTotalDue" style="color:var(--text-due);">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
+            <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
+            <div class="kpi-value" id="customTotalProfit" style="color:var(--info-text);">₹0.00</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; background: var(--danger-bg, #fee2e2);">
+            <div class="kpi-label" style="color:var(--danger);">TOTAL PAYABLE TO COMPANY</div>
+            <div class="kpi-value" id="customTotalCompanyDue" style="color:var(--danger);">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP PERFORMERS (uses the date range above) -->
+      <div class="card">
+        <div class="card-title">🏆 Top Performers <span style="font-size:0.7rem; font-weight:normal; color:var(--subtext);">(uses date range above)</span></div>
+        <div class="category-pills" id="topPerformersPills">
+          <button class="pill active" onclick="setTopView('PRODUCTS', this)">Top Products</button>
+          <button class="pill" onclick="setTopView('CUSTOMERS', this)">Top Customers</button>
+          <button class="pill" onclick="setTopView('SCHEMES', this)">Top Scheme Combos</button>
+        </div>
+        <div id="topPerformersList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <button class="btn-action" style="background:
