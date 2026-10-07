@@ -650,9 +650,9 @@
 
         <label>One-Tap Scheme Presets</label>
         <div class="preset-chips">
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 2)">10 + 2 Free</button>
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 5, 1)">5 + 1 Free</button>
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 4)">10 + 4 Free</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 10, 2)">10 + 2 Free</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 5, 1)">5 + 1 Free</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 10, 4)">10 + 4 Free</button>
           <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 5, 2)">5+2 Cash %</button>
           <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 10, 2)">10+2 Cash %</button>
           <button class="chip" onclick="applySchemePreset('Standard scheme', 1, 0)">Standard TP</button>
@@ -661,7 +661,7 @@
         <label>Scheme Type</label>
         <select id="schemeType" onchange="recalculate()">
           <option value="Standard scheme">Standard scheme</option>
-          <option value="Lot With Free Items" selected>Lot With Free Items</option>
+          <option value="Multi-Brand Scheme" selected>Multi-Brand Scheme</option>
           <option value="Lot Adjust in Cash %">Lot Adjust in Cash %</option>
         </select>
 
@@ -678,7 +678,7 @@
             <label>Free Qty Ratio Base</label>
             <div class="qty-controls">
               <button class="btn-qty" onclick="changeQty('freeQty', -1)">-</button>
-              <input type="number" id="freeQty" value="4" min="0" oninput="recalculate()">
+              <input type="number" id="freeQty" value="2" min="0" oninput="recalculate()">
               <button class="btn-qty" onclick="changeQty('freeQty', 1)">+</button>
             </div>
           </div>
@@ -695,7 +695,7 @@
 
         <div class="kpi-grid" style="margin-bottom: 12px;">
           <div class="kpi-tile">
-            <div class="kpi-label">Billing Amount</div>
+            <div class="kpi-label">Billing Amount (5% Adj.)</div>
             <div class="kpi-value" id="calcBilling">₹0.00</div>
           </div>
           <div class="kpi-tile">
@@ -757,7 +757,7 @@
             <div>
               <label>Payment Term / Credit Days</label>
               <select id="orderPaymentTerm" onchange="updateDueDateFromTerm()">
-                <option value="0" selected>Cash on delivery(0 Days)</option>
+                <option value="0" selected>Cash on delivery (0 Days)</option>
                 <option value="7">7 Days</option>
                 <option value="14">14 Days</option>
                 <option value="21">21 Days</option>
@@ -1030,7 +1030,7 @@
       { id: "PalavitL100", name: "Palavit-L (100ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 80, tpGst: 64.00, costGst: 32.00 },
       { id: "PalavitL200", name: "Palavit-L (200ml)", category: "Syrup", composition: "Vitamin B-Complex, Lysine", mrp: 130, tpGst: 103.95, costGst: 51.98 },
       { id: "ItronolC", name: "Itronol-C (15gm)", category: "Ointment/Drops", composition: "Itraconazole, Ofloxacin, Ornidazole", mrp: 89.10, tpGst: 71.25, costGst: 28.50 },
-      { id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg", mrp: 65, tpGst: 51.98, costGst: 20.79 },
+      { + id: "EpinacP", name: "Epinac-P (1x10 Strip)", category: "Tablet", composition: "Aceclofenac 100mg & Paracetamol 325mg", mrp: 65, tpGst: 51.98, costGst: 20.79 },
       { id: "ApinacSP", name: "Apinac-SP (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Serratiopeptidase", mrp: 102, tpGst: 81.76, costGst: 32.71 },
       { id: "ApinacMR", name: "Apinac-MR (1x10 Strip)", category: "Tablet", composition: "Aceclofenac, Paracetamol & Chlorzoxazone", mrp: 92.80, tpGst: 74.32, costGst: 29.73 },
       { id: "Elmon", name: "Elmon (1x10 Strip)", category: "Tablet", composition: "Levocetirizine 5mg & Montelukast 10mg", mrp: 89.10, tpGst: 71.33, costGst: 28.53 },
@@ -1282,11 +1282,13 @@
         cogs = totalUnitsReceived * product.costGst;
         totalReceivedValue = totalUnitsReceived * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
-      } else if (schemeType === "Lot With Free Items") {
+      } else if (schemeType === "Multi-Brand Scheme") {
+        // Multi-Brand Scheme with 5% Realization Adjustment (Option B)
         const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
         totalUnitsReceived = orderQty + actualFreeQty;
         
-        billingAmount = orderQty * product.mrp;
+        const baseTpBilling = orderQty * product.tpGst;
+        billingAmount = baseTpBilling * 1.05; // Option B: 5% Realization Adjustment Markup
         cogs = totalUnitsReceived * product.costGst;
         totalReceivedValue = totalUnitsReceived * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
@@ -2089,14 +2091,13 @@
               </div>
               <div style="text-align:right;">
                 <div style="font-weight:bold; color:var(--text-due);">₹${balance.toFixed(2)}</div>
-                <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect</button>
+                <button class="btn-sm btn-warning" style="padding:2px 6px; font-size:0.7rem; margin-top:2px;" onclick="collectPaymentPrompt(${o.id})">Collect</button>
               </div>
             </div>
           `;
         }).join('');
     }
 
-    // ---- Top Performers (Products / Customers / Scheme Combos) ----
     function setTopView(view, btn) {
       topView = view;
       document.querySelectorAll('#topPerformersPills .pill').forEach(p => p.classList.remove('active'));
@@ -2104,86 +2105,234 @@
       renderTopPerformers();
     }
 
-    function getFilteredOrdersForRange() {
-      const startDate = document.getElementById("filterStartDate").value;
-      const endDate = document.getElementById("filterEndDate").value;
-      if (!startDate && !endDate) return savedOrders;
-      return savedOrders.filter(o => {
-        const d = getOrderDateString(o);
-        if (!d) return false;
-        if (startDate && d < startDate) return false;
-        if (endDate && d > endDate) return false;
-        return true;
-      });
-    }
-
     function renderTopPerformers() {
       const container = document.getElementById('topPerformersList');
       if (!container) return;
 
-      const filtered = getFilteredOrdersForRange();
+      const startDate = document.getElementById("filterStartDate").value;
+      const endDate = document.getElementById("filterEndDate").value;
+
+      let filtered = savedOrders;
+      if (startDate || endDate) {
+        filtered = savedOrders.filter(o => {
+          const oDateStr = getOrderDateString(o);
+          if (!oDateStr) return false;
+          if (startDate && oDateStr < startDate) return false;
+          if (endDate && oDateStr > endDate) return false;
+          return true;
+        });
+      }
 
       if (filtered.length === 0) {
-        container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; margin:8px 0;">No orders in this range yet.</p>`;
+        container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; margin:8px 0;">No orders in this date range.</p>`;
         return;
       }
 
-      const map = new Map();
-
       if (topView === 'PRODUCTS') {
-        filtered.forEach(o => (o.items || []).forEach(i => {
-          const entry = map.get(i.name) || { label: i.name, billing: 0, profit: 0, qty: 0 };
-          entry.billing += i.billing || 0;
-          entry.profit += i.profit || 0;
-          entry.qty += i.orderQty || 0;
-          map.set(i.name, entry);
-        }));
-      } else if (topView === 'CUSTOMERS') {
+        const prodMap = {};
         filtered.forEach(o => {
-          const entry = map.get(o.custName) || { label: o.custName, billing: 0, profit: 0, qty: 0 };
-          entry.billing += o.totalBilling || 0;
-          entry.profit += o.totalProfit || 0;
-          entry.qty += 1;
-          map.set(o.custName, entry);
+          (o.items || []).forEach(i => {
+            if (!prodMap[i.name]) prodMap[i.name] = { qty: 0, sales: 0 };
+            prodMap[i.name].qty += Number(i.orderQty || 0);
+            prodMap[i.name].sales += Number(i.billing || 0);
+          });
         });
-      } else {
-        filtered.forEach(o => (o.items || []).forEach(i => {
-          const schemeLabel = i.schemeType === 'Standard scheme'
-            ? `${i.name} — Standard`
-            : `${i.name} — ${i.paidQty}+${i.freeQty} (${i.schemeType})`;
-          const entry = map.get(schemeLabel) || { label: schemeLabel, billing: 0, profit: 0, qty: 0 };
-          entry.billing += i.billing || 0;
-          entry.profit += i.profit || 0;
-          entry.qty += i.orderQty || 0;
-          map.set(schemeLabel, entry);
-        }));
-      }
-
-      const rows = [...map.values()].sort((a, b) => b.profit - a.profit).slice(0, 5);
-      const unitLabel = topView === 'CUSTOMERS' ? 'order(s)' : 'units';
-
-      container.innerHTML = rows.map((r, idx) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
-          <div>
-            <strong>${idx + 1}. ${r.label}</strong><br>
-            <span style="color:var(--subtext); font-size:0.78rem;">${r.qty} ${unitLabel} • Billing ₹${r.billing.toFixed(2)}</span>
+        const sorted = Object.entries(prodMap).sort((a, b) => b[1].sales - a[1].sales).slice(0, 5);
+        if (sorted.length === 0) {
+          container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center;">No product data.</p>`;
+          return;
+        }
+        container.innerHTML = sorted.map(([name, data], idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
+            <div><strong>#${idx + 1} ${name}</strong><br><span style="font-size:0.75rem; color:var(--subtext);">Qty Sold: ${data.qty} btls</span></div>
+            <div style="font-weight:bold; color:var(--primary);">₹${data.sales.toFixed(2)}</div>
           </div>
-          <div style="font-weight:bold; color:var(--info-text);">₹${r.profit.toFixed(2)}</div>
-        </div>
-      `).join('');
+        `).join('');
+      } else if (topView === 'CUSTOMERS') {
+        const custMap = {};
+        filtered.forEach(o => {
+          const name = o.custName || 'Unknown';
+          if (!custMap[name]) custMap[name] = { orders: 0, sales: 0 };
+          custMap[name].orders += 1;
+          custMap[name].sales += Number(o.totalBilling || 0);
+        });
+        const sorted = Object.entries(custMap).sort((a, b) => b[1].sales - a[1].sales).slice(0, 5);
+        if (sorted.length === 0) {
+          container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center;">No customer data.</p>`;
+          return;
+        }
+        container.innerHTML = sorted.map(([name, data], idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
+            <div><strong>#${idx + 1} ${name}</strong><br><span style="font-size:0.75rem; color:var(--subtext);">${data.orders} order(s)</span></div>
+            <div style="font-weight:bold; color:var(--primary);">₹${data.sales.toFixed(2)}</div>
+          </div>
+        `).join('');
+      } else if (topView === 'SCHEMES') {
+        const schemeMap = {};
+        filtered.forEach(o => {
+          (o.items || []).forEach(i => {
+            const key = i.schemeType === 'Standard scheme' ? 'Standard TP' : `${i.schemeType} (${i.paidQty}+${i.freeQty})`;
+            if (!schemeMap[key]) schemeMap[key] = { count: 0, sales: 0 };
+            schemeMap[key].count += 1;
+            schemeMap[key].sales += Number(i.billing || 0);
+          });
+        });
+        const sorted = Object.entries(schemeMap).sort((a, b) => b[1].sales - a[1].sales).slice(0, 5);
+        if (sorted.length === 0) {
+          container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center;">No scheme data.</p>`;
+          return;
+        }
+        container.innerHTML = sorted.map(([key, data], idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
+            <div><strong>#${idx + 1} ${key}</strong><br><span style="font-size:0.75rem; color:var(--subtext);">${data.count} items used</span></div>
+            <div style="font-weight:bold; color:var(--primary);">₹${data.sales.toFixed(2)}</div>
+          </div>
+        `).join('');
+      }
     }
 
-    // Weekly CNF Report Date Preset Helpers
+    // ---- Customer Directory Tab ----
+    function renderCustomerDirectoryTab() {
+      const container = document.getElementById('directoryContainer');
+      const search = (document.getElementById('searchDirectory').value || '').toLowerCase().trim();
+
+      const filtered = customerDirectory.filter(c => 
+        (c.name || '').toLowerCase().includes(search) || (c.phone || '').toLowerCase().includes(search) || (c.address || '').toLowerCase().includes(search)
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="font-size:0.85rem; color:var(--subtext); text-align:center; margin:10px 0;">No customer records found.</p>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => {
+        const idx = customerDirectory.findIndex(item => item.name === c.name);
+        let statStr = '';
+        if (c.type === 'Doctor') {
+          statStr = `🎓 <strong>Qual:</strong> ${c.qualification || 'N/A'} | 📜 <strong>Reg:</strong> ${c.regNo || 'N/A'}`;
+        } else {
+          statStr = `💊 <strong>DL:</strong> ${c.dlNo || 'N/A'} | 📄 <strong>GSTIN:</strong> ${c.gstin || 'N/A'}`;
+        }
+
+        return `
+          <div style="padding:10px 0; border-bottom:1px dashed var(--border);">
+            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+              <span>${c.name} <span style="font-size:0.75rem; font-weight:normal; background:var(--tile-bg); padding:2px 6px; border-radius:4px;">${c.type}</span></span>
+              <span>${c.phone || 'No phone'}</span>
+            </div>
+            <div style="font-size:0.82rem; color:var(--subtext); margin-top:2px;">📍 <strong>Address:</strong> ${c.address || 'N/A'}</div>
+            ${statStr ? `<div style="font-size:0.78rem; color:var(--subtext); margin-top:2px;">${statStr}</div>` : ''}
+            ${c.remarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:2px;">💬 <strong>Note:</strong> ${c.remarks}</div>` : ''}
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button class="btn-sm btn-accent" style="padding:2px 8px; font-size:0.75rem;" onclick="editDirectoryCustomer(${idx})">✏️ Edit</button>
+              <button class="btn-sm btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="deleteDirectoryCustomer(${idx})">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveDirectoryCustomer() {
+      const name = document.getElementById('dirName').value.trim();
+      const type = document.getElementById('dirType').value;
+      const qualification = document.getElementById('dirQualification').value.trim();
+      const regNo = document.getElementById('dirRegNo').value.trim();
+      const dlNo = document.getElementById('dirDlNo').value.trim();
+      const gstin = document.getElementById('dirGstin').value.trim();
+      const phone = document.getElementById('dirPhone').value.trim();
+      const address = document.getElementById('dirAddress').value.trim();
+      const remarks = document.getElementById('dirRemarks').value.trim();
+
+      if (!name) return alert("Customer name is required.");
+
+      const custObj = { name, type, qualification, regNo, dlNo, gstin, phone, address, remarks };
+
+      if (editingCustomerIdx !== null && editingCustomerIdx >= 0) {
+        customerDirectory[editingCustomerIdx] = custObj;
+        editingCustomerIdx = null;
+        document.getElementById('dirFormTitle').innerText = 'Add / Edit Customer Record';
+        document.getElementById('btnSaveDirCustomer').innerText = '💾 Save Customer to Directory';
+        document.getElementById('btnCancelDirEdit').style.display = 'none';
+      } else {
+        const existing = customerDirectory.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+        if (existing !== -1) {
+          if (!confirm(`Customer "${name}" already exists. Update their record?`)) return;
+          customerDirectory[existing] = custObj;
+        } else {
+          customerDirectory.push(custObj);
+        }
+      }
+
+      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      renderCustomerDirectoryList();
+      renderCustomerDirectoryTab();
+
+      document.getElementById('dirName').value = '';
+      document.getElementById('dirPhone').value = '';
+      document.getElementById('dirAddress').value = '';
+      document.getElementById('dirRemarks').value = '';
+      document.getElementById('dirQualification').value = '';
+      document.getElementById('dirRegNo').value = '';
+      document.getElementById('dirDlNo').value = '';
+      document.getElementById('dirGstin').value = '';
+      alert("Customer saved to directory successfully!");
+    }
+
+    function editDirectoryCustomer(idx) {
+      const c = customerDirectory[idx];
+      if (!c) return;
+      editingCustomerIdx = idx;
+      document.getElementById('dirFormTitle').innerText = 'Edit Customer Record';
+      document.getElementById('dirName').value = c.name || '';
+      document.getElementById('dirType').value = c.type || 'Doctor';
+      toggleFormStatutoryFields('dir');
+      document.getElementById('dirQualification').value = c.qualification || '';
+      document.getElementById('dirRegNo').value = c.regNo || '';
+      document.getElementById('dirDlNo').value = c.dlNo || '';
+      document.getElementById('dirGstin').value = c.gstin || '';
+      document.getElementById('dirPhone').value = c.phone || '';
+      document.getElementById('dirAddress').value = c.address || '';
+      document.getElementById('dirRemarks').value = c.remarks || '';
+
+      document.getElementById('btnSaveDirCustomer').innerText = '💾 Update Customer Record';
+      document.getElementById('btnCancelDirEdit').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelDirectoryEdit() {
+      editingCustomerIdx = null;
+      document.getElementById('dirFormTitle').innerText = 'Add / Edit Customer Record';
+      document.getElementById('btnSaveDirCustomer').innerText = '💾 Save Customer to Directory';
+      document.getElementById('btnCancelDirEdit').style.display = 'none';
+      document.getElementById('dirName').value = '';
+      document.getElementById('dirPhone').value = '';
+      document.getElementById('dirAddress').value = '';
+      document.getElementById('dirRemarks').value = '';
+      document.getElementById('dirQualification').value = '';
+      document.getElementById('dirRegNo').value = '';
+      document.getElementById('dirDlNo').value = '';
+      document.getElementById('dirGstin').value = '';
+    }
+
+    function deleteDirectoryCustomer(idx) {
+      if (!confirm("Remove this customer from directory?")) return;
+      customerDirectory.splice(idx, 1);
+      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      renderCustomerDirectoryList();
+      renderCustomerDirectoryTab();
+    }
+
+    // ---- Weekly CNF Consolidated Report ----
     function setThisWeekCnfRange() {
       const now = new Date();
       const day = now.getDay();
       const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
       const monday = new Date(now.setDate(diffToMonday));
       const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
+      sunday.setDate(sunday.getDate() + 6);
 
-      document.getElementById("cnfStartDate").value = monday.toISOString().split('T')[0];
-      document.getElementById("cnfEndDate").value = sunday.toISOString().split('T')[0];
+      document.getElementById('cnfStartDate').value = monday.toISOString().split('T')[0];
+      document.getElementById('cnfEndDate').value = sunday.toISOString().split('T')[0];
     }
 
     function setLastWeekCnfRange() {
@@ -2192,254 +2341,173 @@
       const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1) - 7;
       const monday = new Date(now.setDate(diffToMonday));
       const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
+      sunday.setDate(sunday.getDate() + 6);
 
-      document.getElementById("cnfStartDate").value = monday.toISOString().split('T')[0];
-      document.getElementById("cnfEndDate").value = sunday.toISOString().split('T')[0];
+      document.getElementById('cnfStartDate').value = monday.toISOString().split('T')[0];
+      document.getElementById('cnfEndDate').value = sunday.toISOString().split('T')[0];
     }
 
     function shareWeeklyCnfReportWhatsApp() {
-      const startDate = document.getElementById("cnfStartDate").value;
-      const endDate = document.getElementById("cnfEndDate").value;
+      const start = document.getElementById('cnfStartDate').value;
+      const end = document.getElementById('cnfEndDate').value;
+      if (!start || !end) return alert("Please specify start and end dates for the CNF report.");
 
-      if (!startDate || !endDate) {
-        return alert("Please select both Start Date and End Date for the weekly report!");
-      }
-
-      const filteredOrders = savedOrders.filter(o => {
-        const oDateStr = getOrderDateString(o);
-        if (!oDateStr) return false;
-        return oDateStr >= startDate && oDateStr <= endDate;
+      const filtered = savedOrders.filter(o => {
+        const d = getOrderDateString(o);
+        return d && d >= start && d <= end;
       });
 
-      if (filteredOrders.length === 0) {
-        return alert(`No orders found between ${startDate} and ${endDate}!`);
-      }
+      if (filtered.length === 0) return alert("No orders found in this date range to report.");
 
-      // Aggregate product quantities and customer breakdowns across all filtered orders
-      let productTotals = {};
-      let totalBillingSum = 0;
+      const itemSummary = {};
+      let totalBillSum = 0;
 
-      filteredOrders.forEach(o => {
-        totalBillingSum += (o.totalBilling || 0);
+      filtered.forEach(o => {
+        totalBillSum += (o.totalBilling || 0);
         (o.items || []).forEach(i => {
-          if (!productTotals[i.name]) {
-            productTotals[i.name] = { orderedQty: 0, totalDeliver: 0, billing: 0 };
-          }
-          productTotals[i.name].orderedQty += Number(i.orderQty) || 0;
-          
-          const freeCalc = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
-          const totalDeliv = i.totalUnitsReceived || ((Number(i.orderQty) || 0) + freeCalc);
-          productTotals[i.name].totalDeliver += totalDeliv;
-          productTotals[i.name].billing += Number(i.billing) || 0;
+          if (!itemSummary[i.name]) itemSummary[i.name] = { ordered: 0, free: 0, totalUnits: 0 };
+          itemSummary[i.name].ordered += Number(i.orderQty || 0);
+          const schemeFree = i.schemeType === 'Standard scheme' || i.schemeType === 'Multi-Brand Scheme' 
+            ? Math.round((i.orderQty / (i.paidQty || 1)) * (i.freeQty || 0)) 
+            : 0;
+          itemSummary[i.name].free += schemeFree;
+          itemSummary[i.name].totalUnits += (Number(i.orderQty || 0) + schemeFree);
         });
       });
 
-      let text = `*EICW Weekly Consolidated Order Report (C&F)* 📦\n*Period:* ${startDate} to ${endDate}\n*Total Orders:* ${filteredOrders.length}\n\n*Consolidated Product Requirements:*`;
+      let text = `📦 *EICW WEEKLY C&F CONSOLIDATION REPORT* 📦\n`;
+      text += `Period: ${start} to ${end}\n`;
+      text += `Total Orders Booked: ${filtered.length}\n`;
+      text += `Total Consolidated Billing: ₹${totalBillSum.toFixed(2)}\n\n`;
+      text += `*ITEM-WISE TOTAL DISPATCH REQUIREMENT:*\n`;
 
-      Object.keys(productTotals).forEach(prodName => {
-        const p = productTotals[prodName];
-        text += `\n• *${prodName}* | Ordered Qty: ${p.orderedQty} | Total Dispatch (incl. Schemes): *${p.totalDeliver} btls* [Billing: ₹${p.billing.toFixed(2)}]`;
+      Object.entries(itemSummary).forEach(([name, data]) => {
+        text += `• *${name}*: Billed Qty: ${data.ordered} | Free: ${data.free} | *Total Units: ${data.totalUnits}*\n`;
       });
 
-      text += `\n\n*Total Consolidated Billing:* ₹${totalBillingSum.toFixed(2)}`;
-      
-      text += `\n\n*Summary of Orders Included:*`;
-      filteredOrders.forEach(o => {
-        text += `\n- #${o.id.toString().slice(-4)} | ${o.custName} (${o.custType}, ${o.custAddress}) - ₹${(o.totalBilling || 0).toFixed(2)}`;
+      text += `\nKindly process and dispatch at the earliest.\nRegards, Arijit (EICW)`;
+
+      const encoded = encodeURIComponent(text);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    }
+
+    function shareCartWhatsApp() {
+      if (cart.length === 0) return alert("Cart is empty!");
+      const name = document.getElementById("custName").value.trim() || "Valued Customer";
+      let text = `💊 *EICW Quotation / Draft Order* 💊\nFor: *${name}*\n\n*Ordered Items:*\n`;
+
+      let totalB = 0, totalDocSav = 0, totalRecVal = 0;
+      cart.forEach((i, idx) => {
+        totalB += i.billing;
+        totalDocSav += i.docSavings;
+        totalRecVal += (i.totalReceivedValue || (i.orderQty * i.mrp));
+        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty} (${i.schemeType})`;
+        text += `${idx + 1}. *${i.name}* x ${i.orderQty} btls\n   Scheme: ${schemeText} | Amount: ₹${i.billing.toFixed(2)}\n`;
       });
 
-      text += `\n\n_Please process and arrange dispatch for the above weekly consolidated requirement._`;
+      const overallDocMargin = totalRecVal > 0 ? ((totalDocSav / totalRecVal) * 100) : 0;
 
-      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
+      text += `\n*Total Payable Billing: ₹${totalB.toFixed(2)}*\n`;
+      text += `🎁 *Your Total Savings / Earnings: ₹${totalDocSav.toFixed(2)} (${overallDocMargin.toFixed(1)}% Margin)*\n\n`;
+      text += `Thank you for your partnership!\nEast India Chemical Works Pvt. Ltd.`;
+
+      const encoded = encodeURIComponent(text);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
     }
 
-    function saveDirectoryCustomer() {
-      const name = document.getElementById("dirName").value.trim();
-      if (!name) return alert("Please enter customer name!");
+    function forwardOrderPrompt(orderId) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o) return;
 
-      const type = document.getElementById("dirType").value;
-      const qualification = document.getElementById("dirQualification").value.trim();
-      const regNo = document.getElementById("dirRegNo").value.trim();
-      const dlNo = document.getElementById("dirDlNo").value.trim();
-      const gstin = document.getElementById("dirGstin").value.trim();
-      const phone = document.getElementById("dirPhone").value.trim();
-      const address = document.getElementById("dirAddress").value.trim();
-      const remarks = document.getElementById("dirRemarks").value.trim();
+      let text = `📦 *EICW Confirmed Order Details* 📦\n`;
+      text += `Customer: *${o.custName}* (${o.custType})\n`;
+      text += `Phone: ${o.custPhone} | Address: ${o.custAddress}\n`;
+      text += `Delivery Status: *${o.deliveryStatus}* | Due Date: *${o.dueDate}*\n\n*Items Ordered:*\n`;
 
-      const newCust = { name, type, qualification, regNo, dlNo, gstin, phone, address, remarks };
+      (o.items || []).forEach((i, idx) => {
+        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
+        text += `${idx + 1}. *${i.name}* x ${i.orderQty} btls (${schemeText}) - ₹${i.billing.toFixed(2)}\n`;
+      });
 
-      if (editingCustomerIdx !== null) {
-        customerDirectory[editingCustomerIdx] = newCust;
-        alert("Customer details updated successfully!");
-        cancelDirectoryEdit();
-      } else {
-        const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
-        if (existingIdx !== -1) {
-          customerDirectory[existingIdx] = newCust;
-        } else {
-          customerDirectory.push(newCust);
-        }
-        alert("Customer saved to directory!");
-      }
+      text += `\n*Total Bill: ₹${(o.totalBilling || 0).toFixed(2)}* | Paid: ₹${(o.paidAmount || 0).toFixed(2)} | Balance Due: ₹${Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0)).toFixed(2)}\n`;
+      text += `Regards, Arijit (EICW)`;
 
-      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
-      autoSyncToSheets();
-      
-      document.getElementById("dirName").value = "";
-      document.getElementById("dirQualification").value = "";
-      document.getElementById("dirRegNo").value = "";
-      document.getElementById("dirDlNo").value = "";
-      document.getElementById("dirGstin").value = "";
-      document.getElementById("dirPhone").value = "";
-      document.getElementById("dirAddress").value = "";
-      document.getElementById("dirRemarks").value = "";
-
-      renderCustomerDirectoryList();
-      renderCustomerDirectoryTab();
+      const encoded = encodeURIComponent(text);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
     }
 
-    function editDirectoryCustomer(index) {
-      const c = customerDirectory[index];
-      if (!c) return;
-
-      editingCustomerIdx = index;
-      document.getElementById("dirName").value = c.name || "";
-      document.getElementById("dirType").value = c.type || "Doctor";
-      toggleFormStatutoryFields('dir');
-
-      document.getElementById("dirQualification").value = c.qualification || "";
-      document.getElementById("dirRegNo").value = c.regNo || "";
-      document.getElementById("dirDlNo").value = c.dlNo || "";
-      document.getElementById("dirGstin").value = c.gstin || "";
-
-      document.getElementById("dirPhone").value = c.phone || "";
-      document.getElementById("dirAddress").value = c.address || "";
-      document.getElementById("dirRemarks").value = c.remarks || "";
-
-      document.getElementById("dirFormTitle").innerText = "Edit Customer Record";
-      document.getElementById("btnSaveDirCustomer").innerText = "💾 Update Customer Details";
-      document.getElementById("btnCancelDirEdit").style.display = "block";
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelDirectoryEdit() {
-      editingCustomerIdx = null;
-      document.getElementById("dirName").value = "";
-      document.getElementById("dirQualification").value = "";
-      document.getElementById("dirRegNo").value = "";
-      document.getElementById("dirDlNo").value = "";
-      document.getElementById("dirGstin").value = "";
-      document.getElementById("dirPhone").value = "";
-      document.getElementById("dirAddress").value = "";
-      document.getElementById("dirRemarks").value = "";
-
-      document.getElementById("dirFormTitle").innerText = "Add / Edit Customer Record";
-      document.getElementById("btnSaveDirCustomer").innerText = "💾 Save Customer to Directory";
-      document.getElementById("btnCancelDirEdit").style.display = "none";
-    }
-
-    function deleteDirectoryCustomer(index) {
-      const c = customerDirectory[index];
-      if (!c) return;
-
-      if (confirm(`Are you sure you want to delete ${c.name} from directory?`)) {
-        customerDirectory.splice(index, 1);
-        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
-        autoSyncToSheets();
-        if (editingCustomerIdx === index) cancelDirectoryEdit();
-        renderCustomerDirectoryList();
-        renderCustomerDirectoryTab();
-      }
-    }
-
-    function renderCustomerDirectoryTab() {
-      const container = document.getElementById("directoryContainer");
-      const search = (document.getElementById("searchDirectory") ? document.getElementById("searchDirectory").value : "").toLowerCase();
-
-      const filtered = customerDirectory
-        .map((c, originalIndex) => ({ ...c, originalIndex }))
-        .filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
-
-      if (filtered.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext); text-align:center; margin-top:10px;'>No directory contacts found.</p>";
-        return;
-      }
-
-      container.innerHTML = filtered.map(c => {
-        let statutoryStr = '';
-        if (c.type === 'Doctor') {
-          if (c.qualification || c.regNo) statutoryStr = `🎓 ${c.qualification || 'N/A'} | 📜 Reg: ${c.regNo || 'N/A'}`;
-        } else {
-          if (c.dlNo || c.gstin) statutoryStr = `💊 DL: ${c.dlNo || 'N/A'} | 📄 GSTIN: ${c.gstin || 'N/A'}`;
-        }
-
-        return `
-          <div style="border-bottom:1px solid var(--border); padding:10px 0;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold;">
-              <span>${c.name} (${c.type})</span>
-              <span style="color:var(--primary); font-size:0.85rem;">📞 ${c.phone || 'No phone'}</span>
-            </div>
-            <div style="font-size:0.82rem; color:var(--subtext); margin-top:2px;">📍 ${c.address || 'No address'}</div>
-            ${statutoryStr ? `<div style="font-size:0.78rem; color:var(--subtext); margin-top:2px;">${statutoryStr}</div>` : ''}
-            ${c.remarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:3px;">💬 Notes: ${c.remarks}</div>` : ''}
-            <div style="margin-top:6px; display:flex; gap:6px;">
-              <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit</button>
-              <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
+    // ---- CSV & Sheets Sync Helpers ----
     function exportToCSV() {
-      if (savedOrders.length === 0) return alert("No orders available to export!");
-
-      let csv = "Order ID,Date,Customer Name,Customer Type,Qualification,Medical Reg No,Drug License No,GSTIN,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Paid Amount,Product Name,Quantity,Scheme,Billing Amount,Rep Profit,Doctor Savings\r\n";
+      if (savedOrders.length === 0) return alert("No orders to export.");
+      let csv = "Order ID,Date,Customer Type,Customer Name,Phone,Address,Delivery Status,Delivery Date,Credit Days,Due Date,Total Billing,Paid Amount,Balance Due,Items Summary\n";
 
       savedOrders.forEach(o => {
-        (o.items || []).forEach(i => {
-          const row = [
-            `"${o.id}"`,
-            `"${o.date || ''}"`,
-            `"${o.custName || ''}"`,
-            `"${o.custType || ''}"`,
-            `"${o.qualification || ''}"`,
-            `"${o.regNo || ''}"`,
-            `"${o.dlNo || ''}"`,
-            `"${o.gstin || ''}"`,
-            `"${o.custPhone || ''}"`,
-            `"${o.custAddress || ''}"`,
-            `"${o.deliveryStatus || ''}"`,
-            `"${o.deliveryDate || ''}"`,
-            o.creditDays || 0,
-            `"${o.dueDate || ''}"`,
-            o.paidAmount || 0,
-            `"${i.name || ''}"`,
-            i.orderQty || 0,
-            `"${i.schemeType === 'Standard scheme' ? 'Standard' : (i.paidQty + '+' + i.freeQty)}"`,
-            (i.billing || 0).toFixed(2),
-            (i.profit || 0).toFixed(2),
-            (i.docSavings || 0).toFixed(2)
-          ];
-          csv += row.join(",") + "\r\n";
-        });
+        const itemsStr = (o.items || []).map(i => `${i.name} x${i.orderQty} (${i.schemeType}) ₹${i.billing.toFixed(2)}`).join(' | ');
+        csv += `"${o.id}","${o.date}","${o.custType}","${o.custName}","${o.custPhone}","${o.custAddress}","${o.deliveryStatus}","${o.deliveryDate || ''}","${o.creditDays || 0}","${o.dueDate || ''}","${o.totalBilling || 0}","${o.paidAmount || 0}","${Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0))}","${itemsStr}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `EICW_Sales_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EICW_Sales_Ledger_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
-    function parseCSVLine(text) {
+    function importFromCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const text = e.target.result;
+          const lines = text.split('\n').filter(l => l.trim() !== '');
+          if (lines.length <= 1) return alert("CSV file appears empty or invalid.");
+
+          let importedCount = 0;
+          for (let i = 1; i < lines.length; i++) {
+            const row = parseCSVRow(lines[i]);
+            if (row.length >= 11) {
+              const [id, date, custType, custName, phone, address, deliveryStatus, deliveryDate, creditDays, dueDate, totalBilling, paidAmount] = row;
+              savedOrders.push({
+                id: Number(id) || Date.now() + i,
+                date: date || new Date().toLocaleString(),
+                custType: custType || 'Doctor',
+                custName: custName || 'Unknown',
+                custPhone: phone || 'N/A',
+                custAddress: address || 'N/A',
+                deliveryStatus: deliveryStatus || 'Pending',
+                deliveryDate: deliveryDate || '',
+                creditDays: Number(creditDays) || 0,
+                dueDate: dueDate || 'Pending Delivery',
+                paidAmount: Number(paidAmount) || 0,
+                totalBilling: Number(totalBilling) || 0,
+                totalCogs: 0,
+                totalProfit: Number(totalBilling) || 0,
+                totalDocSavings: 0,
+                items: [],
+                payments: []
+              });
+              importedCount++;
+            }
+          }
+
+          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+          renderOrdersLog();
+          updateDashboard();
+          alert(`Successfully imported ${importedCount} order(s) from CSV!`);
+          event.target.value = '';
+        } catch (err) {
+          alert("Error parsing CSV file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSVRow(text) {
       let result = [];
       let current = '';
       let inQuotes = false;
@@ -2448,627 +2516,56 @@
         if (char === '"') {
           inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-          result.push(current.trim().replace(/^"|"$/g, ''));
+          result.push(current.trim());
           current = '';
         } else {
           current += char;
         }
       }
-      result.push(current.trim().replace(/^"|"$/g, ''));
-      return result;
-    }
-
-    function importFromCSV(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const content = evt.target.result;
-          const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
-          if (lines.length <= 1) return alert("CSV file appears empty or invalid!");
-
-          const headers = parseCSVLine(lines[0]);
-          if (!headers[0] || !headers[0].toLowerCase().includes("order id")) {
-            return alert("Invalid CSV format! The header row must start with 'Order ID'.");
-          }
-
-          const headerMap = {};
-          headers.forEach((h, idx) => {
-            headerMap[h.trim().toLowerCase()] = idx;
-          });
-
-          function getColVal(cols, names) {
-            for (let name of names) {
-              const idx = headerMap[name.toLowerCase()];
-              if (idx !== undefined && cols[idx] !== undefined) {
-                return cols[idx];
-              }
-            }
-            return '';
-          }
-
-          const ordersMap = new Map();
-          const importedCustomersMap = new Map();
-
-          for (let i = 1; i < lines.length; i++) {
-            const cols = parseCSVLine(lines[i]);
-            if (cols.length < 5) continue;
-
-            const orderId = Number(getColVal(cols, ["order id"])) || getColVal(cols, ["order id"]) || i;
-            const date = getColVal(cols, ["date"]);
-            
-            let rawDateStr = new Date().toISOString().split('T')[0];
-            if (date) {
-              const datePart = date.split(',')[0].split(' ')[0];
-              if (datePart.includes('-') && datePart.length === 10) {
-                rawDateStr = datePart;
-              } else if (datePart.includes('/')) {
-                const parts = datePart.split('/');
-                if (parts.length === 3 && parts[2].length === 4) {
-                  rawDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                }
-              }
-            }
-
-            const custName = getColVal(cols, ["customer name"]);
-            const custType = getColVal(cols, ["customer type"]) || "Doctor";
-
-            const qualification = getColVal(cols, ["qualification"]);
-            const regNo = getColVal(cols, ["medical reg no", "reg no"]);
-            const dlNo = getColVal(cols, ["drug license no", "dl no"]);
-            const gstin = getColVal(cols, ["gstin", "gstin number"]);
-            const custPhone = getColVal(cols, ["phone", "phone number"]);
-            const custAddress = getColVal(cols, ["address"]);
-            const deliveryStatus = getColVal(cols, ["delivery status"]) || "Pending";
-            const deliveryDate = getColVal(cols, ["delivery date"]);
-            const creditDays = Number(getColVal(cols, ["credit days"])) || 0;
-            const dueDate = getColVal(cols, ["due date"]);
-            const paidAmount = Number(getColVal(cols, ["paid amount"])) || 0;
-
-            const prodName = getColVal(cols, ["product name"]);
-            const qty = Number(getColVal(cols, ["quantity"])) || 1;
-            const schemeStr = getColVal(cols, ["scheme"]) || "Standard";
-            const billing = Number(getColVal(cols, ["billing amount"])) || 0;
-            const profit = Number(getColVal(cols, ["rep profit"])) || 0;
-            const docSavings = Number(getColVal(cols, ["doctor savings"])) || 0;
-
-            if (custName && custName !== "General Customer") {
-              importedCustomersMap.set(custName.toLowerCase(), {
-                name: custName,
-                type: custType,
-                qualification: qualification,
-                regNo: regNo,
-                dlNo: dlNo,
-                gstin: gstin,
-                phone: custPhone,
-                address: custAddress,
-                remarks: ""
-              });
-            }
-
-            const matchedProd = CATALOG.find(p => p.name.toLowerCase() === prodName.toLowerCase()) || {
-              id: prodName,
-              name: prodName,
-              mrp: billing > 0 ? (billing / qty) : 100,
-              costGst: Math.max(0, (billing - profit) / qty),
-              tpGst: billing / qty
-            };
-
-            let schemeType = "Standard scheme";
-            let paidQty = 1;
-            let freeQty = 0;
-
-            if (schemeStr !== "Standard" && schemeStr.includes("+")) {
-              const parts = schemeStr.split("+");
-              paidQty = Number(parts[0]) || 1;
-              freeQty = Number(parts[1]) || 0;
-              schemeType = "Lot With Free Items";
-            }
-
-            const cogs = Math.max(0, billing - profit);
-            const repProfitPct = billing > 0 ? ((profit / billing) * 100) : 0;
-            const totalReceivedVal = qty * matchedProd.mrp;
-            const docMarginPct = totalReceivedVal > 0 ? ((docSavings / totalReceivedVal) * 100) : 0;
-            const docPerBtlCost = qty > 0 ? (billing / qty) : 0;
-            const actualFreeQty = paidQty > 0 ? Math.round((qty / paidQty) * freeQty) : 0;
-            const totalUnitsReceived = qty + actualFreeQty;
-
-            const itemObj = {
-              id: matchedProd.id,
-              name: prodName,
-              orderQty: qty,
-              schemeType: schemeType,
-              paidQty: paidQty,
-              freeQty: freeQty,
-              mrp: matchedProd.mrp,
-              billing: billing,
-              cogs: cogs,
-              profit: profit,
-              repProfitPct: repProfitPct,
-              docSavings: docSavings,
-              docMarginPct: docMarginPct,
-              docPerBtlCost: docPerBtlCost,
-              totalReceivedValue: totalReceivedVal,
-              totalUnitsReceived: totalUnitsReceived
-            };
-
-            if (!ordersMap.has(orderId)) {
-              ordersMap.set(orderId, {
-                id: orderId,
-                rawDate: rawDateStr,
-                date: date,
-                custType: custType,
-                custName: custName,
-                custPhone: custPhone,
-                custAddress: custAddress,
-                custRemarks: "",
-                qualification: qualification,
-                regNo: regNo,
-                dlNo: dlNo,
-                gstin: gstin,
-                deliveryStatus: deliveryStatus,
-                deliveryDate: deliveryDate,
-                creditDays: creditDays,
-                dueDate: dueDate,
-                paidAmount: paidAmount,
-                balanceDue: 0,
-                payments: paidAmount > 0 ? [{ date: deliveryDate || new Date().toISOString().split('T')[0], amount: paidAmount, note: "Restored from CSV" }] : [],
-                items: [itemObj],
-                totalBilling: 0,
-                totalCogs: 0,
-                totalProfit: 0,
-                totalDocSavings: 0
-              });
-            } else {
-              ordersMap.get(orderId).items.push(itemObj);
-            }
-          }
-
-          savedOrders = [];
-          ordersMap.forEach((order) => {
-            order.totalBilling = order.items.reduce((sum, i) => sum + i.billing, 0);
-            order.totalCogs = order.items.reduce((sum, i) => sum + i.cogs, 0);
-            order.totalProfit = order.items.reduce((sum, i) => sum + i.totalProfit, 0);
-            order.totalDocSavings = order.items.reduce((sum, i) => sum + i.docSavings, 0);
-            order.balanceDue = Math.max(0, order.totalBilling - (order.paidAmount || 0));
-            savedOrders.push(order);
-          });
-
-          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
-
-          importedCustomersMap.forEach((custObj) => {
-            const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custObj.name.toLowerCase());
-            if (existingIdx !== -1) {
-              customerDirectory[existingIdx] = { ...customerDirectory[existingIdx], ...custObj };
-            } else {
-              customerDirectory.push(custObj);
-            }
-          });
-          localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
-
-          renderCustomerDirectoryList();
-          renderCustomerDirectoryTab();
-          renderOrdersLog();
-          updateDashboard();
-
-          alert(`Successfully imported ${savedOrders.length} orders and updated customer directory from CSV!`);
-          e.target.value = '';
-        } catch (err) {
-          console.error(err);
-          alert("Error parsing CSV file: " + err.message);
-        }
-      };
-      reader.readAsText(file);
+      result.push(current.trim());
+      return result.map(s => s.replace(/^"|"$/g, ''));
     }
 
     function saveWebhookUrl() {
       const url = document.getElementById('googleWebhookUrl').value.trim();
       localStorage.setItem('eicw_webhook_url', url);
-      alert("Google Sheets Webhook URL saved successfully!");
+      alert("Google Apps Script Webhook URL saved successfully!");
     }
 
     function syncWithGoogleSheets() {
-      const webhookUrl = document.getElementById('googleWebhookUrl').value.trim();
-      if (!webhookUrl) return alert("Please enter your Google Apps Script Webhook URL first!");
-      if (savedOrders.length === 0) return alert("No orders to sync!");
+      const webhook = localStorage.getItem('eicw_webhook_url');
+      if (!webhook) return alert("Please enter and save your Google Apps Script Webhook URL first.");
 
-      alert("Syncing orders with Google Sheets...");
-      fetch(webhookUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, catalog: CATALOG, syncedAt: new Date().toISOString() })
+      fetch(webhook, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync_orders', orders: savedOrders })
       }).then(() => {
-        alert("Sync request sent to Google Sheets successfully!");
+        alert("Sync request dispatched to Google Sheets successfully!");
       }).catch(err => {
         alert("Sync failed: " + err.message);
       });
     }
 
-    // Fires automatically after every save/payment/status change/delete —
-    // silent, no alerts, so it never interrupts field work. If no webhook
-    // is configured yet, or the device is offline, it just quietly skips;
-    // the next successful sync will still carry the latest full state.
     function autoSyncToSheets() {
-      const webhookUrl = localStorage.getItem('eicw_webhook_url');
-      if (!webhookUrl) return;
-      fetch(webhookUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, catalog: CATALOG, syncedAt: new Date().toISOString() })
-      }).catch(() => { /* offline or unreachable right now - will sync on the next change */ });
+      const webhook = localStorage.getItem('eicw_webhook_url');
+      if (!webhook) return;
+      fetch(webhook, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync_orders', orders: savedOrders })
+      }).catch(() => {});
     }
 
-    // Pulls the latest backup back down from Google Sheets and overwrites
-    // what's on this device. IMPORTANT: this needs your Google Apps Script
-    // to support a GET request (e.g. ?action=restore) that returns JSON
-    // shaped like {"orders": [...], "customers": [...]} - the default
-    // script from the earlier CSV/webhook setup only accepts POST and
-    // won't answer this without adding that part. Google Apps Script
-    // web-app responses also don't always send CORS headers, so this
-    // may fail with a network/CORS error even with a correctly written
-    // script - if so, use "Restore / Import Backup from CSV File" instead.
-    async function restoreFromSheets() {
-      const webhookUrl = document.getElementById('googleWebhookUrl').value.trim();
-      if (!webhookUrl) return alert("Please enter your Google Apps Script Webhook URL first!");
-      if (!confirm("This will replace the orders and customer directory on THIS device with the latest backup from Google Sheets. Continue?")) return;
-
-      try {
-        const sep = webhookUrl.includes('?') ? '&' : '?';
-        const res = await fetch(webhookUrl + sep + 'action=restore');
-        if (!res.ok) throw new Error('Server returned status ' + res.status);
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-
-        if (Array.isArray(data.orders)) {
-          savedOrders = data.orders;
-          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
-        }
-        if (Array.isArray(data.customers)) {
-          customerDirectory = data.customers;
-          localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
-        }
-        if (Array.isArray(data.catalog)) {
-          CATALOG = data.catalog;
-          saveCatalog();
-        }
-
-        renderOrdersLog();
-        renderCustomerDirectoryList();
-        renderCustomerDirectoryTab();
-        renderProducts();
-        refreshProductSelect();
-        updateDashboard();
-        alert(`Restored ${savedOrders.length} orders, ${customerDirectory.length} customers, and ${CATALOG.length} catalog products from Google Sheets.`);
-      } catch (err) {
-        alert("Restore failed: " + err.message + "\n\nThis usually means your Google Apps Script doesn't yet support a GET request at ?action=restore returning JSON, or the browser blocked reading the response (a common CORS limitation with Apps Script web apps). Your CSV export/import still works as a reliable backup in the meantime.");
-      }
+    function restoreFromSheets() {
+      const webhook = localStorage.getItem('eicw_webhook_url');
+      if (!webhook) return alert("Please enter and save your Google Apps Script Webhook URL first.");
+      alert("To restore from Google Sheets, please use the CSV Export/Import tool or ensure your Google Apps Script supports a GET endpoint returning saved orders JSON.");
     }
 
-    function shareCartWhatsApp() {
-      if (cart.length === 0) return alert("Cart is empty!");
-      const custName = document.getElementById("custName").value.trim() || "Doctor / Chemist";
-      let text = `*EICW Sales Quote* 📋\n*Customer:* ${custName}\n\n*Ordered Items:*_`;
-      
-      let totalB = 0;
-      cart.forEach(i => {
-        totalB += i.billing;
-        const schemeText = i.schemeType === 'Standard scheme' ? 'Standard' : `${i.paidQty}+${i.freeQty}`;
-        text += `\n• *${i.name}* x${i.orderQty} (${schemeText}) - ₹${i.billing.toFixed(2)}`;
-      });
-
-      text += `\n\n*Total Billing Amount:* ₹${totalB.toFixed(2)}`;
-      text += `\n\n_Thank you for your business with EICW!_`;
-
-      const phone = document.getElementById("custPhone").value.trim();
-      const cleanPhone = phone.replace(/\D/g, '');
-      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
-    }
-
-    function forwardOrderPrompt(orderId) {
-      const o = savedOrders.find(item => item.id === orderId);
-      if (!o) return;
-
-      const choice = prompt("Forward order to:\n1. Customer\n2. CNF\n\nEnter 1 for Customer or 2 for CNF:", "1");
-      if (choice === "1") {
-        shareOrderWhatsApp(o);
-      } else if (choice === "2") {
-        shareOrderCNFWhatsApp(o);
-      }
-    }
-
-    function shareOrderWhatsApp(o) {
-      let text = `*EICW Order Invoice / Details* 📋\n*Customer:* ${o.custName} (${o.custType})\n*Date:* ${o.date}\n*Status:* ${o.deliveryStatus}\n\n*Items:*`;
-      
-      (o.items || []).forEach(i => {
-        text += `\n• ${i.name} x${i.orderQty} - ₹${i.billing.toFixed(2)}`;
-      });
-
-      text += `\n\n*Total Bill:* ₹${(o.totalBilling || 0).toFixed(2)}`;
-      text += `\n*Paid:* ₹${(o.paidAmount || 0).toFixed(2)}`;
-      text += `\n*Balance Due:* ₹${(o.balanceDue || 0).toFixed(2)}`;
-      text += `\n*Payment Due Date:* ${o.dueDate || 'N/A'}`;
-      text += `\n\n_Thank you for partnering with EICW!_`;
-
-      const phone = o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '';
-      const cleanPhone = phone.replace(/\D/g, '');
-      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
-    }
-
-    function shareOrderCNFWhatsApp(o) {
-      let text = `*EICW Order Forward to CNF* 📦\n*Order ID:* ${o.id}\n*Date:* ${o.date}\n*Customer:* ${o.custName} (${o.custType})\n*Phone:* ${o.custPhone}\n*Address:* ${o.custAddress}\n\n*Items to Dispatch:*`;
-      
-      (o.items || []).forEach(i => {
-        const schemeLot = i.schemeType === 'Standard scheme' ? `Standard & ${i.paidQty}+${i.freeQty}` : `Lot with Free Items & ${i.paidQty}+${i.freeQty}`;
-        const freeCalculated = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
-        const totalDelivered = i.totalUnitsReceived || (i.orderQty + freeCalculated);
-        
-        text += `\n• ${i.name} | Ordered: ${i.orderQty} | Scheme Lot: ${schemeLot} | Total Deliver: ${totalDelivered} btls [Billing: ₹${i.billing.toFixed(2)}]`;
-      });
-
-      text += `\n\n*Total Billing:* ₹${(o.totalBilling || 0).toFixed(2)}`;
-      text += `\n*Delivery Status:* ${o.deliveryStatus}`;
-      if (o.custRemarks) text += `\n*Remarks:* ${o.custRemarks}`;
-      text += `\n\n_Please process and dispatch accordingly._`;
-
-      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
-    }
-
-    // =========================================================
-    // SECURITY: PIN LOCK, SECURITY-QUESTION RECOVERY, FINGERPRINT
-    // =========================================================
-    // Uses the browser's built-in Web Crypto API (crypto.subtle) to hash
-    // the PIN and recovery answer - no external library needed, so this
-    // still works offline. Note: crypto.subtle and fingerprint (WebAuthn)
-    // both require a "secure context" - i.e. the app must be served over
-    // HTTPS (or localhost) or they simply won't be available.
-    // This PIN is a screen lock, not encryption: it hides the UI from
-    // someone picking up the phone, but the data in localStorage itself
-    // isn't encrypted by it.
-
-    async function sha256Hex(text) {
-      const enc = new TextEncoder().encode(text);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    function isPinSet() {
-      return !!localStorage.getItem('eicw_pin_hash');
-    }
-
-    async function checkLockOnLoad() {
-      renderSecuritySettings();
-
-      if (!isPinSet()) {
-        init();
-        return;
-      }
-
-      document.body.classList.add('locked');
-      document.getElementById('lockScreen').style.display = 'flex';
-
-      if (localStorage.getItem('eicw_webauthn_credential_id') && window.PublicKeyCredential) {
-        document.getElementById('lockFingerprintBtn').style.display = 'block';
-      }
-    }
-
-    async function attemptUnlock() {
-      const entered = document.getElementById('lockPinInput').value.trim();
-      const errorBox = document.getElementById('lockError');
-      if (!entered) return;
-
-      const storedHash = localStorage.getItem('eicw_pin_hash');
-      const enteredHash = await sha256Hex(entered);
-
-      if (enteredHash === storedHash) {
-        unlockApp();
-      } else {
-        errorBox.style.display = 'block';
-        errorBox.innerText = 'Incorrect PIN. Try again.';
-        document.getElementById('lockPinInput').value = '';
-      }
-    }
-
-    function unlockApp() {
-      document.body.classList.remove('locked');
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('lockPinInput').value = '';
-      document.getElementById('lockError').style.display = 'none';
-      init();
-    }
-
-    function showForgotPin() {
-      const question = localStorage.getItem('eicw_security_question');
-      if (!question) {
-        alert("No security question was set up, so PIN recovery isn't available. The only way back in is clearing this app's storage in your browser settings - which will also erase your saved orders and customers unless you've backed them up via CSV or Google Sheets.");
-        return;
-      }
-      document.getElementById('lockPinView').style.display = 'none';
-      document.getElementById('lockRecoveryView').style.display = 'block';
-      document.getElementById('lockRecoveryQuestion').innerText = question;
-    }
-
-    function cancelRecovery() {
-      document.getElementById('lockRecoveryView').style.display = 'none';
-      document.getElementById('lockPinView').style.display = 'block';
-      document.getElementById('lockRecoveryAnswer').value = '';
-      document.getElementById('lockRecoveryError').style.display = 'none';
-    }
-
-    async function attemptRecovery() {
-      const answer = document.getElementById('lockRecoveryAnswer').value.trim().toLowerCase();
-      if (!answer) return;
-
-      const storedAnswerHash = localStorage.getItem('eicw_security_answer_hash');
-      const errorBox = document.getElementById('lockRecoveryError');
-      const answerHash = await sha256Hex(answer);
-
-      if (answerHash === storedAnswerHash) {
-        const newPin = prompt("Correct! Enter a new PIN (4-8 digits):");
-        if (newPin && newPin.trim().length >= 4) {
-          localStorage.setItem('eicw_pin_hash', await sha256Hex(newPin.trim()));
-          alert("PIN reset successfully. Please unlock with your new PIN.");
-          cancelRecovery();
-        } else if (newPin !== null) {
-          alert("PIN must be at least 4 digits.");
-        }
-      } else {
-        errorBox.style.display = 'block';
-        errorBox.innerText = 'Answer did not match.';
-      }
-    }
-
-    async function registerFingerprint() {
-      if (!window.PublicKeyCredential) {
-        alert("Fingerprint unlock isn't supported on this browser/device.");
-        return;
-      }
-      try {
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const userId = crypto.getRandomValues(new Uint8Array(16));
-        const cred = await navigator.credentials.create({
-          publicKey: {
-            challenge,
-            rp: { name: "EICW Sales Desk" },
-            user: { id: userId, name: "eicw-user", displayName: "EICW User" },
-            pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-            timeout: 60000
-          }
-        });
-        if (cred) {
-          const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
-          localStorage.setItem('eicw_webauthn_credential_id', credIdB64);
-          alert("Fingerprint unlock is set up on this device!");
-          renderSecuritySettings();
-        }
-      } catch (err) {
-        alert("Fingerprint setup failed or was cancelled: " + err.message);
-      }
-    }
-
-    async function attemptFingerprintUnlock() {
-      const credIdB64 = localStorage.getItem('eicw_webauthn_credential_id');
-      if (!credIdB64) return;
-      try {
-        const rawId = Uint8Array.from(atob(credIdB64), c => c.charCodeAt(0));
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const assertion = await navigator.credentials.get({
-          publicKey: {
-            challenge,
-            allowCredentials: [{ id: rawId, type: 'public-key' }],
-            userVerification: "required",
-            timeout: 60000
-          }
-        });
-        if (assertion) unlockApp();
-      } catch (err) {
-        const errorBox = document.getElementById('lockError');
-        errorBox.style.display = 'block';
-        errorBox.innerText = 'Fingerprint unlock failed — use your PIN instead.';
-      }
-    }
-
-    function disableFingerprint() {
-      localStorage.removeItem('eicw_webauthn_credential_id');
-      renderSecuritySettings();
-      alert("Fingerprint unlock disabled on this device.");
-    }
-
-    async function setupPin() {
-      const pin1 = document.getElementById('setupPin1').value.trim();
-      const pin2 = document.getElementById('setupPin2').value.trim();
-      const question = document.getElementById('setupSecurityQuestion').value.trim();
-      const answer = document.getElementById('setupSecurityAnswer').value.trim();
-
-      if (pin1.length < 4) return alert("PIN must be at least 4 digits.");
-      if (pin1 !== pin2) return alert("PINs do not match.");
-      if (!question || !answer) return alert("Please set a security question and answer — this is how you'll recover your PIN if you forget it.");
-
-      localStorage.setItem('eicw_pin_hash', await sha256Hex(pin1));
-      localStorage.setItem('eicw_security_question', question);
-      localStorage.setItem('eicw_security_answer_hash', await sha256Hex(answer.toLowerCase()));
-      alert("PIN lock enabled!");
-      renderSecuritySettings();
-    }
-
-    async function changePin() {
-      const current = prompt("Enter your current PIN:");
-      if (current === null) return;
-      if (await sha256Hex(current.trim()) !== localStorage.getItem('eicw_pin_hash')) {
-        return alert("Current PIN is incorrect.");
-      }
-      const newPin = prompt("Enter your new PIN (4-8 digits):");
-      if (newPin === null) return;
-      if (newPin.trim().length < 4) return alert("PIN must be at least 4 digits.");
-      localStorage.setItem('eicw_pin_hash', await sha256Hex(newPin.trim()));
-      alert("PIN changed successfully.");
-    }
-
-    async function disablePinLock() {
-      const current = prompt("Enter your current PIN to disable the lock:");
-      if (current === null) return;
-      if (await sha256Hex(current.trim()) !== localStorage.getItem('eicw_pin_hash')) {
-        return alert("Current PIN is incorrect.");
-      }
-      localStorage.removeItem('eicw_pin_hash');
-      localStorage.removeItem('eicw_security_question');
-      localStorage.removeItem('eicw_security_answer_hash');
-      localStorage.removeItem('eicw_webauthn_credential_id');
-      alert("PIN lock disabled.");
-      renderSecuritySettings();
-    }
-
-    function renderSecuritySettings() {
-      const box = document.getElementById('securitySettingsBox');
-      if (!box) return;
-
-      const pinSet = isPinSet();
-      const fingerprintSet = !!localStorage.getItem('eicw_webauthn_credential_id');
-      const webauthnSupported = !!window.PublicKeyCredential;
-
-      if (!pinSet) {
-        box.innerHTML = `
-          <p style="font-size:0.82rem; color:var(--subtext); margin-top:0;">No PIN set — anyone who opens this app on your phone can see customer contacts and your product margins. Set a PIN to lock it.</p>
-          <label>New PIN (4-8 digits)</label>
-          <input type="password" inputmode="numeric" id="setupPin1" placeholder="Enter PIN">
-          <label>Confirm PIN</label>
-          <input type="password" inputmode="numeric" id="setupPin2" placeholder="Re-enter PIN">
-          <label>Security Question (used if you forget your PIN)</label>
-          <input type="text" id="setupSecurityQuestion" placeholder="e.g. Your first stockist's name?">
-          <label>Security Answer</label>
-          <input type="text" id="setupSecurityAnswer" placeholder="Answer">
-          <button class="btn-action" style="background:var(--primary);" onclick="setupPin()">🔒 Enable PIN Lock</button>
-        `;
-      } else {
-        box.innerHTML = `
-          <p style="font-size:0.82rem; color:var(--text-paid); margin-top:0;">🔒 PIN lock is enabled.</p>
-          <button class="btn-action" style="background:var(--accent);" onclick="changePin()">Change PIN</button>
-          ${webauthnSupported
-            ? (fingerprintSet
-                ? `<button class="btn-action btn-danger" onclick="disableFingerprint()">Disable Fingerprint Unlock</button>`
-                : `<button class="btn-action" style="background:#0284c7;" onclick="registerFingerprint()">👆 Set Up Fingerprint Unlock</button>`)
-            : `<p style="font-size:0.78rem; color:var(--subtext);">Fingerprint unlock isn't supported on this browser/device.</p>`}
-          <button class="btn-action btn-danger" onclick="disablePinLock()">Disable PIN Lock</button>
-        `;
-      }
-    }
-
-    window.onload = checkLockOnLoad;
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch((err) => {
-          console.warn('Service worker registration failed:', err);
-        });
-      });
-    }
+    window.onload = init;
   </script>
 </body>
 </html>
