@@ -449,6 +449,10 @@
     </div>
   </div>
 
+  <div id="appModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000; align-items:center; justify-content:center; padding:16px;" onclick="if(event.target===this) closeModal()">
+    <div id="appModalBox" style="background:var(--card-bg); color:var(--text); border-radius:14px; padding:16px; width:100%; max-width:340px; max-height:90vh; overflow-y:auto; text-align:center;"></div>
+  </div>
+
   <header>
     <div class="header-title">
       <div class="brand-logo-container">
@@ -585,6 +589,7 @@
           <span id="editingBadge" style="display:none; background:var(--warning); color:white; font-size:0.75rem; padding:2px 8px; border-radius:4px;">Editing Order</span>
         </div>
 
+        <div id="creditWarningBox" style="display:none; background:var(--badge-due); color:var(--text-due); border:1px solid var(--danger); border-radius:8px; padding:8px 10px; font-size:0.85rem; margin-bottom:8px;"></div>
         <div id="custAlertBox" class="alert-box"></div>
 
         <div class="form-row">
@@ -807,7 +812,8 @@
         </div>
 
         <button class="btn-action" style="background: var(--primary); margin-top: 8px;" onclick="saveOrder()">💾 Save Order & Update Directory</button>
-        <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote via WhatsApp</button>
+        <button class="btn-action btn-whatsapp" onclick="shareCartWhatsApp()">📲 Share Draft Quote (SMS / WhatsApp)</button>
+        <button class="btn-action" style="background:#0f766e;" onclick="showUpiQr()">📷 Show UPI QR (Scan &amp; Pay)</button>
         <button class="btn-action btn-danger" onclick="clearCart()">Clear / Reset Cart</button>
       </div>
     </div>
@@ -939,6 +945,16 @@
       <div class="card">
         <div class="card-title">🔒 Security & PIN Lock</div>
         <div id="securitySettingsBox"></div>
+      </div>
+
+      <!-- UPI COLLECTION SETUP -->
+      <div class="card">
+        <div class="card-title">💳 UPI Collection Setup</div>
+        <label>Your UPI ID (VPA)</label>
+        <input type="text" id="upiIdInput" placeholder="yourname@okhdfcbank" onchange="saveUpiSettings()">
+        <label>Payee Name (shown in the payer's app)</label>
+        <input type="text" id="upiNameInput" placeholder="e.g. Arijit Halder" onchange="saveUpiSettings()">
+        <div style="font-size:0.75rem; color:var(--subtext); margin-top:2px;">Used by the "Show UPI QR" button in the Order Builder.</div>
       </div>
 
       <!-- WEEKLY CNF REPORTING CARD -->
@@ -1115,6 +1131,8 @@
 
         const webhook = localStorage.getItem('eicw_webhook_url') || '';
         document.getElementById('googleWebhookUrl').value = webhook;
+        document.getElementById('upiIdInput').value = localStorage.getItem('eicw_upi_id') || '';
+        document.getElementById('upiNameInput').value = localStorage.getItem('eicw_upi_name') || '';
       } catch (e) {}
 
       refreshProductSelect();
@@ -1252,6 +1270,7 @@
         document.getElementById("custGstin").value = "";
         alertBox.style.display = "none";
       }
+      checkCustomerCredit();
     }
 
     function saveCustomerRemarksFromForm() {
@@ -1556,22 +1575,9 @@
       refreshProductSelect();
     }
 
-    function addToCart() {
-      if (sanitizeQtyFields()) {
-        recalculate();
-        alert("Quantity can't be negative or zero — it's been corrected to the minimum allowed value. Please review and tap 'Add Item To Order Cart' again.");
-        return;
-      }
-      const pId = document.getElementById("productSelect").value;
-      const product = CATALOG.find(p => p.id === pId);
-      const schemeType = document.getElementById("schemeType").value;
-      const paidQty = Number(document.getElementById("paidQty").value) || 0;
-      const freeQty = Number(document.getElementById("freeQty").value) || 0;
-      const orderQty = Number(document.getElementById("orderQty").value) || 1;
-
+    function buildCartItem(product, schemeType, paidQty, freeQty, orderQty) {
       const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
-
-      cart.push({
+      return {
         id: product.id,
         name: product.name,
         orderQty: orderQty,
@@ -1588,8 +1594,23 @@
         docPerBtlCost: calc.docPerBtlCost,
         totalReceivedValue: calc.totalReceivedValue,
         totalUnitsReceived: Math.round(calc.totalUnitsReceived)
-      });
+      };
+    }
 
+    function addToCart() {
+      if (sanitizeQtyFields()) {
+        recalculate();
+        alert("Quantity can't be negative or zero — it's been corrected to the minimum allowed value. Please review and tap 'Add Item To Order Cart' again.");
+        return;
+      }
+      const pId = document.getElementById("productSelect").value;
+      const product = CATALOG.find(p => p.id === pId);
+      const schemeType = document.getElementById("schemeType").value;
+      const paidQty = Number(document.getElementById("paidQty").value) || 0;
+      const freeQty = Number(document.getElementById("freeQty").value) || 0;
+      const orderQty = Number(document.getElementById("orderQty").value) || 1;
+
+      cart.push(buildCartItem(product, schemeType, paidQty, freeQty, orderQty));
       renderCart();
     }
 
@@ -1676,6 +1697,7 @@
       document.getElementById("orderDeliveryDate").value = "";
       updateDueDateFromTerm();
       renderCart();
+      checkCustomerCredit();
     }
 
     function saveOrder() {
@@ -1942,6 +1964,7 @@
               <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect Payment</button>
               <button class="btn-sm btn-whatsapp" onclick="forwardOrderPrompt(${o.id})">📲 Forward</button>
               <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
+              <button class="btn-sm btn-accent" onclick="reorderOrder(${o.id})">🔁 Re-Order</button>
               <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
             </div>
           </div>
@@ -2048,6 +2071,7 @@
 
       cart = [...order.items];
       renderCart();
+      checkCustomerCredit();
       switchTabById('tab-calc');
     }
 
@@ -2198,7 +2222,10 @@
               </div>
               <div style="text-align:right;">
                 <div style="font-weight:bold; color:var(--text-due);">₹${balance.toFixed(2)}</div>
-                <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect</button>
+                <div style="display:flex; gap:4px; justify-content:flex-end; flex-wrap:wrap; margin-top:2px;">
+                  <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect</button>
+                  <button class="btn-sm btn-whatsapp" onclick="sendPaymentReminder(${o.id})">📲 Send Reminder</button>
+                </div>
               </div>
             </div>
           `;
@@ -2866,8 +2893,8 @@
     function shareCartWhatsApp() {
       if (cart.length === 0) return alert("Cart is empty!");
       const custName = document.getElementById("custName").value.trim() || "Doctor / Chemist";
-      let text = `*EICW Sales Quote* 📋\n*Customer:* ${custName}\n\n*Ordered Items:*_`;
-      
+      let text = `*EICW Sales Quote* 📋\n*Customer:* ${custName}\n\n*Ordered Items:*`;
+
       let totalB = 0;
       cart.forEach(i => {
         totalB += i.billing;
@@ -2875,13 +2902,13 @@
         text += `\n• *${i.name}* x${i.orderQty} (${schemeText}) - ₹${i.billing.toFixed(2)}`;
       });
 
-      text += `\n\n*Total Billing Amount:* ₹${totalB.toFixed(2)}`;
+      const cashDiscountPct = getCashDiscountPct();
+      const cashDiscount = Math.round(totalB * cashDiscountPct) / 100;
+      if (cashDiscount > 0) text += `\n\n*COD Cash Discount (${cashDiscountPct}%):* −₹${cashDiscount.toFixed(2)}`;
+      text += `\n\n*Total Billing Amount:* ₹${(totalB - cashDiscount).toFixed(2)}`;
       text += `\n\n_Thank you for your business with EICW!_`;
 
-      const phone = document.getElementById("custPhone").value.trim();
-      const cleanPhone = phone.replace(/\D/g, '');
-      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
+      chooseChannelAndSend(document.getElementById("custPhone").value.trim(), text);
     }
 
     function forwardOrderPrompt(orderId) {
@@ -2910,10 +2937,7 @@
       text += `\n*Payment Due Date:* ${o.dueDate || 'N/A'}`;
       text += `\n\n_Thank you for partnering with EICW!_`;
 
-      const phone = o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '';
-      const cleanPhone = phone.replace(/\D/g, '');
-      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
+      chooseChannelAndSend(o.custPhone && o.custPhone !== 'N/A' ? o.custPhone : '', text);
     }
 
     function shareOrderCNFWhatsApp(o) {
@@ -2934,6 +2958,446 @@
 
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
+    }
+
+    // ---------- Offline QR code generator (byte mode, ECC level M, versions 1-12) ----------
+    const QR_ECC_PER_BLOCK_M = [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24];
+    const QR_NUM_BLOCKS_M    = [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9];
+
+    function qrRawModules(ver) {
+      let r = (16 * ver + 128) * ver + 64;
+      if (ver >= 2) {
+        const n = Math.floor(ver / 7) + 2;
+        r -= (25 * n - 10) * n - 55;
+        if (ver >= 7) r -= 36;
+      }
+      return r;
+    }
+    function qrDataCodewords(ver) {
+      return Math.floor(qrRawModules(ver) / 8) - QR_ECC_PER_BLOCK_M[ver] * QR_NUM_BLOCKS_M[ver];
+    }
+    function gfMul(x, y) {
+      let z = 0;
+      for (let i = 7; i >= 0; i--) {
+        z = (z << 1) ^ ((z >>> 7) * 0x11D);
+        z ^= ((y >>> i) & 1) * x;
+      }
+      return z;
+    }
+    function rsDivisor(degree) {
+      const result = new Array(degree).fill(0);
+      result[degree - 1] = 1;
+      let root = 1;
+      for (let i = 0; i < degree; i++) {
+        for (let j = 0; j < degree; j++) {
+          result[j] = gfMul(result[j], root);
+          if (j + 1 < degree) result[j] ^= result[j + 1];
+        }
+        root = gfMul(root, 2);
+      }
+      return result;
+    }
+    function rsRemainder(data, divisor) {
+      const result = new Array(divisor.length).fill(0);
+      for (const b of data) {
+        const factor = b ^ result.shift();
+        result.push(0);
+        divisor.forEach((coef, i) => { result[i] ^= gfMul(coef, factor); });
+      }
+      return result;
+    }
+
+    function qrPenalty(m, size) {
+      let score = 0;
+      for (let pass = 0; pass < 2; pass++) {
+        for (let a = 0; a < size; a++) {
+          let line = '', run = 1;
+          for (let b = 0; b < size; b++) {
+            const v = pass === 0 ? m[a][b] : m[b][a];
+            line += v ? '1' : '0';
+            if (b > 0) {
+              const prev = pass === 0 ? m[a][b - 1] : m[b - 1][a];
+              if (prev === v) { run++; if (run === 5) score += 3; else if (run > 5) score++; }
+              else run = 1;
+            }
+          }
+          const pats = ['10111010000', '00001011101'];
+          pats.forEach(p => {
+            let idx = line.indexOf(p);
+            while (idx !== -1) { score += 40; idx = line.indexOf(p, idx + 1); }
+          });
+        }
+      }
+      for (let y = 0; y < size - 1; y++) {
+        for (let x = 0; x < size - 1; x++) {
+          const c = m[y][x];
+          if (c === m[y][x + 1] && c === m[y + 1][x] && c === m[y + 1][x + 1]) score += 3;
+        }
+      }
+      let dark = 0;
+      m.forEach(row => row.forEach(v => { if (v) dark++; }));
+      const total = size * size;
+      score += Math.floor(Math.abs(dark * 20 - total * 10) / total) * 10;
+      return score;
+    }
+
+    function generateQrMatrix(text) {
+      const bytes = Array.from(new TextEncoder().encode(text));
+      let ver = 1;
+      for (; ver <= 12; ver++) {
+        const ccBits = ver <= 9 ? 8 : 16;
+        if (4 + ccBits + bytes.length * 8 <= qrDataCodewords(ver) * 8) break;
+      }
+      if (ver > 12) throw new Error("Text too long for QR");
+
+      const bits = [];
+      const put = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+      put(4, 4);
+      put(bytes.length, ver <= 9 ? 8 : 16);
+      bytes.forEach(b => put(b, 8));
+      const capBits = qrDataCodewords(ver) * 8;
+      put(0, Math.min(4, capBits - bits.length));
+      put(0, (8 - bits.length % 8) % 8);
+      for (let pad = 0xEC; bits.length < capBits; pad ^= 0xEC ^ 0x11) put(pad, 8);
+      const data = [];
+      for (let i = 0; i < bits.length; i += 8) {
+        let v = 0;
+        for (let j = 0; j < 8; j++) v = (v << 1) | bits[i + j];
+        data.push(v);
+      }
+
+      const numBlocks = QR_NUM_BLOCKS_M[ver], eccLen = QR_ECC_PER_BLOCK_M[ver];
+      const rawCw = Math.floor(qrRawModules(ver) / 8);
+      const numShort = numBlocks - rawCw % numBlocks;
+      const shortLen = Math.floor(rawCw / numBlocks);
+      const divisor = rsDivisor(eccLen);
+      const blocks = [];
+      for (let i = 0, k = 0; i < numBlocks; i++) {
+        const dat = data.slice(k, k + shortLen - eccLen + (i < numShort ? 0 : 1));
+        k += dat.length;
+        const ecc = rsRemainder(dat, divisor);
+        if (i < numShort) dat.push(0);
+        blocks.push(dat.concat(ecc));
+      }
+      const allCw = [];
+      for (let i = 0; i < blocks[0].length; i++) {
+        blocks.forEach((blk, j) => {
+          if (i !== shortLen - eccLen || j >= numShort) allCw.push(blk[i]);
+        });
+      }
+
+      const size = ver * 4 + 17;
+      const modules = Array.from({ length: size }, () => new Array(size).fill(false));
+      const isFn = Array.from({ length: size }, () => new Array(size).fill(false));
+      const setFn = (x, y, dark) => { modules[y][x] = dark; isFn[y][x] = true; };
+      const bit = (v, i) => ((v >>> i) & 1) !== 0;
+
+      for (let i = 0; i < size; i++) { setFn(6, i, i % 2 === 0); setFn(i, 6, i % 2 === 0); }
+      const finder = (cx, cy) => {
+        for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+          const dist = Math.max(Math.abs(dx), Math.abs(dy));
+          const xx = cx + dx, yy = cy + dy;
+          if (xx >= 0 && xx < size && yy >= 0 && yy < size) setFn(xx, yy, dist !== 2 && dist !== 4);
+        }
+      };
+      finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+
+      const numAlign = ver === 1 ? 0 : Math.floor(ver / 7) + 2;
+      const step = ver === 32 ? 26 : Math.ceil((ver * 4 + 4) / (numAlign * 2 - 2)) * 2;
+      const pos = [6];
+      for (let p = size - 7; pos.length < numAlign; p -= step) pos.splice(1, 0, p);
+      pos.forEach((px, i) => pos.forEach((py, j) => {
+        if ((i === 0 && j === 0) || (i === 0 && j === numAlign - 1) || (i === numAlign - 1 && j === 0)) return;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+          setFn(px + dx, py + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+      }));
+
+      const drawFormat = (mask) => {
+        const d = (0 << 3) | mask; // ECC level M = 0
+        let rem = d;
+        for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+        const bitsF = ((d << 10) | rem) ^ 0x5412;
+        for (let i = 0; i <= 5; i++) setFn(8, i, bit(bitsF, i));
+        setFn(8, 7, bit(bitsF, 6)); setFn(8, 8, bit(bitsF, 7)); setFn(7, 8, bit(bitsF, 8));
+        for (let i = 9; i < 15; i++) setFn(14 - i, 8, bit(bitsF, i));
+        for (let i = 0; i < 8; i++) setFn(size - 1 - i, 8, bit(bitsF, i));
+        for (let i = 8; i < 15; i++) setFn(8, size - 15 + i, bit(bitsF, i));
+        setFn(8, size - 8, true);
+      };
+      drawFormat(0);
+      if (ver >= 7) {
+        let rem = ver;
+        for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+        const vb = (ver << 12) | rem;
+        for (let i = 0; i < 18; i++) {
+          const a = size - 11 + i % 3, b = Math.floor(i / 3);
+          setFn(a, b, bit(vb, i)); setFn(b, a, bit(vb, i));
+        }
+      }
+
+      let idx = 0;
+      for (let right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        for (let vert = 0; vert < size; vert++) {
+          for (let j = 0; j < 2; j++) {
+            const x = right - j;
+            const up = ((right + 1) & 2) === 0;
+            const y = up ? size - 1 - vert : vert;
+            if (!isFn[y][x] && idx < allCw.length * 8) {
+              modules[y][x] = bit(allCw[idx >>> 3], 7 - (idx & 7));
+              idx++;
+            }
+          }
+        }
+      }
+
+      const applyMask = (mask) => {
+        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+          let inv;
+          switch (mask) {
+            case 0: inv = (x + y) % 2 === 0; break;
+            case 1: inv = y % 2 === 0; break;
+            case 2: inv = x % 3 === 0; break;
+            case 3: inv = (x + y) % 3 === 0; break;
+            case 4: inv = (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0; break;
+            case 5: inv = x * y % 2 + x * y % 3 === 0; break;
+            case 6: inv = (x * y % 2 + x * y % 3) % 2 === 0; break;
+            default: inv = ((x + y) % 2 + x * y % 3) % 2 === 0;
+          }
+          if (!isFn[y][x] && inv) modules[y][x] = !modules[y][x];
+        }
+      };
+      let bestMask = 0, bestScore = Infinity;
+      for (let mask = 0; mask < 8; mask++) {
+        applyMask(mask); drawFormat(mask);
+        const sc = qrPenalty(modules, size);
+        if (sc < bestScore) { bestScore = sc; bestMask = mask; }
+        applyMask(mask);
+      }
+      applyMask(bestMask); drawFormat(bestMask);
+      return modules;
+    }
+
+    // =========================================================
+    // SHARED HELPERS: modal, message channel chooser, formatting
+    // =========================================================
+    function localDateStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function fmtInr(n) {
+      return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtInrShort(n) {
+      const whole = Math.abs(n - Math.round(n)) < 0.005;
+      return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 });
+    }
+
+    function openModal(html) {
+      document.getElementById('appModalBox').innerHTML = html;
+      document.getElementById('appModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('appModal').style.display = 'none';
+      document.getElementById('appModalBox').innerHTML = '';
+    }
+
+    let pendingSend = null;
+
+    function chooseChannelAndSend(phone, text) {
+      pendingSend = { phone: phone || '', text };
+      openModal(`
+        <div style="font-weight:bold; font-size:1rem; margin-bottom:12px;">Send this message via:</div>
+        <button class="btn-action" style="background:#0284c7;" onclick="dispatchPending('sms')">💬 Send Normal SMS<br><span style="font-size:0.7rem; font-weight:normal;">for keypad / non-WhatsApp chemists</span></button>
+        <button class="btn-action btn-whatsapp" onclick="dispatchPending('wa')">📲 Send via WhatsApp<br><span style="font-size:0.7rem; font-weight:normal;">for doctors / smartphone users</span></button>
+        <button class="btn-sm" style="width:100%; margin-top:6px; background:var(--tile-bg); color:var(--text);" onclick="closeModal()">Cancel</button>
+      `);
+    }
+
+    function dispatchPending(kind) {
+      if (!pendingSend) return closeModal();
+      const { phone, text } = pendingSend;
+      pendingSend = null;
+      closeModal();
+
+      let clean = (phone || '').replace(/\D/g, '');
+      if (phone === 'N/A') clean = '';
+
+      if (kind === 'sms') {
+        const plain = text.replace(/\*/g, '').replace(/^_|_$/gm, '');
+        const sep = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '&' : '?';
+        window.location.href = `sms:${clean}${sep}body=${encodeURIComponent(plain)}`;
+      } else {
+        let wa = clean;
+        if (wa.length === 10) wa = '91' + wa;
+        else if (wa.length === 11 && wa.startsWith('0')) wa = '91' + wa.slice(1);
+        const url = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(text)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+      }
+    }
+
+    // =========================================================
+    // 1) CREDIT GUARDRAIL - outstanding balance banner
+    // =========================================================
+    function checkCustomerCredit() {
+      const box = document.getElementById('creditWarningBox');
+      if (!box) return;
+      const typed = document.getElementById('custName').value.trim().toLowerCase();
+      if (!typed) { box.style.display = 'none'; return; }
+
+      const today = localDateStr();
+      let pending = 0, count = 0, overdue = 0, shownName = '';
+
+      savedOrders.forEach(o => {
+        if (o.id === editingOrderId) return;
+        if ((o.custName || '').trim().toLowerCase() !== typed) return;
+        const bal = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+        if (bal <= 0) return;
+        pending += bal;
+        count++;
+        if (!shownName) shownName = o.custName;
+        if (o.dueDate && o.dueDate !== 'Pending Delivery' && o.dueDate < today) overdue++;
+      });
+
+      if (count === 0) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      box.innerHTML = `⚠️ <strong>Credit Warning:</strong> ${shownName} has ${fmtInrShort(pending)} pending across ${count} previous order${count > 1 ? 's' : ''}${overdue > 0 ? ` (${overdue} Overdue)` : ''}.`;
+    }
+
+    // =========================================================
+    // 2) PAYMENT REMINDER (SMS or WhatsApp)
+    // =========================================================
+    function sendPaymentReminder(orderId) {
+      const o = savedOrders.find(x => x.id === orderId);
+      if (!o) return;
+      const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
+      const name = o.custName || 'Sir/Madam';
+      const salutation = (o.custType === 'Doctor' && !/^dr\.?\s/i.test(name)) ? `Dr. ${name}` : name;
+      const text = `Dear ${salutation}, greetings from EICW. A gentle reminder regarding pending balance of ${fmtInr(balance)} for Order #${o.id.toString().slice(-4)} (Due Date: ${o.dueDate || 'N/A'}). Kindly arrange clearance at your convenience. Thank you for your partnership!`;
+      chooseChannelAndSend(o.custPhone, text);
+    }
+
+    // =========================================================
+    // 3) RE-ORDER / CLONE A PAST ORDER INTO THE CART
+    // =========================================================
+    function reorderOrder(orderId) {
+      const o = savedOrders.find(x => x.id === orderId);
+      if (!o) return;
+      if (cart.length > 0 || editingOrderId) {
+        if (!confirm("Your current cart will be replaced with this customer's previous order. Continue?")) return;
+      }
+
+      clearCart();
+
+      document.getElementById("custType").value = o.custType || "Doctor";
+      toggleFormStatutoryFields('form');
+      document.getElementById("custName").value = o.custName || "";
+      document.getElementById("custPhone").value = o.custPhone || "";
+      document.getElementById("custAddress").value = o.custAddress || "";
+      document.getElementById("custRemarks").value = o.custRemarks || "";
+      document.getElementById("custQualification").value = o.qualification || "";
+      document.getElementById("custRegNo").value = o.regNo || "";
+      document.getElementById("custDlNo").value = o.dlNo || "";
+      document.getElementById("custGstin").value = o.gstin || "";
+
+      const missing = [];
+      (o.items || []).forEach(i => {
+        const product = CATALOG.find(p => p.id === i.id);
+        if (!product) { missing.push(i.name); return; }
+        const schemeType = i.schemeType === 'Lot With Free Items' ? 'Multi-Brand Scheme' : i.schemeType;
+        cart.push(buildCartItem(product, schemeType, i.paidQty, i.freeQty, i.orderQty));
+      });
+
+      renderCart();
+      checkCustomerCredit();
+      switchTabById('tab-calc');
+      const cartEl = document.getElementById('cartItemsList');
+      if (cartEl && cartEl.scrollIntoView) cartEl.scrollIntoView({ behavior: 'smooth' });
+
+      if (missing.length) alert(`These products are no longer in your catalog and were skipped: ${missing.join(', ')}`);
+    }
+
+    // =========================================================
+    // 4) UPI QR FOR INSTANT COLLECTION
+    // =========================================================
+    function saveUpiSettings() {
+      const vpa = document.getElementById('upiIdInput').value.trim();
+      const name = document.getElementById('upiNameInput').value.trim();
+      if (vpa && !vpa.includes('@')) {
+        alert("A UPI ID looks like yourname@bankname - please check it.");
+        return;
+      }
+      localStorage.setItem('eicw_upi_id', vpa);
+      localStorage.setItem('eicw_upi_name', name);
+    }
+
+    function computeCartTotal() {
+      const itemsTotal = cart.reduce((s, i) => s + i.billing, 0);
+      const discount = Math.round(itemsTotal * getCashDiscountPct()) / 100;
+      return { itemsTotal, discount, total: itemsTotal - discount };
+    }
+
+    function showUpiQr() {
+      if (cart.length === 0) return alert("Cart is empty!");
+
+      let vpa = (localStorage.getItem('eicw_upi_id') || '').trim();
+      if (!vpa) {
+        const entered = prompt("Enter your UPI ID (e.g. yourname@okhdfcbank) to collect payments:");
+        if (!entered || !entered.includes('@')) return;
+        vpa = entered.trim();
+        localStorage.setItem('eicw_upi_id', vpa);
+        const f = document.getElementById('upiIdInput');
+        if (f) f.value = vpa;
+      }
+      const payee = (localStorage.getItem('eicw_upi_name') || '').trim() || 'EICW';
+
+      const advance = Math.max(0, Number(document.getElementById('orderPaidAmount').value) || 0);
+      const { total } = computeCartTotal();
+      const amount = Math.max(0, total - advance);
+      if (amount <= 0) return alert("Nothing left to collect - the advance already covers the bill.");
+
+      const custName = document.getElementById('custName').value.trim() || 'Order';
+      const note = `EICW ${custName}`.slice(0, 40);
+      const link = `upi://pay?pa=${encodeURIComponent(vpa).replace(/%40/g, '@')}&pn=${encodeURIComponent(payee)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(note)}`;
+
+      let matrix;
+      try { matrix = generateQrMatrix(link); }
+      catch (e) { return alert("Could not generate the QR code: " + e.message); }
+
+      openModal(`
+        <div style="font-weight:bold; font-size:1rem;">Scan to Pay</div>
+        <div style="font-size:1.5rem; font-weight:bold; color:var(--primary); margin:4px 0;">${fmtInr(amount)}</div>
+        <canvas id="upiQrCanvas" style="max-width:100%; border-radius:8px;"></canvas>
+        <div style="font-size:0.75rem; color:var(--subtext); margin:6px 0 10px;">Pay to: ${vpa}</div>
+        <button class="btn-action" style="background:var(--primary);" onclick="confirmUpiPaymentAndSave()">✅ Payment Received - Save as Paid &amp; Delivered</button>
+        <button class="btn-sm" style="width:100%; margin-top:6px; background:var(--tile-bg); color:var(--text);" onclick="closeModal()">Close</button>
+      `);
+
+      const canvas = document.getElementById('upiQrCanvas');
+      const quiet = 4;
+      const n = matrix.length;
+      const scale = Math.max(3, Math.floor(260 / (n + quiet * 2)));
+      canvas.width = canvas.height = (n + quiet * 2) * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000000';
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        if (matrix[y][x]) ctx.fillRect((x + quiet) * scale, (y + quiet) * scale, scale, scale);
+      }
+    }
+
+    function confirmUpiPaymentAndSave() {
+      const { total } = computeCartTotal();
+      closeModal();
+      document.getElementById('orderPaidAmount').value = total;
+      document.getElementById('orderDeliveryStatus').value = 'Delivered';
+      document.getElementById('orderDeliveryDate').value = localDateStr();
+      handleDeliveryStatusChangeInForm();
+      saveOrder();
     }
 
     // =========================================================
