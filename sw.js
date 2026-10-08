@@ -2,7 +2,7 @@
 // Caches the app shell so the PWA opens and works with no network signal.
 // Bump CACHE_VERSION whenever index.html/manifest.json change to force an update.
 
-const CACHE_VERSION = 'eicw-v80';
+const CACHE_VERSION = 'eicw-v81';
 const CORE_ASSETS = [
   './',
   './index.html',
