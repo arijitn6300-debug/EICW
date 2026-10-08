@@ -647,12 +647,16 @@
         
         <label>Select Product</label>
         <select id="productSelect" onchange="recalculate()"></select>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin:6px 0 10px; font-size:0.78rem;">
+          <div id="prodInfoComposition" style="color:var(--subtext); flex:1; text-align:left;"></div>
+          <div id="prodInfoCogs" style="font-weight:bold; color:var(--info-text); white-space:nowrap; text-align:right;"></div>
+        </div>
 
         <label>One-Tap Scheme Presets</label>
         <div class="preset-chips">
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 2)">10 + 2 Free</button>
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 5, 1)">5 + 1 Free</button>
-          <button class="chip" onclick="applySchemePreset('Lot With Free Items', 10, 4)">10 + 4 Free</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 10, 2)">10 + 2 Multi-Brand</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 10, 3)">10 + 3 Multi-Brand</button>
+          <button class="chip" onclick="applySchemePreset('Multi-Brand Scheme', 10, 4)">10 + 4 Multi-Brand</button>
           <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 5, 2)">5+2 Cash %</button>
           <button class="chip" onclick="applySchemePreset('Lot Adjust in Cash %', 10, 2)">10+2 Cash %</button>
           <button class="chip" onclick="applySchemePreset('Standard scheme', 1, 0)">Standard TP</button>
@@ -661,7 +665,7 @@
         <label>Scheme Type</label>
         <select id="schemeType" onchange="recalculate()">
           <option value="Standard scheme">Standard scheme</option>
-          <option value="Lot With Free Items" selected>Lot With Free Items</option>
+          <option value="Multi-Brand Scheme" selected>Multi-Brand Scheme</option>
           <option value="Lot Adjust in Cash %">Lot Adjust in Cash %</option>
         </select>
 
@@ -684,12 +688,20 @@
           </div>
         </div>
 
-        <div>
-          <label style="color: var(--accent);">Doctor Requested Qty (Total Btls Billed/Delivered)</label>
+        <div style="border: 2px solid #7c3aed; background: rgba(124,58,237,0.07); border-radius: 12px; padding: 10px; margin-bottom: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <label style="color: var(--accent); margin:0; flex:1;">Doctor Requested Qty (Total Btls Billed/Delivered)</label>
+            <div id="qtyRatioLabel" style="font-size:0.78rem; font-weight:bold; color:#7c3aed; white-space:nowrap;">Ratio: 10+4</div>
+          </div>
           <div class="qty-controls">
             <button class="btn-qty" onclick="changeQty('orderQty', -1)">-</button>
             <input type="number" id="orderQty" value="10" min="1" oninput="recalculate()" style="border-color: var(--accent);">
             <button class="btn-qty" onclick="changeQty('orderQty', 1)">+</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-top:8px; font-size:0.75rem;">
+            <div id="qtyPaidInfo" style="flex:1; text-align:left;"></div>
+            <div id="qtyFreeInfo" style="flex:1; text-align:center; font-weight:bold; color:#16a34a;"></div>
+            <div id="qtyTotalInfo" style="flex:1; text-align:right; font-weight:bold; color:#7c3aed;"></div>
           </div>
         </div>
 
@@ -697,20 +709,26 @@
           <div class="kpi-tile">
             <div class="kpi-label">Billing Amount</div>
             <div class="kpi-value" id="calcBilling">₹0.00</div>
+            <div class="kpi-label" id="calcBillingSub" style="font-size:0.66rem; margin-top:2px;"></div>
           </div>
           <div class="kpi-tile">
             <div class="kpi-label">Rep Cost (COGS)</div>
             <div class="kpi-value" id="calcCost">₹0.00</div>
+            <div class="kpi-label" id="calcCostSub" style="font-size:0.66rem; margin-top:2px;"></div>
           </div>
           <div class="kpi-tile">
             <div class="kpi-label">Rep Net Profit</div>
             <div class="kpi-value" id="calcProfit">₹0.00 (0.0%)</div>
+            <div class="kpi-label" id="calcProfitSub" style="font-size:0.66rem; margin-top:2px;"></div>
           </div>
           <div class="kpi-tile" style="background: var(--info-bg);">
-            <div class="kpi-label" style="color:var(--info-text);">Doctor Profit & Per Btl Cost</div>
-            <div class="kpi-value" id="calcDocSavings" style="color:var(--info-text);">₹0.00 (0%)</div>
-            <div class="kpi-label" id="calcDocPerBtl" style="color:var(--info-text); font-weight:bold; margin-top:2px;">Per Btl Cost: ₹0.00</div>
-            <div id="calcHealthBadge"></div>
+            <div class="kpi-label" style="color:var(--info-text);">Doctor Effective Rate</div>
+            <div class="kpi-value" id="calcDocPerBtl" style="color:var(--info-text);">₹0.00/btl</div>
+            <div class="kpi-label" id="calcDocSavings" style="color:var(--info-text); font-size:0.66rem; margin-top:2px;">Savings vs MRP: ₹0.00 (0%)</div>
+          </div>
+          <div class="kpi-tile" style="grid-column: span 2; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div class="kpi-label" style="margin:0;">Scheme Deal Health:</div>
+            <div id="calcHealthBadge" style="text-align:right;"></div>
           </div>
         </div>
 
@@ -1056,7 +1074,7 @@
       const pSelect = document.getElementById("productSelect");
       if (!pSelect) return;
       const prevValue = pSelect.value;
-      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp}</option>`).join('');
+      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp} | TP ₹${p.tpGst}</option>`).join('');
       if (CATALOG.some(p => p.id === prevValue)) pSelect.value = prevValue;
       recalculate();
     }
@@ -1271,19 +1289,33 @@
       recalculate();
     }
 
+    // Realization markup applied on the TP billing for Multi-Brand Scheme (5%).
+    const MULTI_BRAND_MARKUP = 0.05;
+
     function computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty) {
       let billingAmount = 0, cogs = 0, docSavings = 0, totalReceivedValue = 0, totalUnitsReceived = 0;
 
       if (schemeType === "Standard scheme") {
-        const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
+        const actualFreeQty = paidQty > 0 ? Math.floor((orderQty / paidQty) * freeQty + 1e-9) : freeQty;
         totalUnitsReceived = orderQty + actualFreeQty;
 
         billingAmount = orderQty * product.tpGst;
         cogs = totalUnitsReceived * product.costGst;
         totalReceivedValue = totalUnitsReceived * product.mrp;
         docSavings = totalReceivedValue - billingAmount;
+      } else if (schemeType === "Multi-Brand Scheme") {
+        // Billed at TP (no MRP on the bill), plus the realization markup.
+        // Cost is across ALL physical units handed over (paid + free).
+        const actualFreeQty = paidQty > 0 ? Math.floor((orderQty / paidQty) * freeQty + 1e-9) : freeQty;
+        totalUnitsReceived = orderQty + actualFreeQty;
+
+        billingAmount = orderQty * product.tpGst * (1 + MULTI_BRAND_MARKUP);
+        cogs = totalUnitsReceived * product.costGst;
+        totalReceivedValue = totalUnitsReceived * product.mrp;
+        docSavings = totalReceivedValue - billingAmount;
       } else if (schemeType === "Lot With Free Items") {
-        const actualFreeQty = paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty;
+        // Legacy scheme - kept only so old data still calculates; not offered in the UI.
+        const actualFreeQty = paidQty > 0 ? Math.floor((orderQty / paidQty) * freeQty + 1e-9) : freeQty;
         totalUnitsReceived = orderQty + actualFreeQty;
         
         billingAmount = orderQty * product.mrp;
@@ -1321,19 +1353,52 @@
 
       const calc = computeSchemeValues(product, schemeType, paidQty, freeQty, orderQty);
 
+      document.getElementById("prodInfoComposition").innerText = `Composition: ${product.composition || '-'}`;
+      document.getElementById("prodInfoCogs").innerText = `COGS incl. GST: ₹${product.costGst}`;
+
+      const physicalTotal = Math.round(calc.totalUnitsReceived);
+      const bonusUnits = Math.max(0, physicalTotal - orderQty);
+      const exactBonus = (schemeType === "Lot Adjust in Cash %") ? 0 : (paidQty > 0 ? (orderQty / paidQty) * freeQty : freeQty);
+      const exactNote = Math.abs(exactBonus - bonusUnits) > 0.001 ? ` (math: ${exactBonus.toFixed(1)})` : '';
+      const ratioText = schemeType === "Standard scheme" ? "Standard"
+        : (schemeType === "Lot Adjust in Cash %" ? `${paidQty}+${freeQty} (Cash %)` : `${paidQty}+${freeQty}`);
+      document.getElementById("qtyRatioLabel").innerText = `Ratio: ${ratioText}`;
+      document.getElementById("qtyPaidInfo").innerText = `Paid: ${orderQty} btls`;
+      document.getElementById("qtyFreeInfo").innerText = `Free Scheme Bonus: +${bonusUnits} btls${exactNote}`;
+      document.getElementById("qtyTotalInfo").innerText = `Total Physical Handover: ${physicalTotal} btls`;
+
+      const inr = (n) => '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
       document.getElementById("calcBilling").innerText = `₹${calc.billingAmount.toFixed(2)}`;
+      let billingSub = '';
+      if (schemeType === "Multi-Brand Scheme") {
+        const tpBase = orderQty * product.tpGst;
+        billingSub = `TP Base: ${inr(tpBase)} (+${(MULTI_BRAND_MARKUP * 100).toFixed(0)}%: ${inr(tpBase * MULTI_BRAND_MARKUP)})`;
+      } else if (schemeType === "Standard scheme") {
+        billingSub = `TP Base: ${inr(orderQty * product.tpGst)} (no markup)`;
+      } else if (schemeType === "Lot Adjust in Cash %") {
+        billingSub = `MRP Base: ${inr(orderQty * product.mrp)} (after cash adj.)`;
+      }
+      document.getElementById("calcBillingSub").innerText = billingSub;
+
       document.getElementById("calcCost").innerText = `₹${calc.cogs.toFixed(2)}`;
+      document.getElementById("calcCostSub").innerText = `Across all ${physicalTotal} physical units @ ${inr(product.costGst)}`;
+
       document.getElementById("calcProfit").innerText = `₹${calc.netProfit.toFixed(2)} (${calc.repProfitPct.toFixed(1)}%)`;
-      document.getElementById("calcDocSavings").innerText = `₹${calc.docSavings.toFixed(2)} (${calc.docMarginPct.toFixed(1)}%)`;
-      document.getElementById("calcDocPerBtl").innerText = `Per Btl Cost: ₹${calc.docPerBtlCost.toFixed(2)}`;
+      const profitPerBtl = physicalTotal > 0 ? calc.netProfit / physicalTotal : 0;
+      document.getElementById("calcProfitSub").innerText = `Profit per physical bottle: ${inr(profitPerBtl)}`;
+
+      document.getElementById("calcDocPerBtl").innerText = `${inr(calc.docPerBtlCost)}/btl`;
+      document.getElementById("calcDocSavings").innerText = `Savings vs MRP: ${inr(calc.docSavings)} (${calc.docMarginPct.toFixed(1)}%)`;
 
       const healthBadge = document.getElementById("calcHealthBadge");
+      const marginTxt = `${calc.docMarginPct.toFixed(1)}%`;
       if (calc.docMarginPct >= 20) {
-        healthBadge.innerHTML = `<span class="health-badge health-high">🟢 Excellent (≥20%)</span>`;
+        healthBadge.innerHTML = `<span class="health-badge health-high" style="margin-top:0;">🟢 Excellent Margin (≥20%) · ${marginTxt}</span>`;
       } else if (calc.docMarginPct >= 10) {
-        healthBadge.innerHTML = `<span class="health-badge health-mid">🟡 Moderate (10-20%)</span>`;
+        healthBadge.innerHTML = `<span class="health-badge health-mid" style="margin-top:0;">🟡 Moderate Margin (10-20%) · ${marginTxt}</span>`;
       } else {
-        healthBadge.innerHTML = `<span class="health-badge health-low">🔴 Low Margin (<10%)</span>`;
+        healthBadge.innerHTML = `<span class="health-badge health-low" style="margin-top:0;">🔴 Low Margin (&lt;10%) · ${marginTxt}</span>`;
       }
     }
 
@@ -2228,7 +2293,7 @@
           }
           productTotals[i.name].orderedQty += Number(i.orderQty) || 0;
           
-          const freeCalc = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
+          const freeCalc = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.floor((i.orderQty / i.paidQty) * i.freeQty + 1e-9) : 0);
           const totalDeliv = i.totalUnitsReceived || ((Number(i.orderQty) || 0) + freeCalc);
           productTotals[i.name].totalDeliver += totalDeliv;
           productTotals[i.name].billing += Number(i.billing) || 0;
@@ -2564,7 +2629,7 @@
               const parts = schemeStr.split("+");
               paidQty = Number(parts[0]) || 1;
               freeQty = Number(parts[1]) || 0;
-              schemeType = "Lot With Free Items";
+              schemeType = "Multi-Brand Scheme";
             }
 
             const cogs = Math.max(0, billing - profit);
@@ -2572,7 +2637,7 @@
             const totalReceivedVal = qty * matchedProd.mrp;
             const docMarginPct = totalReceivedVal > 0 ? ((docSavings / totalReceivedVal) * 100) : 0;
             const docPerBtlCost = qty > 0 ? (billing / qty) : 0;
-            const actualFreeQty = paidQty > 0 ? Math.round((qty / paidQty) * freeQty) : 0;
+            const actualFreeQty = paidQty > 0 ? Math.floor((qty / paidQty) * freeQty + 1e-9) : 0;
             const totalUnitsReceived = qty + actualFreeQty;
 
             const itemObj = {
@@ -2804,8 +2869,8 @@
       let text = `*EICW Order Forward to CNF* 📦\n*Order ID:* ${o.id}\n*Date:* ${o.date}\n*Customer:* ${o.custName} (${o.custType})\n*Phone:* ${o.custPhone}\n*Address:* ${o.custAddress}\n\n*Items to Dispatch:*`;
       
       (o.items || []).forEach(i => {
-        const schemeLot = i.schemeType === 'Standard scheme' ? `Standard & ${i.paidQty}+${i.freeQty}` : `Lot with Free Items & ${i.paidQty}+${i.freeQty}`;
-        const freeCalculated = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.round((i.orderQty / i.paidQty) * i.freeQty) : 0);
+        const schemeLot = i.schemeType === 'Standard scheme' ? `Standard & ${i.paidQty}+${i.freeQty}` : `${i.schemeType} & ${i.paidQty}+${i.freeQty}`;
+        const freeCalculated = i.schemeType === 'Standard scheme' ? 0 : (i.paidQty > 0 ? Math.floor((i.orderQty / i.paidQty) * i.freeQty + 1e-9) : 0);
         const totalDelivered = i.totalUnitsReceived || (i.orderQty + freeCalculated);
         
         text += `\n• ${i.name} | Ordered: ${i.orderQty} | Scheme Lot: ${schemeLot} | Total Deliver: ${totalDelivered} btls [Billing: ₹${i.billing.toFixed(2)}]`;
