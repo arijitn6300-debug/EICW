@@ -973,6 +973,15 @@
       .directory-contact-head { flex-wrap:wrap; }
     }
 
+
+    /* Order detail: explicitly show scheme ratio and physical handover quantities */
+    .order-item-scheme-row { align-items:flex-start; }
+    .order-item-copy { display:flex; flex-direction:column; gap:3px; min-width:0; }
+    .order-item-copy > strong { color:var(--text); font-size:.82rem; }
+    .order-item-copy > span { color:var(--subtext); font-size:.72rem; line-height:1.35; }
+    .order-item-copy > .order-handover-total { color:var(--primary); font-weight:800; margin-top:2px; }
+    [data-theme="dark"] .order-item-copy > .order-handover-total { color:#53d6b2; }
+
   </style>
 </head>
 <body>
@@ -2593,12 +2602,34 @@
 
               <section class="order-detail-section">
                 <h4>Ordered items</h4>
-                ${(o.items || []).map(i => `
-                  <div class="order-item-row">
-                    <div><strong>${i.name}</strong><span>Qty: ${i.orderQty}</span></div>
-                    <div class="order-item-value">₹${Number(i.billing || 0).toFixed(2)}</div>
-                  </div>
-                `).join('')}
+                ${(o.items || []).map(i => {
+                  const paidQty = Math.max(0, Number(i.paidQty) || 0);
+                  const freeRatioQty = Math.max(0, Number(i.freeQty) || 0);
+                  const isCashAdjustment = i.schemeType === 'Lot Adjust in Cash %';
+                  const physicalFreeQty = isCashAdjustment ? 0 : (
+                    Number.isFinite(Number(i.totalUnitsReceived)) && Number(i.totalUnitsReceived) >= 0
+                      ? Math.max(0, Number(i.totalUnitsReceived) - Number(i.orderQty || 0))
+                      : (paidQty > 0 ? Math.floor((Number(i.orderQty || 0) / paidQty) * freeRatioQty + 1e-9) : 0)
+                  );
+                  const physicalTotal = Number.isFinite(Number(i.totalUnitsReceived)) && Number(i.totalUnitsReceived) >= 0
+                    ? (isCashAdjustment ? Number(i.orderQty || 0) : Number(i.totalUnitsReceived))
+                    : Number(i.orderQty || 0) + physicalFreeQty;
+                  const schemeLabel = paidQty > 0
+                    ? `${paidQty}+${freeRatioQty}${isCashAdjustment ? ' (cash adjustment)' : ''}`
+                    : (i.schemeType || 'Scheme details unavailable');
+                  return `
+                    <div class="order-item-row order-item-scheme-row">
+                      <div class="order-item-copy">
+                        <strong>${i.name}</strong>
+                        <span>Scheme: ${schemeLabel}</span>
+                        <span>Paid / billed: ${Number(i.orderQty || 0)} units</span>
+                        <span>${isCashAdjustment ? 'Physical free: 0 units' : `Free under scheme: ${physicalFreeQty} units`}</span>
+                        <span class="order-handover-total">Total physical handover: ${physicalTotal} units</span>
+                      </div>
+                      <div class="order-item-value">₹${Number(i.billing || 0).toFixed(2)}</div>
+                    </div>
+                  `;
+                }).join('')}
               </section>
 
               <section class="order-detail-section">
