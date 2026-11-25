@@ -1334,6 +1334,11 @@
       recalculate();
     }
 
+    // Final bill is always rounded UP to the next whole rupee (never down).
+    function roundBill(amount) {
+      return Math.ceil(Number((amount || 0).toFixed(2)));
+    }
+
     // Realization markup applied on the TP billing for Multi-Brand Scheme (5%).
     const MULTI_BRAND_MARKUP = 0.05;
 
@@ -1664,9 +1669,17 @@
       totalP -= cashDiscount;
       totalDocSav += cashDiscount;
 
-      document.getElementById("cartDiscountLine").innerText = cashDiscount > 0
+      const roundedB = roundBill(totalB);
+      const roundOff = Number((roundedB - totalB).toFixed(2));
+      totalB = roundedB;
+      totalP += roundOff;
+      totalDocSav -= roundOff;
+
+      const discTxt = cashDiscount > 0
         ? `Items ₹${itemsTotal.toFixed(2)} − COD Cash Discount (${cashDiscountPct}%): ₹${cashDiscount.toFixed(2)}`
         : "";
+      const roundTxt = roundOff !== 0 ? `Round off: ${roundOff > 0 ? '+' : '−'}₹${Math.abs(roundOff).toFixed(2)}` : "";
+      document.getElementById("cartDiscountLine").innerText = [discTxt, roundTxt].filter(Boolean).join(" | ");
 
       const overallDocMargin = totalReceivedVal > 0 ? ((totalDocSav / totalReceivedVal) * 100) : 0;
       const overallRepProfitPct = totalB > 0 ? ((totalP / totalB) * 100) : 0;
@@ -1764,10 +1777,12 @@
       const itemsBilling = cart.reduce((sum, i) => sum + i.billing, 0);
       const cashDiscountPct = getCashDiscountPct();
       const cashDiscount = Math.round(itemsBilling * cashDiscountPct) / 100;
-      const totalBilling = itemsBilling - cashDiscount;
+      const unroundedBilling = itemsBilling - cashDiscount;
+      const totalBilling = roundBill(unroundedBilling);
+      const roundOff = Number((totalBilling - unroundedBilling).toFixed(2));
       const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
-      const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0) - cashDiscount;
-      const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0) + cashDiscount;
+      const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0) - cashDiscount + roundOff;
+      const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0) + cashDiscount - roundOff;
 
       let paymentsHistory = [];
       if (paidAmountInput > 0) {
@@ -2815,10 +2830,11 @@
           ordersMap.forEach((order) => {
             const itemsBillingSum = order.items.reduce((sum, i) => sum + i.billing, 0);
             order.cashDiscountPct = itemsBillingSum > 0 ? Math.round((order.cashDiscount / itemsBillingSum) * 1000) / 10 : 0;
-            order.totalBilling = itemsBillingSum - order.cashDiscount;
+            order.totalBilling = roundBill(itemsBillingSum - order.cashDiscount);
             order.totalCogs = order.items.reduce((sum, i) => sum + i.cogs, 0);
-            order.totalProfit = order.items.reduce((sum, i) => sum + (i.profit || 0), 0) - order.cashDiscount;
-            order.totalDocSavings = order.items.reduce((sum, i) => sum + i.docSavings, 0) + order.cashDiscount;
+            const restoreRound = order.totalBilling - (itemsBillingSum - order.cashDiscount);
+            order.totalProfit = order.items.reduce((sum, i) => sum + (i.profit || 0), 0) - order.cashDiscount + restoreRound;
+            order.totalDocSavings = order.items.reduce((sum, i) => sum + i.docSavings, 0) + order.cashDiscount - restoreRound;
             order.balanceDue = Math.max(0, order.totalBilling - (order.paidAmount || 0));
             savedOrders.push(order);
           });
@@ -2950,7 +2966,10 @@
       const cashDiscountPct = getCashDiscountPct();
       const cashDiscount = Math.round(totalB * cashDiscountPct) / 100;
       if (cashDiscount > 0) text += `\n\n*COD Cash Discount (${cashDiscountPct}%):* −₹${cashDiscount.toFixed(2)}`;
-      text += `\n\n*Total Billing Amount:* ₹${(totalB - cashDiscount).toFixed(2)}`;
+      const quoteTotal = roundBill(totalB - cashDiscount);
+      const quoteRound = Number((quoteTotal - (totalB - cashDiscount)).toFixed(2));
+      if (quoteRound !== 0) text += `\n\n*Round off:* ${quoteRound > 0 ? '+' : '−'}₹${Math.abs(quoteRound).toFixed(2)}`;
+      text += `\n\n*Total Billing Amount:* ₹${quoteTotal.toFixed(2)}`;
       text += `\n\n_Thank you for your business with EICW!_`;
 
       chooseChannelAndSend(document.getElementById("custPhone").value.trim(), text);
