@@ -1891,10 +1891,14 @@
         }
 
         const paymentsList = o.payments && o.payments.length > 0
-          ? o.payments.map(p => `
+          ? o.payments.map((p, pi) => `
               <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; border-bottom:1px dashed var(--border);">
                 <span>📅 <strong>${p.date}</strong> ${p.note ? `(${p.note})` : ''}</span>
-                <span style="color:var(--text-paid); font-weight:bold;">+ ₹${Number(p.amount).toFixed(2)}</span>
+                <span style="display:flex; align-items:center; gap:6px;">
+                  <span style="color:var(--text-paid); font-weight:bold;">+ ₹${Number(p.amount).toFixed(2)}</span>
+                  <button class="btn-sm btn-warning" style="padding:2px 7px;" onclick="editPayment(${o.id}, ${pi})">✏️</button>
+                  <button class="btn-sm" style="padding:2px 7px; background:var(--danger); color:#fff;" onclick="deletePayment(${o.id}, ${pi})">🗑️</button>
+                </span>
               </div>
             `).join('')
           : '<div style="font-size:0.8rem; color:var(--subtext);">No payments collected yet.</div>';
@@ -2038,6 +2042,47 @@
         updateDashboard();
         alert(`Payment of ₹${addNum.toFixed(2)} recorded on ${payDate}! Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
       }
+    }
+
+    function recalcOrderAfterPaymentChange(o) {
+      o.paidAmount = (o.payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+      o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
+      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      autoSyncToSheets();
+      renderOrdersLog();
+      updateDashboard();
+      const el = document.getElementById(`details-${o.id}`);
+      if (el) el.style.display = "block";
+    }
+
+    function editPayment(orderId, idx) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o || !o.payments || !o.payments[idx]) return;
+      const p = o.payments[idx];
+
+      const amtStr = prompt(`Edit payment amount (₹)\nCustomer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}`, p.amount);
+      if (amtStr === null) return;
+      const amt = parseFloat(amtStr);
+      if (isNaN(amt) || amt < 0) return alert("Invalid amount.");
+
+      const dateStr = prompt("Edit payment date (YYYY-MM-DD):", p.date);
+      if (dateStr === null) return;
+      const newDate = dateStr.trim() || p.date;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || isNaN(new Date(newDate).getTime())) return alert("Invalid date. Use YYYY-MM-DD.");
+
+      p.amount = amt;
+      p.date = newDate;
+      recalcOrderAfterPaymentChange(o);
+      alert(`Payment updated. Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
+    }
+
+    function deletePayment(orderId, idx) {
+      const o = savedOrders.find(item => item.id === orderId);
+      if (!o || !o.payments || !o.payments[idx]) return;
+      const p = o.payments[idx];
+      if (!confirm(`Delete payment of ₹${Number(p.amount).toFixed(2)} dated ${p.date}?`)) return;
+      o.payments.splice(idx, 1);
+      recalcOrderAfterPaymentChange(o);
     }
 
     function editOrder(orderId) {
