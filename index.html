@@ -835,6 +835,144 @@
       *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
     }
 
+
+    /* Stage 1–4: dashboard, order builder, catalogue and directory refinement */
+    .dashboard-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 2px 16px; }
+    .dashboard-heading h2 { margin:3px 0 4px; font-size:1.35rem; letter-spacing:-.04em; color:var(--text); }
+    .dashboard-heading p { margin:0; color:var(--subtext); font-size:.8rem; line-height:1.4; }
+    .eyebrow { color:var(--subtext); font-size:.65rem; font-weight:800; letter-spacing:.12em; }
+    .dashboard-create-btn { flex-shrink:0; border:0; border-radius:9px; background:var(--primary); color:#fff; padding:10px 12px; font-size:.8rem; font-weight:750; cursor:pointer; }
+    .dashboard-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+    .dashboard-kpi { min-width:0; padding:13px; border:1px solid var(--border); border-radius:12px; background:var(--card-bg); box-shadow:0 1px 3px rgba(20,40,55,.035); }
+    .dashboard-kpi span,.dashboard-kpi small { display:block; color:var(--subtext); font-size:.7rem; }
+    .dashboard-kpi strong { display:block; margin:6px 0 4px; color:var(--text); font-size:1.15rem; line-height:1.15; letter-spacing:-.035em; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+    .dashboard-kpi-sales { background:var(--primary-dark); border-color:var(--primary-dark); }
+    .dashboard-kpi-sales span,.dashboard-kpi-sales small,.dashboard-kpi-sales strong { color:#fff; }
+    .dashboard-kpi-outstanding strong { color:var(--danger); }
+    .dashboard-two-col { display:grid; grid-template-columns:1fr; gap:0; }
+    .dashboard-panel { text-align:left; }
+    .dashboard-panel-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+    .dashboard-panel-heading h3 { margin:3px 0 0; color:var(--text); font-size:.98rem; letter-spacing:-.02em; }
+    .panel-icon { display:grid; place-items:center; width:32px; height:32px; border-radius:9px; color:var(--primary); background:var(--tile-bg); font-weight:800; }
+    .dashboard-filter-pills { margin:0 0 10px; }
+    .dashboard-filter-pills .pill { font-size:.72rem; padding:6px 10px; }
+    .delivery-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .delivery-summary > div { background:var(--tile-bg); border-radius:9px; padding:11px 8px; text-align:center; }
+    .delivery-summary span,.dashboard-period-kpis span { display:block; color:var(--subtext); font-size:.68rem; }
+    .delivery-summary strong { display:block; margin-top:4px; font-size:1.15rem; color:var(--text); }
+    .dashboard-text-link { border:0; padding:7px 0 0; background:none; color:var(--primary); font-size:.76rem; font-weight:750; cursor:pointer; }
+    .dashboard-recent-list { display:flex; flex-direction:column; }
+    .dashboard-recent-order { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; padding:10px 0; border:0; border-top:1px solid var(--border); background:transparent; text-align:left; cursor:pointer; color:var(--text); }
+    .recent-order-copy,.recent-order-value { display:flex; flex-direction:column; min-width:0; gap:4px; }
+    .recent-order-copy strong { font-size:.82rem; overflow-wrap:anywhere; }
+    .recent-order-copy small,.recent-order-value small { color:var(--subtext); font-size:.69rem; }
+    .recent-order-value { text-align:right; flex-shrink:0; }
+    .recent-order-value strong { font-size:.84rem; font-variant-numeric:tabular-nums; }
+    .recent-paid { color:var(--text-paid)!important; }
+    .recent-partial { color:var(--warning)!important; }
+    .recent-due { color:var(--danger)!important; }
+    .analytics-caption { color:var(--subtext); font-size:.68rem; }
+    .dashboard-date-range { margin-top:4px; }
+    .dashboard-date-range input { margin-bottom:4px; }
+    .reset-date-btn { padding-top:2px; margin-bottom:12px; }
+    .dashboard-period-kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    .dashboard-period-kpis > div { padding:10px; border-bottom:1px solid var(--border); }
+    .dashboard-period-kpis > div:nth-child(odd) { border-right:1px solid var(--border); }
+    .dashboard-period-kpis > div:nth-last-child(-n+2) { border-bottom:0; }
+    .dashboard-period-kpis strong { display:block; margin-top:4px; color:var(--text); font-size:.86rem; font-variant-numeric:tabular-nums; }
+    .dashboard-quick-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 12px; }
+    .dashboard-quick-links button { display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--card-bg); color:var(--text); font-size:.75rem; font-weight:700; text-align:left; }
+    .dashboard-quick-links span { color:var(--primary); margin-left:5px; }
+    .empty-state { display:flex; flex-direction:column; align-items:center; gap:5px; padding:20px 10px; text-align:center; color:var(--subtext); }
+    .empty-state strong { color:var(--text); font-size:.84rem; }
+    .empty-state span { font-size:.75rem; }
+
+    .builder-card { position:relative; }
+    .builder-card .card-title { padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .builder-customer-card { border-top:3px solid var(--accent); }
+    .builder-product-card { border-top:3px solid var(--primary); }
+    .builder-cart-card { border-top:3px solid var(--warning); }
+    .builder-card .preset-chips { gap:7px; }
+    .builder-card .chip { padding:7px 10px; font-size:.72rem; }
+    .builder-card .qty-controls { gap:6px; }
+    .builder-card .qty-controls input { min-width:0; font-size:1rem; font-weight:750; }
+    .builder-card .btn-qty { flex:0 0 38px; }
+    .builder-card .kpi-grid { gap:8px; }
+    .builder-card .kpi-tile { padding:11px; }
+    .builder-card .kpi-value { font-size:.92rem; overflow-wrap:anywhere; }
+    .builder-card .btn-action { min-height:44px; }
+    #cartItemsList { margin-top:4px; }
+    #cartItemsList > div { padding:10px 0!important; }
+    #cartItemsList .btn-sm { flex-shrink:0; }
+    .builder-card input,.builder-card select { margin-bottom:9px; }
+
+    .catalog-search-wrap { margin:14px 0 10px; }
+    .catalog-search-wrap input { margin:5px 0 0; min-height:46px; }
+    .catalog-search-meta { display:flex; justify-content:space-between; gap:8px; color:var(--subtext); font-size:.68rem; margin:0 1px 10px; }
+    .catalog-product { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:13px; margin-bottom:9px; }
+    .catalog-product-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    .catalog-product-name { color:var(--text); font-size:.94rem; font-weight:780; line-height:1.3; }
+    .catalog-category { flex-shrink:0; padding:3px 7px; border-radius:20px; background:var(--tile-bg); color:var(--subtext); font-size:.63rem; font-weight:700; }
+    .catalog-product-composition { margin:5px 0 11px; color:var(--subtext); font-size:.76rem; line-height:1.4; }
+    .catalog-product-prices { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding-top:9px; border-top:1px solid var(--border); }
+    .catalog-product-prices span { min-width:0; }
+    .catalog-product-prices small { display:block; color:var(--subtext); font-size:.64rem; }
+    .catalog-product-prices strong { display:block; margin-top:3px; color:var(--text); font-size:.8rem; font-variant-numeric:tabular-nums; }
+    .catalog-product-actions,.directory-contact-actions { margin-top:10px; border-top:1px solid var(--border); padding-top:8px; }
+    .catalog-product-actions summary,.directory-contact-actions summary { color:var(--primary); font-size:.74rem; font-weight:750; cursor:pointer; list-style:none; }
+    .catalog-product-actions summary::-webkit-details-marker,.directory-contact-actions summary::-webkit-details-marker { display:none; }
+    .catalog-product-actions summary:after,.directory-contact-actions summary:after { content:"＋"; float:right; }
+    .catalog-product-actions[open] summary:after,.directory-contact-actions[open] summary:after { content:"−"; }
+    .catalog-action-row { display:flex; gap:8px; margin-top:9px; }
+    .catalog-action-row button { flex:1; min-height:35px; }
+
+    .directory-view > .card:first-child { border-top:3px solid var(--primary); }
+    .directory-view > .card:last-child { border-top:3px solid var(--accent); }
+    .directory-contact { padding:12px 0; border-bottom:1px solid var(--border); }
+    .directory-contact:last-child { border-bottom:0; }
+    .directory-contact-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .directory-contact-identity { display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .directory-contact-identity strong { color:var(--text); font-size:.88rem; overflow-wrap:anywhere; }
+    .directory-contact-identity span,.directory-contact-secondary { color:var(--subtext); font-size:.68rem; }
+    .directory-phone { flex-shrink:0; color:var(--primary); font-size:.76rem; font-weight:750; text-decoration:none; }
+    .directory-no-phone { color:var(--subtext); font-size:.68rem; }
+    .directory-contact-location { margin-top:6px; color:var(--subtext); font-size:.75rem; }
+    .directory-contact-secondary { margin-top:5px; }
+    .directory-contact-note { margin-top:7px; padding:8px 9px; border-radius:7px; background:var(--tile-bg); color:var(--text); font-size:.72rem; }
+    .directory-contact-actions { margin-top:8px; }
+
+    [data-theme="dark"] .dashboard-kpi,
+    [data-theme="dark"] .catalog-product,
+    [data-theme="dark"] .dashboard-quick-links button { background:var(--card-bg); border-color:var(--border); }
+    [data-theme="dark"] .dashboard-kpi-sales { background:#145b4c; border-color:#145b4c; }
+    [data-theme="dark"] .dashboard-kpi-sales span,
+    [data-theme="dark"] .dashboard-kpi-sales small,
+    [data-theme="dark"] .dashboard-kpi-sales strong { color:#effff8; }
+    [data-theme="dark"] .dashboard-kpi-outstanding strong { color:#ffaaa5; }
+    [data-theme="dark"] .delivery-summary > div,
+    [data-theme="dark"] .catalog-category,
+    [data-theme="dark"] .directory-contact-note { background:var(--tile-bg); }
+    [data-theme="dark"] .dashboard-recent-order { color:var(--text); border-color:var(--border); }
+    [data-theme="dark"] .catalog-product-prices { border-color:var(--border); }
+    [data-theme="dark"] .catalog-product-prices strong { color:var(--text); }
+    [data-theme="dark"] .directory-contact { border-color:var(--border); }
+
+    @media (min-width:560px) {
+      .dashboard-two-col { grid-template-columns:1.15fr .85fr; gap:12px; }
+      .dashboard-kpis { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .dashboard-kpi { padding:14px 12px; }
+      .dashboard-kpi strong { font-size:1.05rem; }
+    }
+    @media (max-width:380px) {
+      .dashboard-heading h2 { font-size:1.18rem; }
+      .dashboard-create-btn { padding:9px 10px; font-size:.72rem; }
+      .dashboard-kpi { padding:11px; }
+      .dashboard-kpi strong { font-size:1rem; }
+      .catalog-product-prices { gap:3px; }
+      .catalog-product-prices strong { font-size:.74rem; }
+      .directory-contact-head { flex-wrap:wrap; }
+    }
+
   </style>
 </head>
 <body>
@@ -889,114 +1027,142 @@
 
     <!-- TAB 1: HOME DASHBOARD -->
     <div class="tab-view active" id="tab-home">
-
-      <!-- PAYMENT DUE TRACKER -->
-      <div class="card" id="dueTrackerCard" style="border: 2px solid var(--danger);">
-        <div class="card-title" style="color: var(--danger);">🔔 Payment Due Tracker</div>
-        <div class="category-pills">
-          <button class="pill active" onclick="setDueFilter('OVERDUE', this)">Overdue</button>
-          <button class="pill" onclick="setDueFilter('THIS_WEEK', this)">Due This Week</button>
-          <button class="pill" onclick="setDueFilter('THIS_MONTH', this)">Due This Month</button>
+      <section class="dashboard-heading">
+        <div>
+          <div class="eyebrow">FIELD SALES OVERVIEW</div>
+          <h2>Business snapshot</h2>
+          <p>Sales, collections and the work that needs your attention.</p>
         </div>
-        <div id="dueTrackerList"></div>
-      </div>
+        <button class="dashboard-create-btn" onclick="switchTabById('tab-calc')">＋ New order</button>
+      </section>
 
-      <div class="card" style="text-align: center;">
-        <div class="card-title" style="justify-content: center;">Dashboard Summary (Overall)</div>
-        <div class="kpi-grid" style="margin-top: 12px;">
-          <div class="kpi-tile">
-            <div class="kpi-label">TOTAL ORDERS SAVED</div>
-            <div class="kpi-value" id="homeOrdersCount">0</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">TOTAL BOOKED SALES</div>
-            <div class="kpi-value" id="homeTotalSales">₹0.00</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">TOTAL COLLECTED</div>
-            <div class="kpi-value" id="homeTotalCollected" style="color:var(--text-paid);">₹0.00</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">PENDING BALANCES</div>
-            <div class="kpi-value" id="homeTotalDue" style="color:var(--text-due);">₹0.00</div>
-          </div>
-          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
-            <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
-            <div class="kpi-value" id="homeTotalProfit" style="color:var(--info-text);">₹0.00</div>
-          </div>
-          <div class="kpi-tile" style="grid-column: span 2; background: var(--danger-bg, #fee2e2);">
-            <div class="kpi-label" style="color:var(--danger);">TOTAL PAYABLE TO COMPANY</div>
-            <div class="kpi-value" id="homeTotalCompanyDue" style="color:var(--danger);">₹0.00</div>
-          </div>
+      <section class="dashboard-kpis">
+        <div class="dashboard-kpi dashboard-kpi-sales">
+          <span>Booked sales · all time</span>
+          <strong id="homeTotalSales">₹0.00</strong>
+          <small><span id="homeOrdersCount">0</span> orders saved</small>
         </div>
-      </div>
+        <div class="dashboard-kpi">
+          <span>Collected</span>
+          <strong id="homeTotalCollected">₹0.00</strong>
+          <small>Payments received</small>
+        </div>
+        <div class="dashboard-kpi dashboard-kpi-outstanding">
+          <span>Outstanding</span>
+          <strong id="homeTotalDue">₹0.00</strong>
+          <small>Amount yet to collect</small>
+        </div>
+        <div class="dashboard-kpi">
+          <span>Estimated product cost</span>
+          <strong id="homeTotalCompanyDue">₹0.00</strong>
+          <small>Calculated cost of saved orders</small>
+        </div>
+        <div class="dashboard-kpi">
+          <span>Estimated profit</span>
+          <strong id="homeTotalProfit">₹0.00</strong>
+          <small>Based on saved order calculations</small>
+        </div>
+      </section>
 
-      <!-- CUSTOM DATE RANGE FILTER CARD -->
-      <div class="card">
-        <div class="card-title">Custom Date Range Analytics</div>
-        <div class="form-row">
+      <section class="dashboard-two-col">
+        <div class="card dashboard-panel" id="dueTrackerCard">
+          <div class="dashboard-panel-heading">
+            <div>
+              <div class="eyebrow">FOLLOW-UP QUEUE</div>
+              <h3>Payment due tracker</h3>
+            </div>
+            <span class="panel-icon">₹</span>
+          </div>
+          <div class="category-pills dashboard-filter-pills">
+            <button class="pill active" onclick="setDueFilter('OVERDUE', this)">Overdue</button>
+            <button class="pill" onclick="setDueFilter('THIS_WEEK', this)">Due this week</button>
+            <button class="pill" onclick="setDueFilter('THIS_MONTH', this)">Due this month</button>
+          </div>
+          <div id="dueTrackerList"></div>
+        </div>
+
+        <div class="card dashboard-panel">
+          <div class="dashboard-panel-heading">
+            <div>
+              <div class="eyebrow">DELIVERY STATUS</div>
+              <h3>Order fulfilment</h3>
+            </div>
+            <span class="panel-icon">↗</span>
+          </div>
+          <div class="delivery-summary">
+            <div><span>Pending</span><strong id="homePendingDelivery">0</strong></div>
+            <div><span>In transit</span><strong id="homeInTransit">0</strong></div>
+            <div><span>Delivered</span><strong id="homeDelivered">0</strong></div>
+          </div>
+          <button class="dashboard-text-link" onclick="switchTabById('tab-orders')">Open orders log →</button>
+        </div>
+      </section>
+
+      <section class="card dashboard-panel">
+        <div class="dashboard-panel-heading">
           <div>
-            <label>Start Date</label>
+            <div class="eyebrow">LATEST ACTIVITY</div>
+            <h3>Recent orders</h3>
+          </div>
+          <button class="dashboard-text-link" onclick="switchTabById('tab-orders')">View all →</button>
+        </div>
+        <div id="dashboardRecentOrders" class="dashboard-recent-list"></div>
+      </section>
+
+      <section class="card dashboard-panel dashboard-analytics">
+        <div class="dashboard-panel-heading">
+          <div>
+            <div class="eyebrow">PERFORMANCE</div>
+            <h3>Sales analytics</h3>
+          </div>
+          <span class="analytics-caption">Choose a period</span>
+        </div>
+        <div class="form-row dashboard-date-range">
+          <div>
+            <label>From</label>
             <input type="date" id="filterStartDate" onchange="updateCustomDateRange()">
           </div>
           <div>
-            <label>End Date</label>
+            <label>To</label>
             <input type="date" id="filterEndDate" onchange="updateCustomDateRange()">
           </div>
         </div>
-        <button class="btn-sm btn-warning" style="margin-bottom: 12px;" onclick="clearDateFilter()">Reset Date Filter</button>
-
-        <div class="kpi-grid">
-          <div class="kpi-tile">
-            <div class="kpi-label">ORDERS SAVED</div>
-            <div class="kpi-value" id="customOrdersCount">0</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">TOTAL BOOKED SALES</div>
-            <div class="kpi-value" id="customTotalSales">₹0.00</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">TOTAL COLLECTED</div>
-            <div class="kpi-value" id="customTotalCollected" style="color:var(--text-paid);">₹0.00</div>
-          </div>
-          <div class="kpi-tile">
-            <div class="kpi-label">PENDING BALANCES</div>
-            <div class="kpi-value" id="customTotalDue" style="color:var(--text-due);">₹0.00</div>
-          </div>
-          <div class="kpi-tile" style="grid-column: span 2; background: var(--info-bg);">
-            <div class="kpi-label" style="color:var(--info-text);">PROFITS EARNED</div>
-            <div class="kpi-value" id="customTotalProfit" style="color:var(--info-text);">₹0.00</div>
-          </div>
-          <div class="kpi-tile" style="grid-column: span 2; background: var(--danger-bg, #fee2e2);">
-            <div class="kpi-label" style="color:var(--danger);">TOTAL PAYABLE TO COMPANY</div>
-            <div class="kpi-value" id="customTotalCompanyDue" style="color:var(--danger);">₹0.00</div>
-          </div>
+        <button class="dashboard-text-link reset-date-btn" onclick="clearDateFilter()">Reset period</button>
+        <div class="dashboard-period-kpis">
+          <div><span>Orders</span><strong id="customOrdersCount">0</strong></div>
+          <div><span>Booked sales</span><strong id="customTotalSales">₹0.00</strong></div>
+          <div><span>Collected</span><strong id="customTotalCollected">₹0.00</strong></div>
+          <div><span>Outstanding</span><strong id="customTotalDue">₹0.00</strong></div>
+          <div><span>Estimated profit</span><strong id="customTotalProfit">₹0.00</strong></div>
+          <div><span>Estimated product cost</span><strong id="customTotalCompanyDue">₹0.00</strong></div>
         </div>
-      </div>
+      </section>
 
-      <!-- TOP PERFORMERS (uses the date range above) -->
-      <div class="card">
-        <div class="card-title">🏆 Top Performers <span style="font-size:0.7rem; font-weight:normal; color:var(--subtext);">(uses date range above)</span></div>
+      <section class="card dashboard-panel">
+        <div class="dashboard-panel-heading">
+          <div>
+            <div class="eyebrow">WHAT WORKS</div>
+            <h3>Top performers</h3>
+          </div>
+          <span class="analytics-caption">Uses selected period</span>
+        </div>
         <div class="category-pills" id="topPerformersPills">
-          <button class="pill active" onclick="setTopView('PRODUCTS', this)">Top Products</button>
-          <button class="pill" onclick="setTopView('CUSTOMERS', this)">Top Customers</button>
-          <button class="pill" onclick="setTopView('SCHEMES', this)">Top Scheme Combos</button>
+          <button class="pill active" onclick="setTopView('PRODUCTS', this)">Products</button>
+          <button class="pill" onclick="setTopView('CUSTOMERS', this)">Customers</button>
+          <button class="pill" onclick="setTopView('SCHEMES', this)">Scheme combos</button>
         </div>
         <div id="topPerformersList"></div>
-      </div>
+      </section>
 
-      <div class="card">
-        <div class="card-title">Quick Actions</div>
-        <button class="btn-action" style="background: var(--accent);" onclick="switchTabById('tab-calc')">🧮 Create / Build Order</button>
-        <button class="btn-action" style="background: var(--primary-dark);" onclick="switchTabById('tab-products')">💊 Browse Product Catalog</button>
-        <button class="btn-action" style="background: #0284c7;" onclick="switchTabById('tab-directory')">📇 Customer Directory</button>
-        <button class="btn-action" style="background: #475569;" onclick="switchTabById('tab-orders')">📋 View Saved Orders Log</button>
+      <div class="dashboard-quick-links">
+        <button onclick="switchTabById('tab-products')">Browse product catalogue <span>→</span></button>
+        <button onclick="switchTabById('tab-directory')">Open customer directory <span>→</span></button>
       </div>
     </div>
 
     <!-- TAB 2: CALCULATOR & ORDER BUILDER -->
     <div class="tab-view" id="tab-calc">
-      <div class="card">
+      <div class="card builder-card builder-customer-card">
         <div class="card-title">
           <span>1. Customer Directory Selection</span>
           <span id="editingBadge" style="display:none; background:var(--warning); color:white; font-size:0.75rem; padding:2px 8px; border-radius:4px;">Editing Order</span>
@@ -1060,7 +1226,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card builder-card builder-product-card">
         <div class="card-title">2. Dynamic Scheme & Quantity Builder</div>
         
         <label>Select Product</label>
@@ -1153,7 +1319,7 @@
         <button class="btn-action" style="background: var(--primary-dark);" onclick="addToCart()">+ Add Item To Order Cart</button>
       </div>
 
-      <div class="card">
+      <div class="card builder-card builder-cart-card">
         <div class="card-title">3. Multi-Product Order Cart (<span id="cartItemCount">0</span>)</div>
         <div id="cartItemsList">
           <p style="font-size: 0.85rem; color: var(--subtext); text-align: center; margin: 10px 0;">Cart is empty.</p>
@@ -1232,7 +1398,7 @@
     </div>
 
     <!-- TAB 3: PRODUCTS CATALOG -->
-    <div class="tab-view" id="tab-products">
+    <div class="tab-view catalog-view" id="tab-products">
 
       <!-- ADD / EDIT PRODUCT FORM -->
       <div class="card" id="productFormCard" style="display:none; border: 2px solid var(--primary);">
@@ -1264,7 +1430,7 @@
         </div>
         <label>Your Cost (COGS) incl. GST (₹)</label>
         <input type="number" id="prodCostGst" min="0" step="0.01" placeholder="0.00">
-        <div style="font-size:0.75rem; color:var(--subtext); margin-top:2px;">This is what you actually pay the company per unit — used to calculate your profit and your Total Payable to Company.</div>
+        <div style="font-size:0.75rem; color:var(--subtext); margin-top:2px;">This is what you actually pay the company per unit — used to calculate your profit and your Estimated Product Cost.</div>
 
         <button class="btn-action" style="background: var(--primary); margin-top: 10px;" onclick="saveProductForm()">💾 Save Product</button>
         <button class="btn-action btn-danger" onclick="cancelProductForm()">Cancel</button>
@@ -1272,8 +1438,10 @@
 
       <button class="btn-action" style="background: var(--primary);" onclick="openAddProductForm()">➕ Add New Product</button>
 
-      <div style="margin-bottom: 10px; margin-top: 10px;">
-        <input type="text" id="searchProduct" placeholder="Search product or salt composition..." oninput="renderProducts()">
+      <div class="catalog-search-wrap">
+        <label for="searchProduct">Find a product</label>
+        <input type="search" id="searchProduct" placeholder="Search brand name or salt composition..." oninput="renderProducts()">
+        <div class="catalog-search-meta"><span id="productResultCount">0 products</span><span>Search by brand or composition</span></div>
       </div>
 
       <div class="category-pills">
@@ -1288,7 +1456,7 @@
     </div>
 
     <!-- TAB 4: CUSTOMER DIRECTORY -->
-    <div class="tab-view" id="tab-directory">
+    <div class="tab-view directory-view" id="tab-directory">
       <div class="card">
         <div class="card-title" id="dirFormTitle">Add / Edit Customer Record</div>
         <div class="form-row">
@@ -1347,7 +1515,9 @@
 
       <div class="card">
         <div class="card-title">Saved Customer Contacts</div>
-        <input type="text" id="searchDirectory" placeholder="Search customer name or phone..." oninput="renderCustomerDirectoryTab()">
+        <label for="searchDirectory">Find a customer</label>
+        <input type="search" id="searchDirectory" placeholder="Search name, phone or location..." oninput="renderCustomerDirectoryTab()">
+        <div class="catalog-search-meta"><span id="directoryResultCount">0 contacts</span><span>Saved customer records</span></div>
         <div id="directoryContainer"></div>
       </div>
     </div>
@@ -1884,34 +2054,47 @@
     }
 
     function renderProducts() {
-      const search = document.getElementById("searchProduct").value.toLowerCase();
+      const search = (document.getElementById("searchProduct").value || '').toLowerCase().trim();
       const listContainer = document.getElementById("productList");
 
       const filtered = CATALOG.filter(p => {
         const matchCat = (currentCategory === "ALL" || p.category === currentCategory);
-        const matchSearch = p.name.toLowerCase().includes(search) || p.composition.toLowerCase().includes(search);
+        const matchSearch = (p.name || '').toLowerCase().includes(search) ||
+          (p.composition || '').toLowerCase().includes(search) ||
+          (p.category || '').toLowerCase().includes(search);
         return matchCat && matchSearch;
       });
 
+      const count = document.getElementById('productResultCount');
+      if (count) count.textContent = `${filtered.length} product${filtered.length === 1 ? '' : 's'}`;
+
       if (filtered.length === 0) {
-        listContainer.innerHTML = `<p style="text-align:center; color:var(--subtext);">No products found.</p>`;
+        listContainer.innerHTML = `<div class="empty-state"><strong>No matching products</strong><span>Try another brand name, salt composition or category.</span></div>`;
         return;
       }
 
       listContainer.innerHTML = filtered.map(p => `
-        <div class="prod-card">
-          <div class="prod-name">${p.name}</div>
-          <div class="prod-comp">${p.composition}</div>
-          <div class="prod-meta">
-            <span>MRP: ₹${p.mrp}</span>
-            <span>TP+GST: ₹${p.tpGst}</span>
-            <span>COGS: ₹${p.costGst}</span>
+        <article class="catalog-product">
+          <div class="catalog-product-main">
+            <div class="catalog-product-title-row">
+              <div class="catalog-product-name">${p.name}</div>
+              <span class="catalog-category">${p.category || 'Product'}</span>
+            </div>
+            <div class="catalog-product-composition">${p.composition || 'Composition not added'}</div>
+            <div class="catalog-product-prices">
+              <span><small>MRP</small><strong>₹${Number(p.mrp || 0).toFixed(2)}</strong></span>
+              <span><small>TP + GST</small><strong>₹${Number(p.tpGst || 0).toFixed(2)}</strong></span>
+              <span><small>Your cost</small><strong>₹${Number(p.costGst || 0).toFixed(2)}</strong></span>
+            </div>
           </div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="btn-sm" style="background:var(--accent); color:white; flex:1;" onclick="openEditProductForm('${p.id}')">✏️ Edit</button>
-            <button class="btn-sm btn-danger" style="flex:1;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
-          </div>
-        </div>
+          <details class="catalog-product-actions">
+            <summary>Manage product</summary>
+            <div class="catalog-action-row">
+              <button class="btn-sm btn-accent" onclick="openEditProductForm('${p.id}')">Edit details</button>
+              <button class="btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Delete product</button>
+            </div>
+          </details>
+        </article>
       `).join('');
     }
 
@@ -2612,10 +2795,44 @@
       document.getElementById("homeTotalProfit").innerText = `₹${totalProf.toFixed(2)}`;
       document.getElementById("homeTotalCompanyDue").innerText = `₹${totalCompanyDue.toFixed(2)}`;
 
+      const pendingCount = savedOrders.filter(o => (o.deliveryStatus || 'Pending') === 'Pending').length;
+      const transitCount = savedOrders.filter(o => o.deliveryStatus === 'In Transit').length;
+      const deliveredCount = savedOrders.filter(o => o.deliveryStatus === 'Delivered').length;
+      document.getElementById('homePendingDelivery').innerText = pendingCount;
+      document.getElementById('homeInTransit').innerText = transitCount;
+      document.getElementById('homeDelivered').innerText = deliveredCount;
+      renderDashboardRecentOrders();
+
       renderDueTracker();
 
       // Update Custom Date Range Analytics as well
       updateCustomDateRange();
+    }
+
+    function renderDashboardRecentOrders() {
+      const container = document.getElementById('dashboardRecentOrders');
+      if (!container) return;
+      const recent = [...savedOrders].sort((a, b) => {
+        const da = getOrderDateString(a) || '';
+        const db = getOrderDateString(b) || '';
+        return db.localeCompare(da) || Number(b.id || 0) - Number(a.id || 0);
+      }).slice(0, 5);
+
+      if (!recent.length) {
+        container.innerHTML = `<div class="empty-state"><strong>No orders yet</strong><span>Your latest bookings will appear here.</span></div>`;
+        return;
+      }
+
+      container.innerHTML = recent.map(o => {
+        const total = Number(o.totalBilling || 0);
+        const balance = Math.max(0, total - Number(o.paidAmount || 0));
+        const status = balance <= 0 ? 'Paid' : (Number(o.paidAmount || 0) > 0 ? 'Part paid' : 'Unpaid');
+        const statusClass = balance <= 0 ? 'recent-paid' : (Number(o.paidAmount || 0) > 0 ? 'recent-partial' : 'recent-due');
+        return `<button class="dashboard-recent-order" onclick="switchTabById('tab-orders')">
+          <span class="recent-order-copy"><strong>${o.custName || 'Unnamed customer'}</strong><small>${o.date || 'Date unavailable'} · ${o.custType || 'Customer'}</small></span>
+          <span class="recent-order-value"><strong>₹${total.toFixed(2)}</strong><small class="${statusClass}">${status}${balance > 0 ? ` · ₹${balance.toFixed(2)} due` : ''}</small></span>
+        </button>`;
+      }).join('');
     }
 
     function getOrderDateString(o) {
@@ -2996,39 +3213,48 @@
 
     function renderCustomerDirectoryTab() {
       const container = document.getElementById("directoryContainer");
-      const search = (document.getElementById("searchDirectory") ? document.getElementById("searchDirectory").value : "").toLowerCase();
+      const search = (document.getElementById("searchDirectory") ? document.getElementById("searchDirectory").value : "").toLowerCase().trim();
 
       const filtered = customerDirectory
         .map((c, originalIndex) => ({ ...c, originalIndex }))
-        .filter(c => c.name.toLowerCase().includes(search) || (c.phone && c.phone.includes(search)));
+        .filter(c => (c.name || '').toLowerCase().includes(search) || (c.phone && c.phone.includes(search)) || (c.address || '').toLowerCase().includes(search));
+
+      const count = document.getElementById('directoryResultCount');
+      if (count) count.textContent = `${filtered.length} contact${filtered.length === 1 ? '' : 's'}`;
 
       if (filtered.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext); text-align:center; margin-top:10px;'>No directory contacts found.</p>";
+        container.innerHTML = `<div class="empty-state"><strong>No matching contacts</strong><span>Search by customer name, phone or location.</span></div>`;
         return;
       }
 
       container.innerHTML = filtered.map(c => {
         let statutoryStr = '';
         if (c.type === 'Doctor') {
-          if (c.qualification || c.regNo) statutoryStr = `🎓 ${c.qualification || 'N/A'} | 📜 Reg: ${c.regNo || 'N/A'}`;
-        } else {
-          if (c.dlNo || c.gstin) statutoryStr = `💊 DL: ${c.dlNo || 'N/A'} | 📄 GSTIN: ${c.gstin || 'N/A'}`;
+          if (c.qualification || c.regNo) statutoryStr = `${c.qualification || 'N/A'} · Reg. ${c.regNo || 'N/A'}`;
+        } else if (c.dlNo || c.gstin) {
+          statutoryStr = `DL: ${c.dlNo || 'N/A'} · GSTIN: ${c.gstin || 'N/A'}`;
         }
 
         return `
-          <div style="border-bottom:1px solid var(--border); padding:10px 0;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold;">
-              <span>${c.name} (${c.type})</span>
-              <span style="color:var(--primary); font-size:0.85rem;">📞 ${c.phone || 'No phone'}</span>
+          <article class="directory-contact">
+            <div class="directory-contact-head">
+              <div class="directory-contact-identity">
+                <strong>${c.name || 'Unnamed contact'}</strong>
+                <span>${c.type || 'Customer'}</span>
+              </div>
+              ${c.phone ? `<a class="directory-phone" href="tel:${c.phone}">${c.phone}</a>` : `<span class="directory-no-phone">No phone number</span>`}
             </div>
-            <div style="font-size:0.82rem; color:var(--subtext); margin-top:2px;">📍 ${c.address || 'No address'}</div>
-            ${statutoryStr ? `<div style="font-size:0.78rem; color:var(--subtext); margin-top:2px;">${statutoryStr}</div>` : ''}
-            ${c.remarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:3px;">💬 Notes: ${c.remarks}</div>` : ''}
-            <div style="margin-top:6px; display:flex; gap:6px;">
-              <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">✏️ Edit</button>
-              <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">🗑️ Delete</button>
-            </div>
-          </div>
+            <div class="directory-contact-location">${c.address || 'Address not added'}</div>
+            ${statutoryStr ? `<div class="directory-contact-secondary">${statutoryStr}</div>` : ''}
+            ${c.remarks ? `<div class="directory-contact-note">${c.remarks}</div>` : ''}
+            <details class="directory-contact-actions">
+              <summary>Manage contact</summary>
+              <div class="catalog-action-row">
+                <button class="btn-sm btn-warning" onclick="editDirectoryCustomer(${c.originalIndex})">Edit contact</button>
+                <button class="btn-sm btn-danger" onclick="deleteDirectoryCustomer(${c.originalIndex})">Delete contact</button>
+              </div>
+            </details>
+          </article>
         `;
       }).join('');
     }
