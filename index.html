@@ -422,6 +422,268 @@
       font-size: 1.4rem;
       letter-spacing: 6px;
     }
+
+    /* Professional UI refresh: restrained surfaces, clearer hierarchy and compact order cards */
+    :root {
+      --primary: #087f68;
+      --primary-dark: #086653;
+      --bg: #f3f6f8;
+      --card-bg: #ffffff;
+      --text: #172b3a;
+      --subtext: #687987;
+      --border: #dfe7eb;
+      --accent: #356b91;
+      --danger: #c74747;
+      --warning: #a96b16;
+      --tile-bg: #f5f8fa;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: var(--card-bg);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      box-shadow: none;
+      padding: 12px 16px;
+    }
+
+    .header-title { font-weight: 750; letter-spacing: -0.025em; }
+    .theme-toggle-btn {
+      background: var(--tile-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    .container { margin-top: 16px; padding-left: 14px; padding-right: 14px; }
+    .card {
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(20, 40, 55, 0.045);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card-title { font-size: 1rem; letter-spacing: -0.02em; }
+    input, select, textarea {
+      border-radius: 9px;
+      min-height: 42px;
+      border-color: var(--border);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(8, 127, 104, 0.16);
+      border-color: var(--primary);
+    }
+    .btn-action { border-radius: 9px; }
+    .btn-sm { border-radius: 7px; min-height: 32px; }
+    .prod-card { border-radius: 11px; }
+    .prod-name { color: var(--text); }
+    .kpi-tile { border: 1px solid var(--border); border-radius: 11px; }
+    nav.bottom-nav {
+      padding: 7px 0 max(7px, env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 18px rgba(20, 40, 55, 0.055);
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(12px);
+    }
+    .nav-btn { font-weight: 600; }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn span { font-size: 1.05rem; margin-bottom: 2px; }
+
+    .order-card {
+      padding: 13px 14px;
+      margin-bottom: 10px;
+      border-radius: 13px;
+      box-shadow: 0 1px 3px rgba(20, 40, 55, 0.04);
+    }
+    .order-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .order-customer { min-width: 0; }
+    .order-customer-name {
+      font-size: 0.98rem;
+      line-height: 1.3;
+      font-weight: 750;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .order-meta {
+      color: var(--subtext);
+      font-size: 0.76rem;
+      margin-top: 4px;
+    }
+    .order-meta span { padding: 0 3px; }
+    .order-total { text-align: right; flex-shrink: 0; }
+    .order-total > strong {
+      display: block;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .order-payment-badge {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 3px 7px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    .order-paid { background: #e8f5ef; color: #19734f; }
+    .order-partial { background: #fff3dc; color: #936015; }
+    .order-due { background: #fcebea; color: #ad3939; }
+    .order-finance-row {
+      display: grid;
+      grid-template-columns: 0.8fr 0.9fr 1.3fr;
+      gap: 8px;
+      padding: 10px 0;
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .order-finance-row > div { min-width: 0; }
+    .order-finance-row span {
+      display: block;
+      color: var(--subtext);
+      font-size: 0.69rem;
+      margin-bottom: 3px;
+    }
+    .order-finance-row strong {
+      display: block;
+      font-size: 0.79rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+    .order-balance-due strong { color: #b54747; }
+    .order-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-top: 9px;
+    }
+    .order-status-control {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+      color: var(--subtext);
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+    .order-status-control .status-select {
+      min-height: 31px;
+      padding: 4px 24px 4px 8px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      color: var(--text);
+      background: var(--tile-bg);
+      border: 1px solid var(--border);
+    }
+    .order-detail-toggle {
+      background: transparent;
+      border: 0;
+      color: var(--primary);
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 7px 2px 7px 8px;
+      cursor: pointer;
+    }
+    .order-primary-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 9px;
+    }
+    .order-primary-actions button {
+      flex: 1;
+      min-height: 37px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+    }
+    .order-pay-btn { background: var(--primary); color: white; }
+    .order-forward-btn { background: #edf3f7; color: #315a76; }
+    .order-settled-note {
+      flex: 1;
+      padding: 9px;
+      color: #19734f;
+      background: #e8f5ef;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .order-details-box {
+      background: var(--tile-bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 12px;
+      margin-top: 11px;
+      line-height: 1.55;
+    }
+    .order-detail-section + .order-detail-section {
+      border-top: 1px solid var(--border);
+      margin-top: 11px;
+      padding-top: 10px;
+    }
+    .order-detail-section h4 {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-size: 0.78rem;
+      letter-spacing: 0.01em;
+    }
+    .order-detail-section > div {
+      font-size: 0.78rem;
+      color: var(--subtext);
+      overflow-wrap: anywhere;
+    }
+    .detail-separator { padding: 0 4px; }
+    .order-item-row, .payment-ledger-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-item-row:last-child, .payment-ledger-row:last-child { border-bottom: 0; }
+    .order-item-row > div:first-child { min-width: 0; }
+    .order-item-row span {
+      display: block;
+      color: var(--subtext);
+      font-size: 0.72rem;
+    }
+    .order-item-value { white-space: nowrap; font-weight: 700; }
+    .payment-ledger-actions { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .payment-ledger-actions strong { color: #19734f; }
+    .order-muted, .orders-empty {
+      color: var(--subtext);
+      text-align: center;
+      padding: 20px 12px;
+      font-size: 0.86rem;
+    }
+    .order-secondary-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .order-secondary-actions .btn-sm { flex: 1; }
+    @media (max-width: 380px) {
+      .order-finance-row { grid-template-columns: 0.8fr 0.9fr 1.2fr; gap: 5px; }
+      .order-finance-row strong { font-size: 0.72rem; }
+      .order-primary-actions { gap: 6px; }
+    }
+
   </style>
 </head>
 <body>
@@ -1862,8 +2124,10 @@
 
     function renderOrdersLog() {
       const container = document.getElementById("ordersList");
+      if (!container) return;
+
       if (savedOrders.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext); text-align:center;'>No orders logged yet.</p>";
+        container.innerHTML = "<div class='orders-empty'>No orders logged yet.</div>";
         return;
       }
 
@@ -1873,7 +2137,8 @@
 
       const filteredOrders = savedOrders.filter(o => {
         if (search) {
-          const matchesSearch = (o.custName || '').toLowerCase().includes(search) || (o.custPhone || '').toLowerCase().includes(search);
+          const matchesSearch = (o.custName || '').toLowerCase().includes(search) ||
+            (o.custPhone || '').toLowerCase().includes(search);
           if (!matchesSearch) return false;
         }
         if (startDate || endDate) {
@@ -1892,101 +2157,117 @@
       });
 
       if (filteredOrders.length === 0) {
-        container.innerHTML = "<p style='color:var(--subtext); text-align:center;'>No orders match these filters.</p>";
+        container.innerHTML = "<div class='orders-empty'>No orders match these filters.</div>";
         return;
       }
 
       container.innerHTML = filteredOrders.map((o) => {
-        const balance = Math.max(0, (o.totalBilling || 0) - (o.paidAmount || 0));
-        let payStatusBadge = `<span class="health-badge health-high">🟢 Paid Full</span>`;
-        if (balance > 0 && (o.paidAmount || 0) > 0) {
-          payStatusBadge = `<span class="health-badge health-mid">🟡 Part Paid (Due ₹${balance.toFixed(2)})</span>`;
-        } else if (balance > 0) {
-          payStatusBadge = `<span class="health-badge health-low">🔴 Unpaid (Due ₹${balance.toFixed(2)})</span>`;
-        }
+        const total = Number(o.totalBilling || 0);
+        const paid = Number(o.paidAmount || 0);
+        const balance = Math.max(0, total - paid);
+        const itemCount = (o.items || []).length;
+        const unitCount = (o.items || []).reduce((sum, item) => sum + Number(item.orderQty || 0), 0);
+        const paymentClass = balance <= 0 ? 'order-paid' : (paid > 0 ? 'order-partial' : 'order-due');
+        const paymentLabel = balance <= 0 ? 'Paid' : (paid > 0 ? 'Part paid' : 'Unpaid');
+        const deliveryStatus = o.deliveryStatus || 'Pending';
 
         const paymentsList = o.payments && o.payments.length > 0
           ? o.payments.map((p, pi) => `
-              <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; border-bottom:1px dashed var(--border);">
-                <span>📅 <strong>${p.date}</strong> ${p.note ? `(${p.note})` : ''}</span>
-                <span style="display:flex; align-items:center; gap:6px;">
-                  <span style="color:var(--text-paid); font-weight:bold;">+ ₹${Number(p.amount).toFixed(2)}</span>
-                  <button class="btn-sm btn-warning" style="padding:2px 7px;" onclick="editPayment(${o.id}, ${pi})">✏️</button>
-                  <button class="btn-sm" style="padding:2px 7px; background:var(--danger); color:#fff;" onclick="deletePayment(${o.id}, ${pi})">🗑️</button>
+              <div class="payment-ledger-row">
+                <span><strong>${p.date}</strong>${p.note ? ` · ${p.note}` : ''}</span>
+                <span class="payment-ledger-actions">
+                  <strong>+ ₹${Number(p.amount).toFixed(2)}</strong>
+                  <button class="btn-sm btn-warning" onclick="editPayment(${o.id}, ${pi})" aria-label="Edit payment">Edit</button>
+                  <button class="btn-sm btn-danger" onclick="deletePayment(${o.id}, ${pi})" aria-label="Delete payment">Delete</button>
                 </span>
               </div>
             `).join('')
-          : '<div style="font-size:0.8rem; color:var(--subtext);">No payments collected yet.</div>';
+          : '<div class="order-muted">No payments collected yet.</div>';
 
         let statutoryText = '';
         if (o.custType === 'Doctor') {
-          if (o.qualification || o.regNo) statutoryText = `🎓 <strong>Qual:</strong> ${o.qualification || 'N/A'} | 📜 <strong>Reg No:</strong> ${o.regNo || 'N/A'}`;
-        } else {
-          if (o.dlNo || o.gstin) statutoryText = `💊 <strong>DL No:</strong> ${o.dlNo || 'N/A'} | 📄 <strong>GSTIN:</strong> ${o.gstin || 'N/A'}`;
+          if (o.qualification || o.regNo) {
+            statutoryText = `<div><strong>Qualification:</strong> ${o.qualification || 'N/A'} <span class="detail-separator">·</span> <strong>Reg. No:</strong> ${o.regNo || 'N/A'}</div>`;
+          }
+        } else if (o.dlNo || o.gstin) {
+          statutoryText = `<div><strong>DL No:</strong> ${o.dlNo || 'N/A'} <span class="detail-separator">·</span> <strong>GSTIN:</strong> ${o.gstin || 'N/A'}</div>`;
         }
 
         return `
-          <div class="order-card">
-            <div class="order-header">
-              <div>
-                <strong>${o.custName}</strong> (${o.custType})
-                <div style="font-size:0.75rem; color:var(--subtext);">${o.date}</div>
+          <article class="order-card">
+            <div class="order-topline">
+              <div class="order-customer">
+                <div class="order-customer-name">${o.custName || 'Unnamed customer'}</div>
+                <div class="order-meta">${o.custType || 'Customer'} <span>·</span> ${o.date || 'Date not available'}</div>
               </div>
-              <div style="text-align:right;">
-                <div style="font-weight:bold; color:var(--primary);">₹${(o.totalBilling || 0).toFixed(2)}</div>
-                <div>${payStatusBadge}</div>
+              <div class="order-total">
+                <strong>₹${total.toFixed(2)}</strong>
+                <span class="order-payment-badge ${paymentClass}">${paymentLabel}</span>
               </div>
             </div>
 
-            <div style="font-size:0.82rem; color:var(--subtext); margin-bottom: 4px;">
-              📞 <strong>Phone:</strong> ${o.custPhone} | 📍 <strong>Address:</strong> ${o.custAddress}
+            <div class="order-finance-row">
+              <div><span>Paid</span><strong>₹${paid.toFixed(2)}</strong></div>
+              <div class="${balance > 0 ? 'order-balance-due' : ''}"><span>Balance</span><strong>₹${balance.toFixed(2)}</strong></div>
+              <div><span>Items</span><strong>${itemCount} products · ${unitCount} units</strong></div>
             </div>
 
-            ${statutoryText ? `<div style="font-size:0.78rem; color:var(--subtext); margin-bottom: 6px;">${statutoryText}</div>` : ''}
-
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:6px; background:var(--tile-bg); padding:6px; border-radius:6px; flex-wrap:wrap; gap:4px;">
-              <div>
-                <strong>Status:</strong>
+            <div class="order-bottom-row">
+              <label class="order-status-control">
+                <span>Delivery</span>
                 <select class="status-select" onchange="changeOrderStatus(${o.id}, this.value)">
-                  <option value="Pending" ${o.deliveryStatus === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
-                  <option value="In Transit" ${o.deliveryStatus === 'In Transit' ? 'selected' : ''}>📦 In Transit</option>
-                  <option value="Delivered" ${o.deliveryStatus === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+                  <option value="Pending" ${deliveryStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                  <option value="In Transit" ${deliveryStatus === 'In Transit' ? 'selected' : ''}>In transit</option>
+                  <option value="Delivered" ${deliveryStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
                 </select>
-              </div>
-              <span>Paid: <strong>₹${(o.paidAmount || 0).toFixed(2)}</strong></span>
-              <span>Due Date: <strong>${o.dueDate || 'Pending Delivery'}</strong></span>
+              </label>
+              <button class="order-detail-toggle" type="button" onclick="toggleOrderDetails(${o.id})">View details <span aria-hidden="true">⌄</span></button>
             </div>
 
-            ${o.custRemarks ? `<div style="font-size:0.78rem; color:var(--warning); margin-top:4px;">💬 <strong>Note:</strong> ${o.custRemarks}</div>` : ''}
+            <div class="order-primary-actions">
+              ${balance > 0 ? `<button class="btn-sm order-pay-btn" onclick="collectPaymentPrompt(${o.id})">Collect payment</button>` : `<span class="order-settled-note">Account settled</span>`}
+              <button class="btn-sm order-forward-btn" onclick="forwardOrderPrompt(${o.id})">Forward order</button>
+            </div>
 
             <div class="order-details-box" id="details-${o.id}">
-              <div style="font-weight:bold; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Terms & Delivery Info:</div>
-              <div><strong>Credit Terms:</strong> ${o.creditDays || 0} Days Credit</div>
-              ${o.cashDiscount > 0 ? `<div><strong>COD Cash Discount:</strong> ${o.cashDiscountPct}% (−₹${o.cashDiscount.toFixed(2)})</div>` : ''}
-              <div><strong>Delivery Date:</strong> ${o.deliveryDate || 'Not Delivered Yet'}</div>
-              <div><strong>Calculated Payment Due:</strong> ${o.dueDate || 'Pending Delivery'}</div>
+              <section class="order-detail-section">
+                <h4>Customer information</h4>
+                <div><strong>Phone:</strong> ${o.custPhone || 'Not provided'}</div>
+                <div><strong>Address:</strong> ${o.custAddress || 'Not provided'}</div>
+                ${statutoryText}
+                ${o.custRemarks ? `<div><strong>Customer note:</strong> ${o.custRemarks}</div>` : ''}
+              </section>
 
-              <div style="font-weight:bold; margin:10px 0 4px 0; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Ordered Items Breakdown:</div>
-              ${(o.items || []).map(i => `
-                <div style="margin-bottom:6px; border-bottom: 1px dashed var(--border); padding-bottom:4px;">
-                  <strong>${i.name}</strong> x${i.orderQty}<br>
-                  <span>Billing: ₹${i.billing.toFixed(2)} | Doc Profit: ₹${i.docSavings.toFixed(1)} (${(i.docMarginPct || 0).toFixed(1)}%)</span>
-                </div>
-              `).join('')}
+              <section class="order-detail-section">
+                <h4>Terms & delivery</h4>
+                <div><strong>Credit terms:</strong> ${o.creditDays || 0} days</div>
+                ${o.cashDiscount > 0 ? `<div><strong>Cash discount:</strong> ${o.cashDiscountPct}% (−₹${Number(o.cashDiscount).toFixed(2)})</div>` : ''}
+                <div><strong>Delivery date:</strong> ${o.deliveryDate || 'Not delivered yet'}</div>
+                <div><strong>Payment due:</strong> ${o.dueDate || 'Pending delivery'}</div>
+              </section>
 
-              <div style="font-weight:bold; margin:10px 0 4px 0; border-bottom:1px solid var(--border); padding-bottom:4px; color:var(--primary);">Payment Collection Ledger (History):</div>
-              ${paymentsList}
+              <section class="order-detail-section">
+                <h4>Ordered items</h4>
+                ${(o.items || []).map(i => `
+                  <div class="order-item-row">
+                    <div><strong>${i.name}</strong><span>Qty: ${i.orderQty}</span></div>
+                    <div class="order-item-value">₹${Number(i.billing || 0).toFixed(2)}</div>
+                  </div>
+                `).join('')}
+              </section>
+
+              <section class="order-detail-section">
+                <h4>Payment history</h4>
+                ${paymentsList}
+              </section>
+
+              <div class="order-secondary-actions">
+                <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">Edit order</button>
+                <button class="btn-sm btn-accent" onclick="reorderOrder(${o.id})">Re-order</button>
+                <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">Delete order</button>
+              </div>
             </div>
-
-            <div class="order-actions">
-              <button class="btn-sm btn-accent" onclick="toggleOrderDetails(${o.id})">👁️ Details</button>
-              <button class="btn-sm btn-warning" onclick="collectPaymentPrompt(${o.id})">💰 Collect Payment</button>
-              <button class="btn-sm btn-whatsapp" onclick="forwardOrderPrompt(${o.id})">📲 Forward</button>
-              <button class="btn-sm btn-warning" onclick="editOrder(${o.id})">✏️ Edit</button>
-              <button class="btn-sm btn-accent" onclick="reorderOrder(${o.id})">🔁 Re-Order</button>
-              <button class="btn-sm btn-danger" onclick="deleteOrder(${o.id})">🗑️ Delete</button>
-            </div>
-          </div>
+          </article>
         `;
       }).join('');
     }
