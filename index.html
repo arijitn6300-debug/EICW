@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EICW Sales Desk PWA</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#059669">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="EICW Sales">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
     :root {
       --primary: #059669;
@@ -238,7 +243,12 @@
       font-size: 0.9rem;
     }
 
+    #appToast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); background: #1f2937; color: #fff; padding: 11px 16px; border-radius: 10px; font-size: 0.88rem; max-width: 90%; white-space: pre-line; z-index: 6000; opacity: 0; pointer-events: none; transition: opacity .2s; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+    #appToast.show { opacity: 1; pointer-events: auto; }
+    #updateBanner { position: fixed; left: 0; right: 0; top: 0; background: #0284c7; color: #fff; padding: 10px 14px; display: none; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.85rem; z-index: 6000; }
+    #updateBanner button { background: #fff; color: #0284c7; border: none; border-radius: 6px; padding: 7px 12px; font-weight: bold; min-height: 36px; }
     .btn-sm {
+      min-height: 38px;
       padding: 6px 10px;
       font-size: 0.8rem;
       border-radius: 4px;
@@ -1449,7 +1459,7 @@
 
       <div class="catalog-search-wrap">
         <label for="searchProduct">Find a product</label>
-        <input type="search" id="searchProduct" placeholder="Search brand name or salt composition..." oninput="renderProducts()">
+        <input type="search" id="searchProduct" placeholder="Search brand name or salt composition..." oninput="debounced(renderProducts)">
         <div class="catalog-search-meta"><span id="productResultCount">0 products</span><span>Search by brand or composition</span></div>
       </div>
 
@@ -1525,7 +1535,7 @@
       <div class="card">
         <div class="card-title">Saved Customer Contacts</div>
         <label for="searchDirectory">Find a customer</label>
-        <input type="search" id="searchDirectory" placeholder="Search name, phone or location..." oninput="renderCustomerDirectoryTab()">
+        <input type="search" id="searchDirectory" placeholder="Search name, phone or location..." oninput="debounced(renderCustomerDirectoryTab)">
         <div class="catalog-search-meta"><span id="directoryResultCount">0 contacts</span><span>Saved customer records</span></div>
         <div id="directoryContainer"></div>
       </div>
@@ -1589,13 +1599,14 @@
         <button class="btn-action" style="background: #16a34a;" onclick="syncWithGoogleSheets()">☁️ Sync All Orders to Google Sheets</button>
         <button class="btn-action" style="background: #7c3aed;" onclick="restoreFromSheets()">⬇️ Restore Latest Backup from Google Sheets</button>
         <input type="url" id="googleWebhookUrl" placeholder="Enter Google Apps Script Webhook URL" style="font-size:0.8rem; margin-top:4px;" onchange="saveWebhookUrl()">
+        <div id="syncStatus" style="font-size:0.75rem; color:var(--subtext); margin-top:6px;"></div>
         <div style="font-size:0.75rem; color:var(--subtext); margin-top:4px;">Once a webhook URL is saved, every save/payment/status change auto-syncs here in the background — no need to tap the sync button manually.</div>
       </div>
 
       <div class="card">
         <div class="card-title">Saved Orders Log & Delivery Tracking</div>
 
-        <input type="text" id="searchOrders" placeholder="Search by customer name or phone..." oninput="renderOrdersLog()">
+        <input type="text" id="searchOrders" placeholder="Search by customer name or phone..." oninput="debounced(renderOrdersLog)">
 
         <div class="form-row">
           <div>
@@ -1685,14 +1696,14 @@
     })();
 
     function saveCatalog() {
-      localStorage.setItem('eicw_catalog', JSON.stringify(CATALOG));
+      safeSave('eicw_catalog', CATALOG);
     }
 
     function refreshProductSelect() {
       const pSelect = document.getElementById("productSelect");
       if (!pSelect) return;
       const prevValue = pSelect.value;
-      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${p.name} - MRP ₹${p.mrp} | TP ₹${p.tpGst}</option>`).join('');
+      pSelect.innerHTML = CATALOG.map(p => `<option value="${p.id}">${esc(p.name)} - MRP ₹${p.mrp} | TP ₹${p.tpGst}</option>`).join('');
       if (CATALOG.some(p => p.id === prevValue)) pSelect.value = prevValue;
       recalculate();
     }
@@ -1813,12 +1824,13 @@
       return v;
     }
 
-    function updateDueDateFromTerm() {
+    async function updateDueDateFromTerm() {
       const val = document.getElementById("orderPaymentTerm").value;
       if (val === "custom") {
-        const customDays = prompt("Enter Custom Credit Days for this customer:", "20");
-        if (customDays !== null && !isNaN(customDays) && customDays.trim() !== "") {
-          selectedCreditDays = Math.max(0, parseInt(customDays));
+        const v = await askForm('Custom Credit Days', 'How many days of credit for this order?',
+          [{ id: 'days', label: 'Credit days', type: 'number', value: selectedCreditDays || 20, step: '1', min: '0' }], 'Set');
+        if (v && v.days !== '' && !isNaN(v.days)) {
+          selectedCreditDays = Math.max(0, parseInt(v.days));
         }
       } else {
         selectedCreditDays = Number(val) || 0;
@@ -1838,7 +1850,7 @@
 
     function renderCustomerDirectoryList() {
       const datalist = document.getElementById("customerDirectoryList");
-      datalist.innerHTML = customerDirectory.map(c => `<option value="${c.name}">${c.type} - ${c.phone || 'No phone'}</option>`).join('');
+      datalist.innerHTML = customerDirectory.map(c => `<option value="${esc(c.name)}">${esc(c.type)} - ${esc(c.phone || 'No phone')}</option>`).join('');
     }
 
     function autoFillCustomerDetails() {
@@ -1861,7 +1873,7 @@
 
         if (matched.remarks && matched.remarks.trim() !== "") {
           alertBox.style.display = "block";
-          alertBox.innerHTML = `<strong>⚠️ Customer Note / Behavioral Alert:</strong> ${matched.remarks}`;
+          alertBox.innerHTML = `<strong>⚠️ Customer Note / Behavioral Alert:</strong> ${esc(matched.remarks)}`;
         } else {
           alertBox.style.display = "none";
         }
@@ -1897,7 +1909,7 @@
           remarks: remarks
         });
       }
-      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      safeSave('eicw_customers', customerDirectory);
       renderCustomerDirectoryList();
       renderCustomerDirectoryTab();
     }
@@ -2086,7 +2098,7 @@
         <article class="catalog-product">
           <div class="catalog-product-main">
             <div class="catalog-product-title-row">
-              <div class="catalog-product-name">${p.name}</div>
+              <div class="catalog-product-name">${esc(p.name)}</div>
               <span class="catalog-category">${p.category || 'Product'}</span>
             </div>
             <div class="catalog-product-composition">${p.composition || 'Composition not added'}</div>
@@ -2266,7 +2278,7 @@
         return `
           <div style="padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 0.85rem;">
             <div style="display:flex; justify-content:space-between; font-weight:bold;">
-              <span>${item.name} x ${item.orderQty}</span>
+              <span>${esc(item.name)} x ${item.orderQty}</span>
               <span>₹${item.billing.toFixed(2)}</span>
             </div>
             <div style="display:flex; justify-content:space-between; color:var(--subtext); font-size:0.78rem; margin-top:2px;">
@@ -2330,6 +2342,7 @@
     }
 
     function saveOrder() {
+      if (isBusy()) return;
       if (cart.length === 0) return alert("Please add at least one item to cart!");
 
       const custType = document.getElementById("custType").value;
@@ -2385,7 +2398,7 @@
         } else {
           customerDirectory.push(newCustObj);
         }
-        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        safeSave('eicw_customers', customerDirectory);
         renderCustomerDirectoryList();
         renderCustomerDirectoryTab();
       }
@@ -2399,6 +2412,8 @@
       const totalCogs = cart.reduce((sum, i) => sum + i.cogs, 0);
       const totalProfit = cart.reduce((sum, i) => sum + i.profit, 0) - cashDiscount + roundOff;
       const totalDocSavings = cart.reduce((sum, i) => sum + i.docSavings, 0) + cashDiscount - roundOff;
+
+      if (paidAmountInput > totalBilling + 0.005) { _busyUntil = 0; return alert(`Advance paid (₹${paidAmountInput.toFixed(2)}) cannot be more than the bill total (₹${totalBilling.toFixed(2)}).`); }
 
       let paymentsHistory = [];
       if (paidAmountInput > 0) {
@@ -2445,7 +2460,7 @@
         alert("Order booked & saved successfully!");
       }
 
-      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      safeSave('eicw_saved_orders', savedOrders);
       autoSyncToSheets();
 
       clearCart();
@@ -2528,7 +2543,7 @@
         const paymentsList = o.payments && o.payments.length > 0
           ? o.payments.map((p, pi) => `
               <div class="payment-ledger-row">
-                <span><strong>${p.date}</strong>${p.note ? ` · ${p.note}` : ''}</span>
+                <span><strong>${p.date}</strong>${p.note ? ` · ${esc(p.note)}` : ''}</span>
                 <span class="payment-ledger-actions">
                   <strong>+ ₹${Number(p.amount).toFixed(2)}</strong>
                   <button class="btn-sm btn-warning" onclick="editPayment(${o.id}, ${pi})" aria-label="Edit payment">Edit</button>
@@ -2541,18 +2556,18 @@
         let statutoryText = '';
         if (o.custType === 'Doctor') {
           if (o.qualification || o.regNo) {
-            statutoryText = `<div><strong>Qualification:</strong> ${o.qualification || 'N/A'} <span class="detail-separator">·</span> <strong>Reg. No:</strong> ${o.regNo || 'N/A'}</div>`;
+            statutoryText = `<div><strong>Qualification:</strong> ${esc(o.qualification || 'N/A')} <span class="detail-separator">·</span> <strong>Reg. No:</strong> ${esc(o.regNo || 'N/A')}</div>`;
           }
         } else if (o.dlNo || o.gstin) {
-          statutoryText = `<div><strong>DL No:</strong> ${o.dlNo || 'N/A'} <span class="detail-separator">·</span> <strong>GSTIN:</strong> ${o.gstin || 'N/A'}</div>`;
+          statutoryText = `<div><strong>DL No:</strong> ${esc(o.dlNo || 'N/A')} <span class="detail-separator">·</span> <strong>GSTIN:</strong> ${esc(o.gstin || 'N/A')}</div>`;
         }
 
         return `
           <article class="order-card">
             <div class="order-topline">
               <div class="order-customer">
-                <div class="order-customer-name">${o.custName || 'Unnamed customer'}</div>
-                <div class="order-meta">${o.custType || 'Customer'} <span>·</span> ${o.date || 'Date not available'}</div>
+                <div class="order-customer-name">${esc(o.custName || 'Unnamed customer')}</div>
+                <div class="order-meta">${esc(o.custType || 'Customer')} <span>·</span> ${o.date || 'Date not available'}</div>
               </div>
               <div class="order-total">
                 <strong>₹${total.toFixed(2)}</strong>
@@ -2586,10 +2601,10 @@
             <div class="order-details-box" id="details-${o.id}">
               <section class="order-detail-section">
                 <h4>Customer information</h4>
-                <div><strong>Phone:</strong> ${o.custPhone || 'Not provided'}</div>
-                <div><strong>Address:</strong> ${o.custAddress || 'Not provided'}</div>
+                <div><strong>Phone:</strong> ${esc(o.custPhone || 'Not provided')}</div>
+                <div><strong>Address:</strong> ${esc(o.custAddress || 'Not provided')}</div>
                 ${statutoryText}
-                ${o.custRemarks ? `<div><strong>Customer note:</strong> ${o.custRemarks}</div>` : ''}
+                ${o.custRemarks ? `<div><strong>Customer note:</strong> ${esc(o.custRemarks)}</div>` : ''}
               </section>
 
               <section class="order-detail-section">
@@ -2620,7 +2635,7 @@
                   return `
                     <div class="order-item-row order-item-scheme-row">
                       <div class="order-item-copy">
-                        <strong>${i.name}</strong>
+                        <strong>${esc(i.name)}</strong>
                         <span>Scheme: ${schemeLabel}</span>
                         <span>Paid / billed: ${Number(i.orderQty || 0)} units</span>
                         <span>${isCashAdjustment ? 'Physical free: 0 units' : `Free under scheme: ${physicalFreeQty} units`}</span>
@@ -2648,24 +2663,23 @@
       }).join('');
     }
 
-    function changeOrderStatus(orderId, newStatus) {
+    async function changeOrderStatus(orderId, newStatus) {
       const order = savedOrders.find(o => o.id === orderId);
       if (!order) return;
 
-      order.deliveryStatus = newStatus;
-      
       if (newStatus === "Delivered") {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const dateInput = prompt("Enter Delivery Date (YYYY-MM-DD):", order.deliveryDate || todayStr);
-        if (dateInput) {
-          order.deliveryDate = dateInput;
-        } else if (!order.deliveryDate) {
-          order.deliveryDate = todayStr;
-        }
+        const todayStr = todayLocal();
+        const v = await askForm('Mark as Delivered', `<strong>${esc(order.custName)}</strong>`,
+          [{ id: 'date', label: 'Delivery date', type: 'date', value: order.deliveryDate || todayStr }], 'Confirm');
+        if (!v) { renderOrdersLog(); return; }
+        order.deliveryStatus = newStatus;
+        order.deliveryDate = isValidDateStr(v.date) ? v.date : (order.deliveryDate || todayStr);
         order.dueDate = calculateDueDateFromDelivery(order.deliveryDate, order.creditDays || 0);
+      } else {
+        order.deliveryStatus = newStatus;
       }
 
-      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      safeSave('eicw_saved_orders', savedOrders);
       autoSyncToSheets();
       renderOrdersLog();
       updateDashboard();
@@ -2676,50 +2690,53 @@
       if (el) el.style.display = el.style.display === "block" ? "none" : "block";
     }
 
-    function collectPaymentPrompt(orderId) {
+    async function collectPaymentPrompt(orderId) {
       const o = savedOrders.find(item => item.id === orderId);
       if (!o) return;
 
       const currentPaid = o.paidAmount || 0;
       const currentDue = Math.max(0, o.totalBilling - currentPaid);
+      const today = todayLocal();
 
-      const additional = prompt(`Customer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}\nAlready Paid: ₹${currentPaid.toFixed(2)}\nBalance Due: ₹${currentDue.toFixed(2)}\n\nEnter payment amount collected (₹):`, currentDue);
-      
-      if (additional !== null && !isNaN(additional) && additional.trim() !== "") {
-        const addNum = Math.max(0, parseFloat(additional));
-        const todayStr = new Date().toISOString().split('T')[0];
-        const payDate = prompt("Enter Payment Received Date (YYYY-MM-DD):", todayStr) || todayStr;
+      const v = await askForm('Collect Payment',
+        `<strong>${esc(o.custName)}</strong><br>Total Bill: ₹${o.totalBilling.toFixed(2)} · Paid: ₹${currentPaid.toFixed(2)}<br>Balance Due: <strong>₹${currentDue.toFixed(2)}</strong>`,
+        [{ id: 'amount', label: 'Amount collected (₹)', type: 'number', value: currentDue.toFixed(2), step: '0.01', min: '0' },
+         { id: 'date', label: 'Payment date', type: 'date', value: today, max: today }],
+        'Save Payment');
+      if (!v) return;
 
-        if (!o.payments) o.payments = [];
-        o.payments.push({
-          date: payDate,
-          amount: addNum,
-          note: "Collected Payment"
-        });
+      const addNum = parseFloat(v.amount);
+      if (isNaN(addNum) || addNum <= 0) return alert("Enter an amount greater than 0.");
+      if (!isValidDateStr(v.date)) return alert("Enter a valid payment date.");
+      if (v.date > today) return alert("Payment date cannot be in the future.");
+      if (addNum > currentDue + 0.005 && !confirm(`₹${addNum.toFixed(2)} is more than the balance due (₹${currentDue.toFixed(2)}). Record it anyway?`)) return;
+      const payDate = v.date;
 
-        o.paidAmount = o.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-        o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
-        
-        if (o.balanceDue === 0 && o.deliveryStatus !== "Delivered") {
-          if (confirm("Balance is fully cleared! Would you like to mark this order as Delivered now?")) {
-            o.deliveryStatus = "Delivered";
-            if (!o.deliveryDate) o.deliveryDate = payDate;
-            o.dueDate = calculateDueDateFromDelivery(o.deliveryDate, o.creditDays || 0);
-          }
+      if (!o.payments) o.payments = [];
+      o.payments.push({ date: payDate, amount: addNum, note: "Collected Payment" });
+
+      o.paidAmount = o.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
+
+      if (o.balanceDue === 0 && o.deliveryStatus !== "Delivered") {
+        if (confirm("Balance is fully cleared! Would you like to mark this order as Delivered now?")) {
+          o.deliveryStatus = "Delivered";
+          if (!o.deliveryDate) o.deliveryDate = payDate;
+          o.dueDate = calculateDueDateFromDelivery(o.deliveryDate, o.creditDays || 0);
         }
-
-        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
-        autoSyncToSheets();
-        renderOrdersLog();
-        updateDashboard();
-        alert(`Payment of ₹${addNum.toFixed(2)} recorded on ${payDate}! Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
       }
+
+      safeSave('eicw_saved_orders', savedOrders);
+      autoSyncToSheets();
+      renderOrdersLog();
+      updateDashboard();
+      alert(`✅ Payment of ₹${addNum.toFixed(2)} recorded on ${payDate}. Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
     }
 
     function recalcOrderAfterPaymentChange(o) {
       o.paidAmount = (o.payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
       o.balanceDue = Math.max(0, o.totalBilling - o.paidAmount);
-      localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+      safeSave('eicw_saved_orders', savedOrders);
       autoSyncToSheets();
       renderOrdersLog();
       updateDashboard();
@@ -2727,25 +2744,30 @@
       if (el) el.style.display = "block";
     }
 
-    function editPayment(orderId, idx) {
+    async function editPayment(orderId, idx) {
       const o = savedOrders.find(item => item.id === orderId);
       if (!o || !o.payments || !o.payments[idx]) return;
       const p = o.payments[idx];
+      const today = todayLocal();
 
-      const amtStr = prompt(`Edit payment amount (₹)\nCustomer: ${o.custName}\nTotal Bill: ₹${o.totalBilling.toFixed(2)}`, p.amount);
-      if (amtStr === null) return;
-      const amt = parseFloat(amtStr);
-      if (isNaN(amt) || amt < 0) return alert("Invalid amount.");
+      const v = await askForm('Edit Payment',
+        `<strong>${esc(o.custName)}</strong><br>Total Bill: ₹${o.totalBilling.toFixed(2)}`,
+        [{ id: 'amount', label: 'Amount (₹)', type: 'number', value: p.amount, step: '0.01', min: '0' },
+         { id: 'date', label: 'Payment date', type: 'date', value: p.date, max: today }],
+        'Update');
+      if (!v) return;
 
-      const dateStr = prompt("Edit payment date (YYYY-MM-DD):", p.date);
-      if (dateStr === null) return;
-      const newDate = dateStr.trim() || p.date;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate) || isNaN(new Date(newDate).getTime())) return alert("Invalid date. Use YYYY-MM-DD.");
+      const amt = parseFloat(v.amount);
+      if (isNaN(amt) || amt <= 0) return alert("Enter an amount greater than 0.");
+      if (!isValidDateStr(v.date)) return alert("Enter a valid payment date.");
+      if (v.date > today) return alert("Payment date cannot be in the future.");
+      const othersPaid = o.payments.reduce((sum, x, k) => k === idx ? sum : sum + Number(x.amount), 0);
+      if (othersPaid + amt > o.totalBilling + 0.005 && !confirm(`Total payments would be ₹${(othersPaid + amt).toFixed(2)}, more than the bill (₹${o.totalBilling.toFixed(2)}). Save anyway?`)) return;
 
       p.amount = amt;
-      p.date = newDate;
+      p.date = v.date;
       recalcOrderAfterPaymentChange(o);
-      alert(`Payment updated. Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
+      alert(`✅ Payment updated. Remaining Balance: ₹${o.balanceDue.toFixed(2)}`);
     }
 
     function deletePayment(orderId, idx) {
@@ -2795,7 +2817,7 @@
     function deleteOrder(orderId) {
       if (confirm("Delete this order?")) {
         savedOrders = savedOrders.filter(o => o.id !== orderId);
-        localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+        safeSave('eicw_saved_orders', savedOrders);
         autoSyncToSheets();
         renderOrdersLog();
         updateDashboard();
@@ -2860,7 +2882,7 @@
         const status = balance <= 0 ? 'Paid' : (Number(o.paidAmount || 0) > 0 ? 'Part paid' : 'Unpaid');
         const statusClass = balance <= 0 ? 'recent-paid' : (Number(o.paidAmount || 0) > 0 ? 'recent-partial' : 'recent-due');
         return `<button class="dashboard-recent-order" onclick="switchTabById('tab-orders')">
-          <span class="recent-order-copy"><strong>${o.custName || 'Unnamed customer'}</strong><small>${o.date || 'Date unavailable'} · ${o.custType || 'Customer'}</small></span>
+          <span class="recent-order-copy"><strong>${esc(o.custName || 'Unnamed customer')}</strong><small>${o.date || 'Date unavailable'} · ${esc(o.custType || 'Customer')}</small></span>
           <span class="recent-order-value"><strong>₹${total.toFixed(2)}</strong><small class="${statusClass}">${status}${balance > 0 ? ` · ₹${balance.toFixed(2)} due` : ''}</small></span>
         </button>`;
       }).join('');
@@ -2968,7 +2990,7 @@
           return `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border); font-size:0.85rem;">
               <div>
-                <strong>${o.custName}</strong><br>
+                <strong>${esc(o.custName)}</strong><br>
                 <span style="color:${isOverdue ? 'var(--text-due)' : 'var(--subtext)'};">Due: ${o.dueDate}${isOverdue ? ' (OVERDUE)' : ''}</span>
               </div>
               <div style="text-align:right;">
@@ -3171,7 +3193,7 @@
         alert("Customer saved to directory!");
       }
 
-      localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+      safeSave('eicw_customers', customerDirectory);
       autoSyncToSheets();
       
       document.getElementById("dirName").value = "";
@@ -3234,7 +3256,7 @@
 
       if (confirm(`Are you sure you want to delete ${c.name} from directory?`)) {
         customerDirectory.splice(index, 1);
-        localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+        safeSave('eicw_customers', customerDirectory);
         autoSyncToSheets();
         if (editingCustomerIdx === index) cancelDirectoryEdit();
         renderCustomerDirectoryList();
@@ -3270,14 +3292,14 @@
           <article class="directory-contact">
             <div class="directory-contact-head">
               <div class="directory-contact-identity">
-                <strong>${c.name || 'Unnamed contact'}</strong>
-                <span>${c.type || 'Customer'}</span>
+                <strong>${esc(c.name || 'Unnamed contact')}</strong>
+                <span>${esc(c.type || 'Customer')}</span>
               </div>
-              ${c.phone ? `<a class="directory-phone" href="tel:${c.phone}">${c.phone}</a>` : `<span class="directory-no-phone">No phone number</span>`}
+              ${c.phone ? `<a class="directory-phone" href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : `<span class="directory-no-phone">No phone number</span>`}
             </div>
             <div class="directory-contact-location">${c.address || 'Address not added'}</div>
             ${statutoryStr ? `<div class="directory-contact-secondary">${statutoryStr}</div>` : ''}
-            ${c.remarks ? `<div class="directory-contact-note">${c.remarks}</div>` : ''}
+            ${c.remarks ? `<div class="directory-contact-note">${esc(c.remarks)}</div>` : ''}
             <details class="directory-contact-actions">
               <summary>Manage contact</summary>
               <div class="catalog-action-row">
@@ -3539,7 +3561,7 @@
             savedOrders.push(order);
           });
 
-          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+          safeSave('eicw_saved_orders', savedOrders);
 
           importedCustomersMap.forEach((custObj) => {
             const existingIdx = customerDirectory.findIndex(c => c.name.toLowerCase() === custObj.name.toLowerCase());
@@ -3549,7 +3571,7 @@
               customerDirectory.push(custObj);
             }
           });
-          localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+          safeSave('eicw_customers', customerDirectory);
 
           renderCustomerDirectoryList();
           renderCustomerDirectoryTab();
@@ -3602,7 +3624,8 @@
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orders: savedOrders, customers: customerDirectory, catalog: CATALOG, syncedAt: new Date().toISOString() })
-      }).catch(() => { /* offline or unreachable right now - will sync on the next change */ });
+      }).then(() => { localStorage.setItem('eicw_last_sync', String(Date.now())); updateSyncStatus(); })
+        .catch(() => { /* offline or unreachable right now - will sync on the next change */ });
     }
 
     // Pulls the latest backup back down from Google Sheets and overwrites
@@ -3628,11 +3651,11 @@
 
         if (Array.isArray(data.orders)) {
           savedOrders = data.orders;
-          localStorage.setItem('eicw_saved_orders', JSON.stringify(savedOrders));
+          safeSave('eicw_saved_orders', savedOrders);
         }
         if (Array.isArray(data.customers)) {
           customerDirectory = data.customers;
-          localStorage.setItem('eicw_customers', JSON.stringify(customerDirectory));
+          safeSave('eicw_customers', customerDirectory);
         }
         if (Array.isArray(data.catalog)) {
           CATALOG = data.catalog;
@@ -3957,6 +3980,112 @@
     function fmtInrShort(n) {
       const whole = Math.abs(n - Math.round(n)) < 0.005;
       return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 });
+    }
+
+    // ---------- Shared helpers: safe save, escaping, toasts, forms ----------
+    function esc(v) {
+      return String(v === undefined || v === null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function safeSave(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        alert("⚠️ Could not save on this device (storage may be full). Your last change is NOT saved. Sync or export a backup now.");
+        return false;
+      }
+    }
+
+    function todayLocal() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function isValidDateStr(v) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(new Date(v).getTime());
+    }
+
+    function showToast(msg) {
+      let t = document.getElementById('appToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'appToast';
+        t.onclick = () => t.classList.remove('show');
+        document.body.appendChild(t);
+      }
+      t.textContent = String(msg);
+      t.classList.add('show');
+      clearTimeout(t._h);
+      t._h = setTimeout(() => t.classList.remove('show'), Math.min(8000, 2500 + String(msg).length * 45));
+    }
+    window.alert = function (msg) { showToast(msg); };
+
+    const _debTimers = {};
+    function debounced(fn, ms) {
+      clearTimeout(_debTimers[fn.name]);
+      _debTimers[fn.name] = setTimeout(fn, ms || 200);
+    }
+
+    let _busyUntil = 0;
+    function isBusy() {
+      if (Date.now() < _busyUntil) return true;
+      _busyUntil = Date.now() + 1200;
+      return false;
+    }
+
+    function askForm(title, infoHtml, fields, okText) {
+      return new Promise(resolve => {
+        const inputStyle = "width:100%; padding:12px; font-size:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); box-sizing:border-box;";
+        const inputs = fields.map(f => `
+          <label style="display:block; text-align:left; font-size:0.8rem; font-weight:bold; margin:12px 0 4px;">${esc(f.label)}</label>
+          <input id="af_${f.id}" type="${f.type || 'text'}" value="${esc(f.value)}" ${f.step ? `step="${f.step}"` : ''} ${f.min !== undefined ? `min="${f.min}"` : ''} ${f.max ? `max="${f.max}"` : ''} ${f.type === 'number' ? 'inputmode="decimal"' : ''} style="${inputStyle}">`).join('');
+        openModal(`
+          <div style="font-weight:bold; font-size:1.05rem;">${esc(title)}</div>
+          <div style="font-size:0.82rem; color:var(--subtext); margin-top:6px; text-align:left; line-height:1.5;">${infoHtml || ''}</div>
+          ${inputs}
+          <div style="display:flex; gap:8px; margin-top:16px;">
+            <button id="af_cancel" style="flex:1; padding:12px; border:1px solid var(--border); background:transparent; color:var(--text); border-radius:8px; font-weight:bold;">Cancel</button>
+            <button id="af_ok" style="flex:1; padding:12px; border:none; background:var(--primary); color:#fff; border-radius:8px; font-weight:bold;">${esc(okText || 'Save')}</button>
+          </div>`);
+        const finish = (v) => { closeModal(); resolve(v); };
+        document.getElementById('af_cancel').onclick = () => finish(null);
+        const submit = () => {
+          const out = {};
+          fields.forEach(f => { out[f.id] = document.getElementById('af_' + f.id).value.trim(); });
+          finish(out);
+        };
+        document.getElementById('af_ok').onclick = submit;
+        fields.forEach(f => document.getElementById('af_' + f.id).addEventListener('keydown', e => { if (e.key === 'Enter') submit(); }));
+        const first = document.getElementById('af_' + fields[0].id);
+        if (first) { first.focus(); if (first.select) first.select(); }
+      });
+    }
+
+    function updateSyncStatus() {
+      const el = document.getElementById('syncStatus');
+      if (!el) return;
+      const url = localStorage.getItem('eicw_webhook_url');
+      const last = localStorage.getItem('eicw_last_sync');
+      if (!url) { el.textContent = "⚠️ No Google Sheets backup set up — data lives only on this device."; return; }
+      el.textContent = last ? `✅ Last backup sent: ${new Date(Number(last)).toLocaleString()}` : "⏳ Backup not sent yet.";
+    }
+
+    function showUpdateBanner(worker) {
+      let b = document.getElementById('updateBanner');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'updateBanner';
+        b.innerHTML = '<span>🔄 A new version is ready.</span><button id="updateNowBtn">Update</button>';
+        document.body.appendChild(b);
+      }
+      b.style.display = 'flex';
+      document.getElementById('updateNowBtn').onclick = () => {
+        try { worker.postMessage({ type: 'SKIP_WAITING' }); } catch (e) {}
+        setTimeout(() => location.reload(), 1200);
+      };
     }
 
     function openModal(html) {
@@ -4406,10 +4535,32 @@
 
     window.onload = checkLockOnLoad;
 
+    window.addEventListener('load', () => {
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      updateSyncStatus();
+    });
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch((err) => {
+        const hadController = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          if (reg.waiting && hadController) showUpdateBanner(reg.waiting);
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(nw);
+            });
+          });
+          setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+        }).catch((err) => {
           console.warn('Service worker registration failed:', err);
+        });
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || reloaded) return;
+          reloaded = true;
+          location.reload();
         });
       });
     }
